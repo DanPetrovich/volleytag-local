@@ -165,7 +165,9 @@ async function sendVoiceAudio() {
     if (!response.ok || !data.ok) throw new Error(data.error || 'Не удалось разобрать команду');
     const transcript = data.transcript;
     const parsed = data.event;
-    if (!parsed.action || !parsed.result || !labels[parsed.action]?.[parsed.result]) throw new Error('Модель не распознала действие уверенно');
+    if (!parsed.action || !parsed.result || !labels[parsed.action]?.[parsed.result]) {
+      throw new Error(`Не понял «${transcript}». Ответ модели: ${parsed.action || 'нет действия'} / ${parsed.result || 'нет результата'}`);
+    }
     addEvent(parsed.action, parsed.result, {
       timestamp: Math.max(0, voiceTimestamp - (Number(els.voiceOffset.value) || 0)),
       detail: parsed.detail, rallyOutcome: parsed.rallyOutcome, transcript, source: 'voice'

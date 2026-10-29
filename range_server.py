@@ -3,6 +3,7 @@
 
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from datetime import datetime, timezone
 import json
 import os
 import re
@@ -16,6 +17,7 @@ VOICE_SYSTEM_PROMPT = """Ты преобразуешь короткую русс
 Верни только объект с полями action, result, detail, rallyOutcome, confidence.
 action: reception|attack|serve|block|defense|null.
 result: reception=perfect|positive|negative|error; attack=kill|in_play|blocked|error; serve=ace|out_of_system|in_play|error; block=point|touch|blockout; defense=perfect|in_play|error.
+Для защиты: perfect — только если явно сказано «довёл до связки» или «точная доводка»; in_play — «поднял», «просто поднял», «оставил в игре», «игра продолжилась»; error — «не поднял», «не достал», мяч упал после атаки соперника.
 detail: blockout только когда атакующий попал от блока соперника в аут, иначе null.
 rallyOutcome: won|lost|null. Очко атакой, эйс и блок-очко логически означают won. Ошибка подачи, ошибка приёма, ошибка атаки и атака в блок с очком соперника означают lost. Если сказано только что мяч подняли или действие продолжилось, итог неизвестен.
 Не выдумывай неизвестные поля. Примеры: «забил» => attack/kill/null/won; «атака блокаут» => attack/kill/blockout/won; «эйс» => serve/ace/null/won; «атаку подняли» => attack/in_play/null/null; «приём позитивный проиграли» => reception/positive/null/lost."""
@@ -33,6 +35,7 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         if self.path not in ("/api/parse-voice", "/api/transcribe-voice"):
             self.send_error(404)
             return
+        transcript = ""
         try:
             length = int(self.headers.get("Content-Length", "0"))
             raw_body = self.rfile.read(length)
@@ -46,11 +49,32 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
             if not transcript:
                 raise ValueError("Пустая команда")
             result = self.parse_voice_with_groq(transcript)
+            result = self.normalize_voice_event(transcript, result)
+            self.write_voice_log({"status": "ok", "transcript": transcript, "event": result})
             self.send_json(200, {"ok": True, "transcript": transcript, "event": result})
         except FileNotFoundError:
             self.send_json(503, {"ok": False, "error": "Добавь ключ Groq в файл .groq-key"})
         except Exception as error:
+            self.write_voice_log({"status": "error", "transcript": transcript, "error": str(error)})
             self.send_json(400, {"ok": False, "error": str(error)})
+
+    def write_voice_log(self, record):
+        record = {"timestamp": datetime.now(timezone.utc).isoformat(), **record}
+        path = Path(__file__).resolve().parent / "volleytag-voice.log"
+        with path.open("a", encoding="utf-8") as log:
+            log.write(json.dumps(record, ensure_ascii=False) + "\n")
+
+    def normalize_voice_event(self, transcript, event):
+        text = transcript.lower().replace("ё", "е")
+        if event.get("action") == "defense":
+            if re.search(r"\b(не поднял|не достал|не подняла|не достала)\b", text):
+                event["result"] = "error"
+                event["rallyOutcome"] = "lost"
+            elif "связ" in text or "довел" in text or "точная доводка" in text:
+                event["result"] = "perfect"
+            elif "поднял" in text or "подняла" in text or "игра продолж" in text or "оставил в игре" in text:
+                event["result"] = "in_play"
+        return event
 
     def send_json(self, status, value):
         body = json.dumps(value, ensure_ascii=False).encode("utf-8")
