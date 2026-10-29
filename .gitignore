@@ -11,4 +11,4 @@ __pycache__/
 *-backup.json
 config.local.js
 .groq-key
-volleytag-voice.log
+volleytag-voice*.log
