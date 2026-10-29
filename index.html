@@ -22,8 +22,10 @@
         <video id="video" preload="metadata" controls></video>
         <button class="video-toggle" id="videoToggle" aria-label="Пауза или воспроизведение видео" title="Нажми для паузы или воспроизведения"></button>
         <div class="video-empty" id="videoEmpty">
-          <strong>Выбери видео матча</strong>
-          <span>Файл останется на твоём компьютере</span>
+          <strong>Перетащи сюда видео матча</strong>
+          <span>или</span>
+          <button type="button" id="pickVideoButton">Выбрать файл</button>
+          <small>Видео останется только на твоём компьютере</small>
         </div>
       </div>
 
@@ -60,45 +62,6 @@
         <label class="pause-toggle"><input id="pauseAfterTag" type="checkbox" checked> Пауза после отметки</label>
       </div>
 
-      <section class="tag-panel" aria-label="Панель разметки">
-        <article class="tag-group reception">
-          <header><span>Приём</span><small>Q · W · E · R</small></header>
-          <button data-action="reception" data-result="perfect" data-key="Q"><kbd>Q</kbd><b>Идеальный</b><span>точно в зону связки</span></button>
-          <button data-action="reception" data-result="positive" data-key="W"><kbd>W</kbd><b>Позитивный</b><span>все варианты атаки</span></button>
-          <button data-action="reception" data-result="negative" data-key="E"><kbd>E</kbd><b>Негативный</b><span>атака ограничена</span></button>
-          <button data-action="reception" data-result="error" data-key="R"><kbd>R</kbd><b>Ошибка</b><span>очко сопернику</span></button>
-        </article>
-
-        <article class="tag-group attack">
-          <header><span>Атака</span><small>A · S · D · F</small></header>
-          <button data-action="attack" data-result="kill" data-key="A"><kbd>A</kbd><b>Очко</b><span>результативная атака</span></button>
-          <button data-action="attack" data-result="in_play" data-key="S"><kbd>S</kbd><b>В игре</b><span>розыгрыш продолжился</span></button>
-          <button data-action="attack" data-result="blocked" data-key="D"><kbd>D</kbd><b>Блок</b><span>очко блоком соперника</span></button>
-          <button data-action="attack" data-result="error" data-key="F"><kbd>F</kbd><b>Ошибка</b><span>аут, сетка и другое</span></button>
-        </article>
-
-        <article class="tag-group serve">
-          <header><span>Подача</span><small>Z · X · C · V</small></header>
-          <button data-action="serve" data-result="ace" data-key="Z"><kbd>Z</kbd><b>Эйс</b><span>сразу выигранное очко</span></button>
-          <button data-action="serve" data-result="out_of_system" data-key="X"><kbd>X</kbd><b>Выбитый приём</b><span>мяч не доведён связующему</span></button>
-          <button data-action="serve" data-result="in_play" data-key="C"><kbd>C</kbd><b>В игре</b><span>обычный приём соперника</span></button>
-          <button data-action="serve" data-result="error" data-key="V"><kbd>V</kbd><b>Ошибка</b><span>аут или сетка</span></button>
-        </article>
-
-        <article class="tag-group block">
-          <header><span>Блок</span><small>B · N · M</small></header>
-          <button data-action="block" data-result="point" data-key="B"><kbd>B</kbd><b>Очко</b><span>результативный блок</span></button>
-          <button data-action="block" data-result="touch" data-key="N"><kbd>N</kbd><b>Касание</b><span>смягчение атаки</span></button>
-          <button data-action="block" data-result="blockout" data-key="M"><kbd>M</kbd><b>Блокаут</b><span>очко сопернику от блока</span></button>
-        </article>
-
-        <article class="tag-group defense">
-          <header><span>Защита</span><small>G · H · J</small></header>
-          <button data-action="defense" data-result="perfect" data-key="G"><kbd>G</kbd><b>В доводку</b><span>можно организовать атаку</span></button>
-          <button data-action="defense" data-result="in_play" data-key="H"><kbd>H</kbd><b>В игре</b><span>мяч поднят без доводки</span></button>
-          <button data-action="defense" data-result="error" data-key="J"><kbd>J</kbd><b>Не поднял</b><span>атака соперника дала очко</span></button>
-        </article>
-      </section>
     </section>
 
     <aside class="sidebar">
@@ -111,9 +74,56 @@
           <div><span>Эффективность атаки</span><b id="attackEfficiency">—</b><small id="attackEfficiencyDetail">0 / 0</small></div>
           <div><span>Давление подачей</span><b id="servePressure">—</b><small id="servePressureDetail">0 из 0</small></div>
           <div><span>Ошибки подачи</span><b id="serveErrors">0</b><small id="serveErrorsDetail">0 подач</small></div>
-          <div><span>Защита в игре</span><b id="defenseRate">—</b><small id="defenseRateDetail">0 из 0</small></div>
-          <div><span>Защита в доводку</span><b id="perfectDefense">—</b><small id="perfectDefenseDetail">0 из 0</small></div>
+          <div><span>Защита поднята</span><b id="defenseRate">—</b><small id="defenseRateDetail">0 из 0</small></div>
+          <div><span>Защита доведена</span><b id="perfectDefense">—</b><small id="perfectDefenseDetail">0 из 0</small></div>
         </div>
+      </section>
+
+      <section class="tag-panel card" aria-label="Панель разметки">
+        <nav class="tag-tabs" aria-label="Выбор действия">
+          <button class="active" data-tag-tab="reception">Приём</button>
+          <button data-tag-tab="attack">Атака</button>
+          <button data-tag-tab="serve">Подача</button>
+          <button data-tag-tab="block">Блок</button>
+          <button data-tag-tab="defense">Защита</button>
+        </nav>
+        <article class="tag-group reception">
+          <header><span>Приём</span><small>Q · W · E · R</small></header>
+          <button data-action="reception" data-result="perfect" data-key="Q"><kbd>Q</kbd><b>Идеальный</b><span>точно в зону связки</span></button>
+          <button data-action="reception" data-result="positive" data-key="W"><kbd>W</kbd><b>Позитивный</b><span>все варианты атаки</span></button>
+          <button data-action="reception" data-result="negative" data-key="E"><kbd>E</kbd><b>Негативный</b><span>атака ограничена</span></button>
+          <button data-action="reception" data-result="error" data-key="R"><kbd>R</kbd><b>Ошибка</b><span>очко сопернику</span></button>
+        </article>
+
+        <article class="tag-group attack" hidden>
+          <header><span>Атака</span><small>A · S · D · F</small></header>
+          <button data-action="attack" data-result="kill" data-key="A"><kbd>A</kbd><b>Очко</b><span>результативная атака</span></button>
+          <button data-action="attack" data-result="in_play" data-key="S"><kbd>S</kbd><b>В игре</b><span>розыгрыш продолжился</span></button>
+          <button data-action="attack" data-result="blocked" data-key="D"><kbd>D</kbd><b>Блок</b><span>очко блоком соперника</span></button>
+          <button data-action="attack" data-result="error" data-key="F"><kbd>F</kbd><b>Ошибка</b><span>аут, сетка и другое</span></button>
+        </article>
+
+        <article class="tag-group serve" hidden>
+          <header><span>Подача</span><small>Z · X · C · V</small></header>
+          <button data-action="serve" data-result="ace" data-key="Z"><kbd>Z</kbd><b>Эйс</b><span>сразу выигранное очко</span></button>
+          <button data-action="serve" data-result="out_of_system" data-key="X"><kbd>X</kbd><b>Выбитый приём</b><span>мяч не доведён связующему</span></button>
+          <button data-action="serve" data-result="in_play" data-key="C"><kbd>C</kbd><b>В игре</b><span>обычный приём соперника</span></button>
+          <button data-action="serve" data-result="error" data-key="V"><kbd>V</kbd><b>Ошибка</b><span>аут или сетка</span></button>
+        </article>
+
+        <article class="tag-group block" hidden>
+          <header><span>Блок</span><small>B · N · M</small></header>
+          <button data-action="block" data-result="point" data-key="B"><kbd>B</kbd><b>Очко</b><span>результативный блок</span></button>
+          <button data-action="block" data-result="touch" data-key="N"><kbd>N</kbd><b>Касание</b><span>смягчение атаки</span></button>
+          <button data-action="block" data-result="blockout" data-key="M"><kbd>M</kbd><b>Блокаут</b><span>очко сопернику от блока</span></button>
+        </article>
+
+        <article class="tag-group defense" hidden>
+          <header><span>Защита</span><small>G · H · J</small></header>
+          <button data-action="defense" data-result="perfect" data-key="G"><kbd>G</kbd><b>Довёл до связки</b><span>точная доводка для атаки</span></button>
+          <button data-action="defense" data-result="in_play" data-key="H"><kbd>H</kbd><b>Просто поднял</b><span>мяч остался в игре</span></button>
+          <button data-action="defense" data-result="error" data-key="J"><kbd>J</kbd><b>Не поднял</b><span>атака соперника дала очко</span></button>
+        </article>
       </section>
 
       <section class="card event-log-card">

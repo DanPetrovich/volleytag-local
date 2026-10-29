@@ -10,7 +10,7 @@ const labels = {
   attack: { label: 'Атака', kill: 'очко', in_play: 'в игре', blocked: 'блок', error: 'ошибка' },
   serve: { label: 'Подача', ace: 'эйс', out_of_system: 'выбитый приём', in_play: 'в игре', error: 'ошибка' },
   block: { label: 'Блок', point: 'очко', touch: 'касание', blockout: 'блокаут' },
-  defense: { label: 'Защита', perfect: 'в доводку', in_play: 'в игре', error: 'не поднял' }
+  defense: { label: 'Защита', perfect: 'довёл до связки', in_play: 'просто поднял', error: 'не поднял' }
 };
 
 let events = loadJson(STORAGE_KEY, []);
@@ -266,11 +266,36 @@ video.addEventListener('timeupdate', () => els.timecode.textContent = formatTime
 video.addEventListener('error', () => { els.videoEmpty.hidden = false; });
 video.addEventListener('loadedmetadata', () => { els.videoEmpty.hidden = true; });
 
-els.videoFile.addEventListener('change', event => {
-  const file = event.target.files[0]; if (!file) return;
+function loadVideoFile(file) {
+  if (!file || !file.type.startsWith('video/')) return showToast('Перетащи видеофайл');
   if (objectUrl) URL.revokeObjectURL(objectUrl);
-  objectUrl = URL.createObjectURL(file); video.src = objectUrl; video.load();
+  objectUrl = URL.createObjectURL(file);
+  video.src = objectUrl;
+  video.load();
+  els.videoEmpty.hidden = true;
+  showToast(`Видео загружено: ${file.name}`);
+}
+
+els.videoFile.addEventListener('change', event => {
+  loadVideoFile(event.target.files[0]);
+  event.target.value = '';
 });
+els.pickVideoButton.addEventListener('click', event => { event.stopPropagation(); els.videoFile.click(); });
+const videoShell = document.querySelector('.video-shell');
+['dragenter', 'dragover'].forEach(type => videoShell.addEventListener(type, event => {
+  event.preventDefault();
+  videoShell.classList.add('dragging');
+}));
+['dragleave', 'drop'].forEach(type => videoShell.addEventListener(type, event => {
+  event.preventDefault();
+  videoShell.classList.remove('dragging');
+}));
+videoShell.addEventListener('drop', event => loadVideoFile(event.dataTransfer.files[0]));
+
+document.querySelectorAll('[data-tag-tab]').forEach(tab => tab.addEventListener('click', () => {
+  document.querySelectorAll('[data-tag-tab]').forEach(item => item.classList.toggle('active', item === tab));
+  document.querySelectorAll('.tag-group').forEach(group => { group.hidden = !group.classList.contains(tab.dataset.tagTab); });
+}));
 
 els.eventLog.addEventListener('click', event => {
   const jump = event.target.closest('[data-jump]');
