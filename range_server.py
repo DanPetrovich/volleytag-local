@@ -59,7 +59,7 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         request_body = json.dumps({
             "model": "openai/gpt-oss-20b",
             "temperature": 0,
-            "max_completion_tokens": 180,
+            "max_completion_tokens": 1200,
             "response_format": {"type": "json_object"},
             "messages": [
                 {"role": "system", "content": VOICE_SYSTEM_PROMPT},
@@ -69,7 +69,11 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         request = urllib.request.Request(
             "https://api.groq.com/openai/v1/chat/completions",
             data=request_body,
-            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+                "User-Agent": "VolleyTag-Local/2.0",
+            },
             method="POST",
         )
         try:
