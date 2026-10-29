@@ -9,3 +9,4 @@ __pycache__/
 *.webm
 *-events.csv
 *-backup.json
+config.local.js
