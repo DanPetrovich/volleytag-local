@@ -19,7 +19,10 @@ let toastTimer = null;
 let voiceHoldTimer = null;
 let voiceHoldStarted = false;
 let voiceTimestamp = 0;
-let recognition = null;
+let mediaRecorder = null;
+let microphoneStream = null;
+let audioChunks = [];
+let recordingStartPending = false;
 
 function loadJson(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
@@ -123,39 +126,44 @@ function setVoiceState(state, title, text) {
   els.voiceText.textContent = text;
 }
 
-function setupVoiceRecognition() {
-  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!Recognition) {
-    setVoiceState('', 'Голос недоступен в этом браузере', 'Открой разметчик в Chrome или Яндекс Браузере');
-    return null;
+async function startVoiceRecording() {
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+    setVoiceState('', 'Запись голоса недоступна', 'Открой разметчик в Chrome, Safari или Яндекс Браузере');
+    return;
   }
-  const instance = new Recognition();
-  instance.lang = 'ru-RU';
-  instance.continuous = false;
-  instance.interimResults = true;
-  instance.maxAlternatives = 1;
-  instance.onstart = () => setVoiceState('listening', 'Слушаю…', 'Говори, пока удерживаешь пробел');
-  instance.onresult = event => {
-    const result = [...event.results].map(item => item[0].transcript).join(' ').trim();
-    els.voiceText.textContent = result || 'Слушаю…';
-    if (event.results[event.results.length - 1].isFinal && result) parseVoiceCommand(result);
-  };
-  instance.onerror = event => {
-    const message = event.error === 'not-allowed' ? 'Разреши доступ к микрофону' : `Ошибка распознавания: ${event.error}`;
+  recordingStartPending = true;
+  try {
+    microphoneStream ||= await navigator.mediaDevices.getUserMedia({ audio: true });
+    if (!voiceHoldStarted) return;
+    audioChunks = [];
+    const preferredType = ['audio/webm;codecs=opus', 'audio/mp4'].find(type => MediaRecorder.isTypeSupported(type)) || '';
+    mediaRecorder = new MediaRecorder(microphoneStream, preferredType ? { mimeType: preferredType } : undefined);
+    mediaRecorder.ondataavailable = event => { if (event.data.size) audioChunks.push(event.data); };
+    mediaRecorder.onstop = sendVoiceAudio;
+    mediaRecorder.start();
+    setVoiceState('listening', 'Слушаю…', 'Говори, пока удерживаешь пробел');
+  } catch (error) {
+    const message = error.name === 'NotAllowedError' ? 'Разреши доступ к микрофону' : error.message;
     setVoiceState('', 'Голосовая отметка не записана', message);
-  };
-  instance.onend = () => {
-    if (els.voiceBar.classList.contains('listening')) setVoiceState('', 'Удерживай пробел и говори', 'Например: «атака, забил, выиграли»');
-  };
-  return instance;
+  } finally {
+    recordingStartPending = false;
+  }
 }
 
-async function parseVoiceCommand(transcript) {
-  setVoiceState('processing', 'Разбираю команду…', transcript);
+function stopVoiceRecording() {
+  if (mediaRecorder?.state === 'recording') mediaRecorder.stop();
+  else if (!recordingStartPending) setVoiceState('', 'Ничего не записалось', 'Зажми пробел чуть дольше и говори');
+}
+
+async function sendVoiceAudio() {
+  const blob = new Blob(audioChunks, { type: mediaRecorder?.mimeType || 'audio/webm' });
+  if (blob.size < 500) return setVoiceState('', 'Запись слишком короткая', 'Зажми пробел и произнеси действие');
+  setVoiceState('processing', 'Распознаю и разбираю…', 'Отправляю короткую запись в Groq');
   try {
-    const response = await fetch('/api/parse-voice', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: transcript }) });
+    const response = await fetch('/api/transcribe-voice', { method: 'POST', headers: { 'Content-Type': blob.type }, body: blob });
     const data = await response.json();
     if (!response.ok || !data.ok) throw new Error(data.error || 'Не удалось разобрать команду');
+    const transcript = data.transcript;
     const parsed = data.event;
     if (!parsed.action || !parsed.result || !labels[parsed.action]?.[parsed.result]) throw new Error('Модель не распознала действие уверенно');
     addEvent(parsed.action, parsed.result, {
@@ -335,8 +343,7 @@ document.addEventListener('keydown', event => {
     voiceHoldTimer = setTimeout(() => {
       voiceHoldTimer = null; voiceHoldStarted = true;
       voiceTimestamp = video.currentTime;
-      recognition ||= setupVoiceRecognition();
-      try { recognition?.start(); } catch { setVoiceState('', 'Микрофон занят', 'Отпусти пробел и попробуй ещё раз'); }
+      startVoiceRecording();
     }, 180);
     return;
   }
@@ -355,9 +362,13 @@ document.addEventListener('keyup', event => {
   }
   if (voiceHoldStarted) {
     voiceHoldStarted = false;
-    try { recognition?.stop(); } catch {}
+    stopVoiceRecording();
   }
 });
+
+window.addEventListener('keydown', event => {
+  if (event.code === 'Space' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) event.preventDefault();
+}, { passive: false });
 
 const settings = loadJson(SETTINGS_KEY, {});
 if (settings.player) els.playerNumber.value = settings.player;

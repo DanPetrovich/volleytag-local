@@ -9,6 +9,7 @@ import re
 import sys
 import urllib.error
 import urllib.request
+import uuid
 
 
 VOICE_SYSTEM_PROMPT = """Ты преобразуешь короткую русскую голосовую команду разметки волейбола в JSON.
@@ -29,17 +30,23 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         super().end_headers()
 
     def do_POST(self):
-        if self.path != "/api/parse-voice":
+        if self.path not in ("/api/parse-voice", "/api/transcribe-voice"):
             self.send_error(404)
             return
         try:
             length = int(self.headers.get("Content-Length", "0"))
-            payload = json.loads(self.rfile.read(length) or b"{}")
-            transcript = str(payload.get("text", "")).strip()
+            raw_body = self.rfile.read(length)
+            if self.path == "/api/transcribe-voice":
+                if not raw_body:
+                    raise ValueError("Пустая аудиозапись")
+                transcript = self.transcribe_with_groq(raw_body, self.headers.get("Content-Type", "audio/webm"))
+            else:
+                payload = json.loads(raw_body or b"{}")
+                transcript = str(payload.get("text", "")).strip()
             if not transcript:
                 raise ValueError("Пустая команда")
             result = self.parse_voice_with_groq(transcript)
-            self.send_json(200, {"ok": True, "event": result})
+            self.send_json(200, {"ok": True, "transcript": transcript, "event": result})
         except FileNotFoundError:
             self.send_json(503, {"ok": False, "error": "Добавь ключ Groq в файл .groq-key"})
         except Exception as error:
@@ -83,6 +90,37 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
             detail = error.read().decode("utf-8", errors="replace")
             raise RuntimeError(f"Groq ответил {error.code}: {detail[:300]}") from error
         return json.loads(data["choices"][0]["message"]["content"])
+
+    def transcribe_with_groq(self, audio, mime_type):
+        key_path = Path(__file__).resolve().parent / ".groq-key"
+        api_key = os.environ.get("GROQ_API_KEY") or key_path.read_text(encoding="utf-8").strip()
+        boundary = f"----VolleyTag{uuid.uuid4().hex}"
+        extension = "mp4" if "mp4" in mime_type else "wav" if "wav" in mime_type else "webm"
+        parts = [
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"model\"\r\n\r\nwhisper-large-v3-turbo\r\n".encode(),
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"language\"\r\n\r\nru\r\n".encode(),
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"response_format\"\r\n\r\njson\r\n".encode(),
+            f"--{boundary}\r\nContent-Disposition: form-data; name=\"file\"; filename=\"voice.{extension}\"\r\nContent-Type: {mime_type}\r\n\r\n".encode(),
+            audio,
+            f"\r\n--{boundary}--\r\n".encode(),
+        ]
+        request = urllib.request.Request(
+            "https://api.groq.com/openai/v1/audio/transcriptions",
+            data=b"".join(parts),
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": f"multipart/form-data; boundary={boundary}",
+                "User-Agent": "VolleyTag-Local/2.0",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                data = json.loads(response.read())
+        except urllib.error.HTTPError as error:
+            detail = error.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"Groq Speech-to-Text ответил {error.code}: {detail[:300]}") from error
+        return str(data.get("text", "")).strip()
 
     def send_head(self):
         range_header = self.headers.get("Range")
