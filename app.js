@@ -16,6 +16,10 @@ const labels = {
 let events = loadJson(STORAGE_KEY, []);
 let objectUrl = null;
 let toastTimer = null;
+let voiceHoldTimer = null;
+let voiceHoldStarted = false;
+let voiceTimestamp = 0;
+let recognition = null;
 
 function loadJson(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
@@ -35,7 +39,7 @@ function count(action, result) { return events.filter(e => e.action === action &
 
 function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ player: els.playerNumber.value, set: els.setNumber.value, pause: els.pauseAfterTag.checked }));
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify({ player: els.playerNumber.value, set: els.setNumber.value, pause: els.pauseAfterTag.checked, voiceOffset: els.voiceOffset.value }));
   els.saveState.textContent = 'Сохранено локально';
 }
 
@@ -96,18 +100,74 @@ function seekBy(seconds) {
   video.currentTime = Math.min(video.duration, Math.max(0, video.currentTime + seconds));
 }
 
-function addEvent(action, result) {
+function addEvent(action, result, meta = {}) {
   const event = {
-    id: crypto.randomUUID(), player: Number(els.playerNumber.value) || 51, timestamp: Number(video.currentTime.toFixed(2)),
+    id: crypto.randomUUID(), player: Number(els.playerNumber.value) || 51,
+    timestamp: Number((meta.timestamp ?? video.currentTime).toFixed(2)),
     set: Number(els.setNumber.value), score: els.score.value.trim(), action, result,
+    detail: meta.detail || null, rallyOutcome: meta.rallyOutcome || null,
+    transcript: meta.transcript || null, source: meta.source || 'manual',
     note: els.note.value.trim(), createdAt: new Date().toISOString()
   };
   events.push(event);
-  if (els.pauseAfterTag.checked) video.pause();
+  if (els.pauseAfterTag.checked && meta.source !== 'voice') video.pause();
   els.note.value = '';
   save();
   render();
   showToast(`${labels[action].label}: ${labels[action][result]}`);
+}
+
+function setVoiceState(state, title, text) {
+  els.voiceBar.className = `voice-bar card ${state || ''}`;
+  els.voiceTitle.textContent = title;
+  els.voiceText.textContent = text;
+}
+
+function setupVoiceRecognition() {
+  const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Recognition) {
+    setVoiceState('', 'Голос недоступен в этом браузере', 'Открой разметчик в Chrome или Яндекс Браузере');
+    return null;
+  }
+  const instance = new Recognition();
+  instance.lang = 'ru-RU';
+  instance.continuous = false;
+  instance.interimResults = true;
+  instance.maxAlternatives = 1;
+  instance.onstart = () => setVoiceState('listening', 'Слушаю…', 'Говори, пока удерживаешь пробел');
+  instance.onresult = event => {
+    const result = [...event.results].map(item => item[0].transcript).join(' ').trim();
+    els.voiceText.textContent = result || 'Слушаю…';
+    if (event.results[event.results.length - 1].isFinal && result) parseVoiceCommand(result);
+  };
+  instance.onerror = event => {
+    const message = event.error === 'not-allowed' ? 'Разреши доступ к микрофону' : `Ошибка распознавания: ${event.error}`;
+    setVoiceState('', 'Голосовая отметка не записана', message);
+  };
+  instance.onend = () => {
+    if (els.voiceBar.classList.contains('listening')) setVoiceState('', 'Удерживай пробел и говори', 'Например: «атака, забил, выиграли»');
+  };
+  return instance;
+}
+
+async function parseVoiceCommand(transcript) {
+  setVoiceState('processing', 'Разбираю команду…', transcript);
+  try {
+    const response = await fetch('/api/parse-voice', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text: transcript }) });
+    const data = await response.json();
+    if (!response.ok || !data.ok) throw new Error(data.error || 'Не удалось разобрать команду');
+    const parsed = data.event;
+    if (!parsed.action || !parsed.result || !labels[parsed.action]?.[parsed.result]) throw new Error('Модель не распознала действие уверенно');
+    addEvent(parsed.action, parsed.result, {
+      timestamp: Math.max(0, voiceTimestamp - (Number(els.voiceOffset.value) || 0)),
+      detail: parsed.detail, rallyOutcome: parsed.rallyOutcome, transcript, source: 'voice'
+    });
+    const outcome = parsed.rallyOutcome === 'won' ? ' · выиграли' : parsed.rallyOutcome === 'lost' ? ' · проиграли' : '';
+    setVoiceState('success', `${labels[parsed.action].label}: ${labels[parsed.action][parsed.result]}${outcome}`, `«${transcript}»`);
+    setTimeout(() => setVoiceState('', 'Удерживай пробел и говори', 'Например: «атака, забил, выиграли»'), 1800);
+  } catch (error) {
+    setVoiceState('', 'Команда не добавлена', error.message);
+  }
 }
 
 function removeEvent(id) {
@@ -167,7 +227,7 @@ function render() {
   els.eventLog.innerHTML = [...events].reverse().map(event => `
     <div class="event" data-id="${event.id}">
       <button class="event-time ghost" data-jump="${event.timestamp}" title="Перейти к моменту">${formatTime(event.timestamp)}</button>
-      <div class="event-main"><b>${labels[event.action].label} · ${labels[event.action][event.result]}</b><small>Сет ${event.set}${event.score ? ` · ${escapeHtml(event.score)}` : ''}${event.note ? ` · ${escapeHtml(event.note)}` : ''}</small></div>
+      <div class="event-main"><b>${labels[event.action].label} · ${labels[event.action][event.result]}${event.detail === 'blockout' ? ' · от блока в аут' : ''}</b><small>Сет ${event.set}${event.rallyOutcome === 'won' ? ' · розыгрыш выигран' : event.rallyOutcome === 'lost' ? ' · розыгрыш проигран' : ''}${event.score ? ` · ${escapeHtml(event.score)}` : ''}${event.note ? ` · ${escapeHtml(event.note)}` : ''}</small></div>
       <button class="delete-event" data-delete="${event.id}" title="Удалить">×</button>
     </div>`).join('');
 }
@@ -190,8 +250,8 @@ function download(name, content, type) {
 }
 
 function exportCsv() {
-  const header = ['timestamp','seconds','set','score','player','action','result','note'];
-  const rows = events.map(e => [formatTime(e.timestamp, true), e.timestamp, e.set, e.score, e.player, e.action, e.result, e.note]);
+  const header = ['timestamp','seconds','set','score','player','action','result','detail','rally_outcome','source','transcript','note'];
+  const rows = events.map(e => [formatTime(e.timestamp, true), e.timestamp, e.set, e.score, e.player, e.action, e.result, e.detail, e.rallyOutcome, e.source, e.transcript, e.note]);
   download(`volleyball-${els.playerNumber.value || 51}-events.csv`, '\ufeff' + [header, ...rows].map(row => row.map(csvCell).join(',')).join('\n'), 'text/csv;charset=utf-8');
 }
 
@@ -236,7 +296,7 @@ els.clearAll.addEventListener('click', () => {
   if (!events.length || !confirm(`Удалить все события (${events.length})? Сначала можно скачать резервную копию JSON.`)) return;
   events = []; localStorage.removeItem(MATCH_ID_KEY); save(); render(); showToast('Разметка очищена · начат новый матч');
 });
-[els.playerNumber, els.setNumber, els.pauseAfterTag].forEach(el => el.addEventListener('change', () => { save(); render(); }));
+[els.playerNumber, els.setNumber, els.pauseAfterTag, els.voiceOffset].forEach(el => el.addEventListener('change', () => { save(); render(); }));
 [els.matchDate, els.competition, els.opponent, els.setsPlayed, els.sheetsEndpoint, els.sheetsToken]
   .forEach(el => el.addEventListener('change', saveSheetsSettings));
 
@@ -244,16 +304,41 @@ document.addEventListener('keydown', event => {
   const typing = ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName);
   if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); undo(); return; }
   if (typing) return;
-  if (event.code === 'Space') { event.preventDefault(); video.paused ? video.play() : video.pause(); return; }
+  if (event.code === 'Space') {
+    event.preventDefault();
+    if (event.repeat || voiceHoldTimer || voiceHoldStarted) return;
+    voiceHoldTimer = setTimeout(() => {
+      voiceHoldTimer = null; voiceHoldStarted = true;
+      voiceTimestamp = video.currentTime;
+      recognition ||= setupVoiceRecognition();
+      try { recognition?.start(); } catch { setVoiceState('', 'Микрофон занят', 'Отпусти пробел и попробуй ещё раз'); }
+    }, 180);
+    return;
+  }
   if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') { event.preventDefault(); seekBy(event.key === 'ArrowLeft' ? -5 : 5); return; }
   const button = document.querySelector(`[data-key="${event.key.toUpperCase()}"]`);
   if (button) { event.preventDefault(); button.click(); button.classList.add('flash'); setTimeout(() => button.classList.remove('flash'), 150); }
+});
+
+document.addEventListener('keyup', event => {
+  if (event.code !== 'Space' || ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName)) return;
+  event.preventDefault();
+  if (voiceHoldTimer) {
+    clearTimeout(voiceHoldTimer); voiceHoldTimer = null;
+    video.paused ? video.play() : video.pause();
+    return;
+  }
+  if (voiceHoldStarted) {
+    voiceHoldStarted = false;
+    try { recognition?.stop(); } catch {}
+  }
 });
 
 const settings = loadJson(SETTINGS_KEY, {});
 if (settings.player) els.playerNumber.value = settings.player;
 if (settings.set) els.setNumber.value = settings.set;
 if (typeof settings.pause === 'boolean') els.pauseAfterTag.checked = settings.pause;
+if (settings.voiceOffset != null) els.voiceOffset.value = settings.voiceOffset;
 const sheetsSettings = loadJson(SHEETS_KEY, {});
 const localConfig = window.VOLLEYTAG_CONFIG || {};
 els.matchDate.value = sheetsSettings.date || new Date().toISOString().slice(0, 10);

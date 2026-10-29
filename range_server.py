@@ -3,9 +3,21 @@
 
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+import json
 import os
 import re
 import sys
+import urllib.error
+import urllib.request
+
+
+VOICE_SYSTEM_PROMPT = """Ты преобразуешь короткую русскую голосовую команду разметки волейбола в JSON.
+Верни только объект с полями action, result, detail, rallyOutcome, confidence.
+action: reception|attack|serve|block|defense|null.
+result: reception=perfect|positive|negative|error; attack=kill|in_play|blocked|error; serve=ace|out_of_system|in_play|error; block=point|touch|blockout; defense=perfect|in_play|error.
+detail: blockout только когда атакующий попал от блока соперника в аут, иначе null.
+rallyOutcome: won|lost|null. Очко атакой, эйс и блок-очко логически означают won. Ошибка подачи, ошибка приёма, ошибка атаки и атака в блок с очком соперника означают lost. Если сказано только что мяч подняли или действие продолжилось, итог неизвестен.
+Не выдумывай неизвестные поля. Примеры: «забил» => attack/kill/null/won; «атака блокаут» => attack/kill/blockout/won; «эйс» => serve/ace/null/won; «атаку подняли» => attack/in_play/null/null; «приём позитивный проиграли» => reception/positive/null/lost."""
 
 
 class RangeRequestHandler(SimpleHTTPRequestHandler):
@@ -15,6 +27,58 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Accept-Ranges", "bytes")
         self.send_header("Cache-Control", "no-cache")
         super().end_headers()
+
+    def do_POST(self):
+        if self.path != "/api/parse-voice":
+            self.send_error(404)
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            payload = json.loads(self.rfile.read(length) or b"{}")
+            transcript = str(payload.get("text", "")).strip()
+            if not transcript:
+                raise ValueError("Пустая команда")
+            result = self.parse_voice_with_groq(transcript)
+            self.send_json(200, {"ok": True, "event": result})
+        except FileNotFoundError:
+            self.send_json(503, {"ok": False, "error": "Добавь ключ Groq в файл .groq-key"})
+        except Exception as error:
+            self.send_json(400, {"ok": False, "error": str(error)})
+
+    def send_json(self, status, value):
+        body = json.dumps(value, ensure_ascii=False).encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def parse_voice_with_groq(self, transcript):
+        key_path = Path(__file__).resolve().parent / ".groq-key"
+        api_key = os.environ.get("GROQ_API_KEY") or key_path.read_text(encoding="utf-8").strip()
+        request_body = json.dumps({
+            "model": "openai/gpt-oss-20b",
+            "temperature": 0,
+            "max_completion_tokens": 180,
+            "response_format": {"type": "json_object"},
+            "messages": [
+                {"role": "system", "content": VOICE_SYSTEM_PROMPT},
+                {"role": "user", "content": transcript},
+            ],
+        }).encode("utf-8")
+        request = urllib.request.Request(
+            "https://api.groq.com/openai/v1/chat/completions",
+            data=request_body,
+            headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=20) as response:
+                data = json.loads(response.read())
+        except urllib.error.HTTPError as error:
+            detail = error.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"Groq ответил {error.code}: {detail[:300]}") from error
+        return json.loads(data["choices"][0]["message"]["content"])
 
     def send_head(self):
         range_header = self.headers.get("Range")

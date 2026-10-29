@@ -10,3 +10,4 @@ __pycache__/
 *-events.csv
 *-backup.json
 config.local.js
+.groq-key

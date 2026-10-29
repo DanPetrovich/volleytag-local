@@ -1,5 +1,5 @@
 const MATCH_HEADERS = ['match_id','дата','турнир','соперник','игрок','сеты','очки','атаки','очки_атакой','блок_соперника','ошибки_атаки','приёмы','идеальный_приём','позитивный_приём','ошибки_приёма','подачи','эйсы','выбитый_приём','ошибки_подачи','действия_на_блоке','очки_блоком','блокауты','защита','защита_в_доводку','защита_в_игре','комментарий'];
-const EVENT_HEADERS = ['match_id','timestamp','seconds','set','score','player','action','result','note'];
+const EVENT_HEADERS = ['match_id','timestamp','seconds','set','score','player','action','result','detail','rally_outcome','source','transcript','note'];
 
 function doPost(e) {
   try {
@@ -24,7 +24,8 @@ function upsertMatch_(match, events) {
     for (let i = ids.length - 1; i >= 0; i--) if (String(ids[i]) === matchId) eventSheet.deleteRow(i + 2);
   }
   const eventRows = events.map(x => [matchId, time_(x.timestamp), Number(x.timestamp) || 0, Number(x.set) || 1,
-    x.score || '', Number(x.player || match.player) || 51, x.action || '', x.result || '', x.note || '']);
+    x.score || '', Number(x.player || match.player) || 51, x.action || '', x.result || '', x.detail || '',
+    x.rallyOutcome || '', x.source || 'manual', x.transcript || '', x.note || '']);
   if (eventRows.length) eventSheet.getRange(eventSheet.getLastRow() + 1, 1, eventRows.length, EVENT_HEADERS.length).setValues(eventRows);
   const n = (action, result) => events.filter(x => x.action === action && (!result || x.result === result)).length;
   const kills = n('attack', 'kill'), aces = n('serve', 'ace'), blockPoints = n('block', 'point');
