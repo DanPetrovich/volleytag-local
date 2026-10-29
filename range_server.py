@@ -17,10 +17,13 @@ VOICE_SYSTEM_PROMPT = """Ты преобразуешь короткую русс
 Верни только объект с полями action, result, detail, rallyOutcome, confidence.
 action: reception|attack|serve|block|defense|null.
 result: reception=perfect|positive|negative|error; attack=kill|in_play|blocked|error; serve=ace|out_of_system|in_play|error; block=point|touch|blockout; defense=perfect|in_play|error.
+Строго различай reception и defense по источнику мяча, а не по глаголу «принял»:
+- reception — ТОЛЬКО приём подачи соперника. Если явно или по короткой команде говорится о приёме подачи: «приём», «принял подачу», «подачу довёл».
+- defense — любое действие с мячом НЕ после подачи: защита от атаки, скидка, накат, свободный мяч, фрибол, переходящий мяч, страховка. Слова «переходящий мяч», «свободный мяч», «скидка», «атака соперника», «в защите» всегда имеют приоритет и означают defense, даже если человек говорит «принял».
 Для защиты: perfect — только если явно сказано «довёл до связки» или «точная доводка»; in_play — «поднял», «просто поднял», «оставил в игре», «игра продолжилась»; error — «не поднял», «не достал», мяч упал после атаки соперника.
 detail: blockout только когда атакующий попал от блока соперника в аут, иначе null.
 rallyOutcome: won|lost|null. Очко атакой, эйс и блок-очко логически означают won. Ошибка подачи, ошибка приёма, ошибка атаки и атака в блок с очком соперника означают lost. Если сказано только что мяч подняли или действие продолжилось, итог неизвестен.
-Не выдумывай неизвестные поля. Примеры: «забил» => attack/kill/null/won; «атака блокаут» => attack/kill/blockout/won; «эйс» => serve/ace/null/won; «атаку подняли» => attack/in_play/null/null; «приём позитивный проиграли» => reception/positive/null/lost."""
+Не выдумывай неизвестные поля. Примеры: «забил» => attack/kill/null/won; «атака блокаут» => attack/kill/blockout/won; «эйс» => serve/ace/null/won; «атаку подняли» => attack/in_play/null/null; «приём подачи позитивный» => reception/positive/null/null; «принял переходящий мяч, довёл до связки» => defense/perfect/null/null; «свободный мяч просто поднял» => defense/in_play/null/null."""
 
 
 class RangeRequestHandler(SimpleHTTPRequestHandler):
@@ -66,6 +69,12 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
 
     def normalize_voice_event(self, transcript, event):
         text = transcript.lower().replace("ё", "е")
+        defense_context = re.search(
+            r"переходящ|свободн(ый|ого|ому)? мяч|фрибол|фри бол|скидк|накат|страховк|атак[аиуы]? соперник|в защит[еуы]",
+            text,
+        )
+        if defense_context:
+            event["action"] = "defense"
         if event.get("action") == "defense":
             if re.search(r"\b(не поднял|не достал|не подняла|не достала)\b", text):
                 event["result"] = "error"
