@@ -23,6 +23,8 @@ let mediaRecorder = null;
 let microphoneStream = null;
 let audioChunks = [];
 let recordingStartPending = false;
+let videoMutedBeforeVoice = false;
+let videoMuteChangedForVoice = false;
 
 function loadJson(key, fallback) {
   try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
@@ -133,16 +135,27 @@ async function startVoiceRecording() {
   }
   recordingStartPending = true;
   try {
-    microphoneStream ||= await navigator.mediaDevices.getUserMedia({ audio: true });
+    microphoneStream ||= await navigator.mediaDevices.getUserMedia({
+      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+    });
     if (!voiceHoldStarted) return;
     audioChunks = [];
     const preferredType = ['audio/webm;codecs=opus', 'audio/mp4'].find(type => MediaRecorder.isTypeSupported(type)) || '';
     mediaRecorder = new MediaRecorder(microphoneStream, preferredType ? { mimeType: preferredType } : undefined);
     mediaRecorder.ondataavailable = event => { if (event.data.size) audioChunks.push(event.data); };
-    mediaRecorder.onstop = sendVoiceAudio;
+    videoMutedBeforeVoice = video.muted;
+    video.muted = true;
+    videoMuteChangedForVoice = true;
+    mediaRecorder.onstop = () => {
+      video.muted = videoMutedBeforeVoice;
+      videoMuteChangedForVoice = false;
+      sendVoiceAudio();
+    };
     mediaRecorder.start();
     setVoiceState('listening', 'Слушаю…', 'Говори, пока удерживаешь пробел');
   } catch (error) {
+    if (videoMuteChangedForVoice) video.muted = videoMutedBeforeVoice;
+    videoMuteChangedForVoice = false;
     const message = error.name === 'NotAllowedError' ? 'Разреши доступ к микрофону' : error.message;
     setVoiceState('', 'Голосовая отметка не записана', message);
   } finally {
