@@ -1,3 +1,7 @@
+.venv-vision/
+vision/runs/
+vision/*.pt
+yolo*.pt
 __pycache__/
 *.py[cod]
 .DS_Store
@@ -12,3 +16,4 @@ __pycache__/
 config.local.js
 .groq-key
 volleytag-voice*.log
+
