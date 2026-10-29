@@ -111,8 +111,10 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("video", type=Path)
     parser.add_argument("tracks", type=Path)
-    parser.add_argument("--seed-ids", required=True, help="Confirmed temporary IDs, comma-separated")
+    parser.add_argument("--seed-ids", default="", help="Confirmed temporary IDs, comma-separated")
     parser.add_argument("--negative-ids", default="", help="Confirmed other players, comma-separated")
+    parser.add_argument("--profile", type=Path, help="Reusable identity profile (.npz)")
+    parser.add_argument("--save-profile", type=Path, help="Save confirmed crop embeddings as .npz")
     parser.add_argument("--output", type=Path, default=Path("vision/runs/identified"))
     parser.add_argument("--roi", default="40,70,1900,1020")
     parser.add_argument("--stride", type=int, default=2)
@@ -122,8 +124,10 @@ def main() -> None:
     args = parser.parse_args()
 
     args.output.mkdir(parents=True, exist_ok=True)
-    seed_ids = {int(value) for value in args.seed_ids.split(",")}
+    seed_ids = {int(value) for value in args.seed_ids.split(",") if value}
     negative_ids = {int(value) for value in args.negative_ids.split(",") if value}
+    if not seed_ids and not args.profile:
+        raise SystemExit("Provide --seed-ids, --profile, or both")
     roi = tuple(int(value) for value in args.roi.split(","))
     grouped = read_tracks(args.tracks)
     missing = (seed_ids | negative_ids).difference(grouped)
@@ -141,20 +145,48 @@ def main() -> None:
         representatives[track_id] = crops[0]
 
     encoder = create_reid_encoder("osnet-x0-25-msmt17", device="cpu")
-    embeddings = {track_id: normalized_mean(encode_crops(encoder, crops))
-                  for track_id, crops in sample_crops.items()}
-    profile = normalized_mean(np.vstack([embeddings[track_id] for track_id in seed_ids]))
-    positive_scores = {track_id: float(vector @ profile) for track_id, vector in embeddings.items()}
-    if negative_ids:
-        negative_vectors = np.vstack([embeddings[track_id] for track_id in negative_ids])
+    sample_embeddings = {track_id: encode_crops(encoder, crops)
+                         for track_id, crops in sample_crops.items()}
+    sample_embeddings = {
+        track_id: vectors / np.maximum(np.linalg.norm(vectors, axis=1, keepdims=True), 1e-12)
+        for track_id, vectors in sample_embeddings.items()
+    }
+    embeddings = {track_id: normalized_mean(vectors)
+                  for track_id, vectors in sample_embeddings.items()}
+    if args.profile:
+        saved = np.load(args.profile)
+        positive_vectors = saved["positive"]
+        negative_vectors = saved["negative"]
+        if seed_ids:
+            positive_vectors = np.vstack([
+                positive_vectors,
+                *[sample_embeddings[track_id] for track_id in seed_ids],
+            ])
+        if negative_ids:
+            negative_vectors = np.vstack([
+                negative_vectors,
+                *[sample_embeddings[track_id] for track_id in negative_ids],
+            ])
+    else:
+        positive_vectors = np.vstack([sample_embeddings[track_id] for track_id in seed_ids])
+        negative_vectors = (np.vstack([sample_embeddings[track_id] for track_id in negative_ids])
+                            if negative_ids else np.empty((0, positive_vectors.shape[1])))
+    if args.save_profile:
+        args.save_profile.parent.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(args.save_profile, positive=positive_vectors, negative=negative_vectors,
+                            model="osnet-x0-25-msmt17")
+
+    positive_scores = {
+        track_id: float(np.max(vectors @ positive_vectors.T))
+        for track_id, vectors in sample_embeddings.items()
+    }
+    if len(negative_vectors):
         negative_scores = {
-            track_id: float(np.max(negative_vectors @ vector))
-            for track_id, vector in embeddings.items()
+            track_id: float(np.max(vectors @ negative_vectors.T))
+            for track_id, vectors in sample_embeddings.items()
         }
-        scores = {
-            track_id: positive_scores[track_id] - negative_scores[track_id]
-            for track_id in embeddings
-        }
+        scores = {track_id: positive_scores[track_id] - negative_scores[track_id]
+                  for track_id in embeddings}
     else:
         negative_scores = {track_id: 0.0 for track_id in embeddings}
         scores = positive_scores
@@ -171,8 +203,9 @@ def main() -> None:
                              f"{negative_scores[track_id]:.5f}", f"{scores[track_id]:.5f}",
                              is_match(track_id)))
     make_sheet([(tid, scores[tid], representatives[tid]) for tid in ranked[:60]], args.output / "candidates.jpg")
-    make_sheet([(tid, 1.0, representatives[tid]) for tid in sorted(seed_ids)],
-               args.output / "confirmed-positive.jpg")
+    if seed_ids:
+        make_sheet([(tid, 1.0, representatives[tid]) for tid in sorted(seed_ids)],
+                   args.output / "confirmed-positive.jpg")
     if negative_ids:
         make_sheet([(tid, 0.0, representatives[tid]) for tid in sorted(negative_ids)],
                    args.output / "confirmed-negative.jpg")

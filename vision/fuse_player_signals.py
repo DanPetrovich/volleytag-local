@@ -28,6 +28,8 @@ def main() -> None:
     parser.add_argument("video", type=Path)
     parser.add_argument("tracks", type=Path)
     parser.add_argument("ocr", type=Path)
+    parser.add_argument("--similarity", type=Path,
+                        help="Optional ReID similarity.csv used to rank continuity candidates")
     parser.add_argument("--target", default="51")
     parser.add_argument("--output", type=Path, default=Path("vision/runs/fused-player"))
     parser.add_argument("--roi", default="40,70,1900,1020")
@@ -42,6 +44,12 @@ def main() -> None:
     args.output.mkdir(parents=True, exist_ok=True)
     roi = tuple(int(value) for value in args.roi.split(","))
     grouped = read_tracks(args.tracks)
+
+    reid_scores: dict[int, float] = {}
+    if args.similarity:
+        with args.similarity.open(encoding="utf-8") as handle:
+            for row in csv.DictReader(handle):
+                reid_scores[int(row["track_id"])] = float(row["margin"])
 
     anchor_counts: Counter[int] = Counter()
     target_times: list[float] = []
@@ -76,7 +84,11 @@ def main() -> None:
             if normalized > args.max_distance:
                 continue
             # Prefer spatial continuity, then a smaller temporal gap.
-            score = normalized + max(gap, 0) * .35
+            # Geometry is the main signal. ReID is only a tie-breaker: appearance
+            # embeddings are useful, but volleyball uniforms make them unsafe as
+            # a sole identity decision.
+            appearance_bonus = max(-.10, min(.10, reid_scores.get(candidate_id, 0.0)))
+            score = normalized + max(gap, 0) * .35 - appearance_bonus * 1.5
             if best is None or score < best[0]:
                 best = (score, candidate_id, gap, distance)
         if best:

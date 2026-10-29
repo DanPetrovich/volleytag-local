@@ -186,6 +186,37 @@ curl https://api.groq.com/openai/v1/models \
 
 ## Локальный поиск игрока — эксперимент
 
+### Один автономный запуск
+
+Готовый пилот объединяет три сигнала: OCR номера даёт подтверждённый якорь, OSNet ReID
+ранжирует визуально похожие фрагменты, а геометрия траектории склеивает соседние временные ID.
+После установки зависимостей весь процесс запускается одной командой:
+
+```bash
+.venv-vision/bin/python vision/run_player51_pilot.py /путь/к/матчу.mp4 \
+  --output vision/runs/my-match \
+  --profile models/player51-multiview.npz
+```
+
+Главный результат лежит в `my-match/fused/fused-51.mp4`, машинный отчёт — в
+`my-match/report.json`. Если номер ни разу не подтверждён, программа ставит
+`fusion_status: needs_review` и сохраняет `reid/candidates.jpg`, но намеренно не рисует
+«уверенную» рамку по одному ReID. На одинаковой форме это важная защита от ложного игрока.
+
+Файл профиля персонален и исключён из Git. Его можно собрать из уже проверенных временных ID:
+
+```bash
+.venv-vision/bin/python vision/identify_player.py match.mp4 vision/runs/test/tracks.csv \
+  --seed-ids 7,249,261 \
+  --negative-ids 2,4,5,40,125 \
+  --save-profile models/player51-multiview.npz \
+  --output vision/runs/profile-build
+```
+
+Добавлять новые подтверждённые ракурсы можно повторным запуском одновременно с `--profile` и
+`--save-profile`. Практический аудит пилота и известные ограничения собраны в
+[`vision/PILOT_REPORT.md`](vision/PILOT_REPORT.md).
+
 В `vision/track_players.py` лежит первый автономный этап будущего поиска игрока №51. Он:
 
 - находит людей моделью YOLO11;
@@ -235,6 +266,7 @@ ReID, а не готовый распознаватель всех номеро�
 ```bash
 .venv-vision/bin/python vision/fuse_player_signals.py match.mp4 \
   vision/runs/test/tracks.csv vision/runs/number-51/ocr.csv \
+  --similarity vision/runs/player-51/similarity.csv \
   --target 51 --output vision/runs/fused-51
 ```
 
