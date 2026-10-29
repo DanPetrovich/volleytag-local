@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+.DS_Store
+
+# Match video and user exports
+*.mp4
+*.mov
+*.mkv
+*.webm
+*-events.csv
+*-backup.json

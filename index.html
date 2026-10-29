@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VolleyTag Local — разметка матча</title>
+  <meta name="description" content="Локальный разметчик индивидуальной волейбольной статистики">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">51</span>
+      <div><strong>VolleyTag</strong><small>локальная разметка матча</small></div>
+    </div>
+    <div class="save-state" id="saveState">Сохранено локально</div>
+  </header>
+
+  <main class="layout">
+    <section class="workspace">
+      <div class="video-shell">
+        <video id="video" preload="metadata" controls></video>
+        <button class="video-toggle" id="videoToggle" aria-label="Пауза или воспроизведение видео" title="Нажми для паузы или воспроизведения"></button>
+        <div class="video-empty" id="videoEmpty">
+          <strong>Выбери видео матча</strong>
+          <span>Файл останется на твоём компьютере</span>
+        </div>
+      </div>
+
+      <div class="transport card">
+        <button class="transport-btn" data-seek="-5" title="Назад на 5 секунд">−5с</button>
+        <button class="play-btn" id="playButton">▶ Смотреть</button>
+        <button class="transport-btn" data-seek="5" title="Вперёд на 5 секунд">+5с</button>
+        <div class="timecode" id="timecode">00:00:00.0</div>
+        <label class="file-button">Другое видео<input id="videoFile" type="file" accept="video/*"></label>
+      </div>
+
+      <div class="context card">
+        <label>Игрок №
+          <input id="playerNumber" type="number" inputmode="numeric" value="51" min="0" max="999">
+        </label>
+        <label>Сет
+          <select id="setNumber">
+            <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+            <option value="4">4</option><option value="5">5</option>
+          </select>
+        </label>
+        <label>Счёт
+          <input id="score" type="text" inputmode="numeric" placeholder="12:10" maxlength="7">
+        </label>
+        <label class="note-field">Комментарий
+          <input id="note" type="text" placeholder="Например: атака по линии">
+        </label>
+        <label class="pause-toggle"><input id="pauseAfterTag" type="checkbox" checked> Пауза после отметки</label>
+      </div>
+
+      <section class="tag-panel" aria-label="Панель разметки">
+        <article class="tag-group reception">
+          <header><span>Приём</span><small>Q · W · E · R</small></header>
+          <button data-action="reception" data-result="perfect" data-key="Q"><kbd>Q</kbd><b>Идеальный</b><span>точно в зону связки</span></button>
+          <button data-action="reception" data-result="positive" data-key="W"><kbd>W</kbd><b>Позитивный</b><span>все варианты атаки</span></button>
+          <button data-action="reception" data-result="negative" data-key="E"><kbd>E</kbd><b>Негативный</b><span>атака ограничена</span></button>
+          <button data-action="reception" data-result="error" data-key="R"><kbd>R</kbd><b>Ошибка</b><span>очко сопернику</span></button>
+        </article>
+
+        <article class="tag-group attack">
+          <header><span>Атака</span><small>A · S · D · F</small></header>
+          <button data-action="attack" data-result="kill" data-key="A"><kbd>A</kbd><b>Очко</b><span>результативная атака</span></button>
+          <button data-action="attack" data-result="in_play" data-key="S"><kbd>S</kbd><b>В игре</b><span>розыгрыш продолжился</span></button>
+          <button data-action="attack" data-result="blocked" data-key="D"><kbd>D</kbd><b>Блок</b><span>очко блоком соперника</span></button>
+          <button data-action="attack" data-result="error" data-key="F"><kbd>F</kbd><b>Ошибка</b><span>аут, сетка и другое</span></button>
+        </article>
+
+        <article class="tag-group serve">
+          <header><span>Подача</span><small>Z · X · C · V</small></header>
+          <button data-action="serve" data-result="ace" data-key="Z"><kbd>Z</kbd><b>Эйс</b><span>сразу выигранное очко</span></button>
+          <button data-action="serve" data-result="out_of_system" data-key="X"><kbd>X</kbd><b>Выбитый приём</b><span>мяч не доведён связующему</span></button>
+          <button data-action="serve" data-result="in_play" data-key="C"><kbd>C</kbd><b>В игре</b><span>обычный приём соперника</span></button>
+          <button data-action="serve" data-result="error" data-key="V"><kbd>V</kbd><b>Ошибка</b><span>аут или сетка</span></button>
+        </article>
+
+        <article class="tag-group block">
+          <header><span>Блок</span><small>B · N · M</small></header>
+          <button data-action="block" data-result="point" data-key="B"><kbd>B</kbd><b>Очко</b><span>результативный блок</span></button>
+          <button data-action="block" data-result="touch" data-key="N"><kbd>N</kbd><b>Касание</b><span>смягчение атаки</span></button>
+          <button data-action="block" data-result="blockout" data-key="M"><kbd>M</kbd><b>Блокаут</b><span>очко сопернику от блока</span></button>
+        </article>
+
+        <article class="tag-group defense">
+          <header><span>Защита</span><small>G · H · J</small></header>
+          <button data-action="defense" data-result="perfect" data-key="G"><kbd>G</kbd><b>В доводку</b><span>можно организовать атаку</span></button>
+          <button data-action="defense" data-result="in_play" data-key="H"><kbd>H</kbd><b>В игре</b><span>мяч поднят без доводки</span></button>
+          <button data-action="defense" data-result="error" data-key="J"><kbd>J</kbd><b>Не поднял</b><span>атака соперника дала очко</span></button>
+        </article>
+      </section>
+    </section>
+
+    <aside class="sidebar">
+      <section class="card summary">
+        <div class="section-title"><div><small>Игрок</small><h1>№ <span id="playerLabel">51</span></h1></div><div class="total-points"><b id="totalPoints">0</b><span>очков</span></div></div>
+        <div class="metric-grid">
+          <div><span>Позитивный приём</span><b id="positiveReception">—</b><small id="positiveReceptionDetail">0 из 0</small></div>
+          <div><span>Идеальный приём</span><b id="perfectReception">—</b><small id="perfectReceptionDetail">0 из 0</small></div>
+          <div><span>Атака</span><b id="attackRate">—</b><small id="attackRateDetail">0 из 0</small></div>
+          <div><span>Эффективность атаки</span><b id="attackEfficiency">—</b><small id="attackEfficiencyDetail">0 / 0</small></div>
+          <div><span>Давление подачей</span><b id="servePressure">—</b><small id="servePressureDetail">0 из 0</small></div>
+          <div><span>Ошибки подачи</span><b id="serveErrors">0</b><small id="serveErrorsDetail">0 подач</small></div>
+          <div><span>Защита в игре</span><b id="defenseRate">—</b><small id="defenseRateDetail">0 из 0</small></div>
+          <div><span>Защита в доводку</span><b id="perfectDefense">—</b><small id="perfectDefenseDetail">0 из 0</small></div>
+        </div>
+      </section>
+
+      <section class="card event-log-card">
+        <div class="section-title"><div><small>Хронология</small><h2>События <span id="eventCount">0</span></h2></div><button class="ghost danger" id="undoButton" disabled>Отменить</button></div>
+        <div class="event-log" id="eventLog"><div class="empty-log">Первая отметка появится здесь.<br>Запусти видео и нажми кнопку действия.</div></div>
+      </section>
+
+      <section class="card export-card">
+        <button id="exportCsv">Экспорт CSV</button>
+        <button id="exportJson">Резервная копия JSON</button>
+        <label class="import-button">Загрузить JSON<input id="importJson" type="file" accept="application/json,.json"></label>
+        <button class="ghost danger full" id="clearAll">Очистить разметку</button>
+      </section>
+
+      <details class="card shortcuts">
+        <summary>Горячие клавиши</summary>
+        <p><kbd>Space</kbd> пауза · <kbd>←</kbd>/<kbd>→</kbd> ±5 сек · <kbd>⌘ Z</kbd> отменить.</p>
+        <p>Буквы действия указаны прямо на кнопках. Поля счёта и комментария горячие клавиши не перехватывают.</p>
+      </details>
+    </aside>
+  </main>
+
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
