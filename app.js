@@ -2,6 +2,8 @@ const video = document.querySelector('#video');
 const els = Object.fromEntries([...document.querySelectorAll('[id]')].map(el => [el.id, el]));
 const STORAGE_KEY = 'volleytag-51-events-v2';
 const SETTINGS_KEY = 'volleytag-51-settings-v2';
+const SHEETS_KEY = 'volleytag-sheets-settings-v1';
+const MATCH_ID_KEY = 'volleytag-current-match-id-v1';
 
 const labels = {
   reception: { label: 'Приём', perfect: 'идеальный', positive: 'позитивный', negative: 'негативный', error: 'ошибка' },
@@ -35,6 +37,48 @@ function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
   localStorage.setItem(SETTINGS_KEY, JSON.stringify({ player: els.playerNumber.value, set: els.setNumber.value, pause: els.pauseAfterTag.checked }));
   els.saveState.textContent = 'Сохранено локально';
+}
+
+function saveSheetsSettings() {
+  localStorage.setItem(SHEETS_KEY, JSON.stringify({
+    date: els.matchDate.value, competition: els.competition.value.trim(), opponent: els.opponent.value.trim(),
+    sets: els.setsPlayed.value, endpoint: els.sheetsEndpoint.value.trim(), token: els.sheetsToken.value
+  }));
+}
+
+function currentMatchId() {
+  let id = localStorage.getItem(MATCH_ID_KEY);
+  if (!id) { id = crypto.randomUUID(); localStorage.setItem(MATCH_ID_KEY, id); }
+  return id;
+}
+
+async function sendToSheets() {
+  const endpoint = els.sheetsEndpoint.value.trim();
+  const token = els.sheetsToken.value;
+  if (!events.length) return showToast('Сначала разметь хотя бы одно действие');
+  if (!endpoint || !token) return showToast('Добавь URL и ключ подключения');
+  if (!els.matchDate.value || !els.opponent.value.trim()) return showToast('Укажи дату и соперника');
+  saveSheetsSettings();
+  els.sendToSheets.disabled = true;
+  els.sendToSheets.textContent = 'Отправляю…';
+  try {
+    await fetch(endpoint, {
+      method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({
+        token, match: { id: currentMatchId(), date: els.matchDate.value, competition: els.competition.value.trim(),
+          opponent: els.opponent.value.trim(), sets: Number(els.setsPlayed.value) || 1,
+          player: Number(els.playerNumber.value) || 51 }, events
+      })
+    });
+    els.sheetsHint.textContent = 'Запрос отправлен. Матч появится на листах «Матчи» и «События».';
+    showToast('Матч отправлен в Google Sheets');
+  } catch {
+    els.sheetsHint.textContent = 'Не удалось отправить. Проверь URL веб-приложения и интернет.';
+    showToast('Ошибка отправки в таблицу');
+  } finally {
+    els.sendToSheets.disabled = false;
+    els.sendToSheets.textContent = 'Отправить матч в таблицу';
+  }
 }
 
 function showToast(message) {
@@ -177,6 +221,7 @@ els.eventLog.addEventListener('click', event => {
 
 els.undoButton.addEventListener('click', undo);
 els.exportCsv.addEventListener('click', exportCsv);
+els.sendToSheets.addEventListener('click', sendToSheets);
 els.exportJson.addEventListener('click', () => download(`volleyball-${els.playerNumber.value || 51}-backup.json`, JSON.stringify({ version: 1, player: Number(els.playerNumber.value) || 51, exportedAt: new Date().toISOString(), events }, null, 2), 'application/json'));
 els.importJson.addEventListener('change', async event => {
   const file = event.target.files[0]; if (!file) return;
@@ -189,9 +234,11 @@ els.importJson.addEventListener('change', async event => {
 });
 els.clearAll.addEventListener('click', () => {
   if (!events.length || !confirm(`Удалить все события (${events.length})? Сначала можно скачать резервную копию JSON.`)) return;
-  events = []; save(); render(); showToast('Разметка очищена');
+  events = []; localStorage.removeItem(MATCH_ID_KEY); save(); render(); showToast('Разметка очищена · начат новый матч');
 });
 [els.playerNumber, els.setNumber, els.pauseAfterTag].forEach(el => el.addEventListener('change', () => { save(); render(); }));
+[els.matchDate, els.competition, els.opponent, els.setsPlayed, els.sheetsEndpoint, els.sheetsToken]
+  .forEach(el => el.addEventListener('change', saveSheetsSettings));
 
 document.addEventListener('keydown', event => {
   const typing = ['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName);
@@ -207,4 +254,11 @@ const settings = loadJson(SETTINGS_KEY, {});
 if (settings.player) els.playerNumber.value = settings.player;
 if (settings.set) els.setNumber.value = settings.set;
 if (typeof settings.pause === 'boolean') els.pauseAfterTag.checked = settings.pause;
+const sheetsSettings = loadJson(SHEETS_KEY, {});
+els.matchDate.value = sheetsSettings.date || new Date().toISOString().slice(0, 10);
+els.competition.value = sheetsSettings.competition || '';
+els.opponent.value = sheetsSettings.opponent || '';
+els.setsPlayed.value = sheetsSettings.sets || 3;
+els.sheetsEndpoint.value = sheetsSettings.endpoint || '';
+els.sheetsToken.value = sheetsSettings.token || '';
 render();

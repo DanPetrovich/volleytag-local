@@ -116,6 +116,19 @@
       </section>
 
       <section class="card export-card">
+        <details class="sheets-panel" open>
+          <summary>Google Sheets</summary>
+          <div class="sheet-fields">
+            <label>Дата матча<input id="matchDate" type="date"></label>
+            <label>Турнир<input id="competition" type="text" placeholder="ЛЧБ"></label>
+            <label>Соперник<input id="opponent" type="text" placeholder="Название команды"></label>
+            <label>Сетов<input id="setsPlayed" type="number" min="1" max="5" value="3"></label>
+            <label class="wide">URL веб-приложения<input id="sheetsEndpoint" type="url" placeholder="https://script.google.com/macros/s/…/exec"></label>
+            <label class="wide">Ключ подключения<input id="sheetsToken" type="password" autocomplete="off" placeholder="Хранится только в этом браузере"></label>
+          </div>
+          <button class="sheets-send" id="sendToSheets">Отправить матч в таблицу</button>
+          <small class="sheets-hint" id="sheetsHint">При повторной отправке тот же матч обновится, а не задублируется.</small>
+        </details>
         <button id="exportCsv">Экспорт CSV</button>
         <button id="exportJson">Резервная копия JSON</button>
         <label class="import-button">Загрузить JSON<input id="importJson" type="file" accept="application/json,.json"></label>
