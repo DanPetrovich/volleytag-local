@@ -2,6 +2,7 @@
 vision/runs/
 vision/*.pt
 yolo*.pt
+models/
 __pycache__/
 *.py[cod]
 .DS_Store

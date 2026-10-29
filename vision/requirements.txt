@@ -1,2 +1,3 @@
 ultralytics>=8.4,<9
+boxmot>=26,<27
 
