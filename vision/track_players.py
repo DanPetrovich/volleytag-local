@@ -73,7 +73,11 @@ def main() -> None:
     parser.add_argument("video", type=Path)
     parser.add_argument("--output", type=Path, default=Path("vision/runs/latest"))
     parser.add_argument("--model", default="yolo11n.pt")
-    parser.add_argument("--tracker", default="botsort.yaml")
+    parser.add_argument(
+        "--tracker",
+        default=str(Path(__file__).with_name("botsort_reid.yaml")),
+        help="Tracker config; defaults to volleyball-tuned BoT-SORT with visual ReID",
+    )
     parser.add_argument("--device", default="auto", choices=("auto", "cpu", "mps"))
     parser.add_argument("--stride", type=int, default=3,
                         help="Analyze every Nth source frame")

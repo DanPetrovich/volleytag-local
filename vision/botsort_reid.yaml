@@ -1,0 +1,17 @@
+# BoT-SORT tuned for a fixed wide volleyball camera.
+tracker_type: botsort
+track_high_thresh: 0.25
+track_low_thresh: 0.10
+new_track_thresh: 0.30
+track_buffer: 90
+match_thresh: 0.82
+fuse_score: true
+
+# The test camera is fixed, so global camera-motion compensation only adds noise.
+gmc_method: none
+
+# Compare appearance embeddings when reconnecting nearby tracks.
+proximity_thresh: 0.35
+appearance_thresh: 0.75
+with_reid: true
+model: auto
