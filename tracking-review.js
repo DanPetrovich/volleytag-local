@@ -11,7 +11,9 @@ const state = {
   chunks: [],
   chunkByKey: new Map(),
   scores: new Map(),
+  chunkScores: new Map(),
   anchors: [],
+  negatives: [],
   route: [],
   pausedForGap: false,
   preview: null,
@@ -75,6 +77,7 @@ function buildChunks(rows) {
 function center(item) { return [(item.x1 + item.x2) / 2, (item.y1 + item.y2) / 2]; }
 function height(item) { return item.y2 - item.y1; }
 function distance(a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); }
+function appearanceScore(item) { return state.chunkScores.get(item.key) ?? state.scores.get(item.id) ?? 0; }
 
 function boxIou(a, b) {
   const x1 = Math.max(a.x1, b.x1), y1 = Math.max(a.y1, b.y1);
@@ -101,6 +104,7 @@ function deduplicate(items) {
 function rebuildRoute() {
   const anchors = [...state.anchors].sort((a, b) => a.time - b.time);
   const confirmedIds = new Set(anchors.map((anchor) => anchor.trackId));
+  const negativeKeys = new Set(state.negatives.map((negative) => negative.key));
   const points = new Map();
   const putPoint = (item, source, anchorDistance) => {
     const current = points.get(item.frame);
@@ -131,12 +135,12 @@ function rebuildRoute() {
         }
         const predicted = [lastCenter[0] + vx * gap, lastCenter[1] + vy * gap];
         const maxDistance = .38 + gap * 1.35;
-        const ranked = frame.items.map((candidate) => {
+        const ranked = frame.items.filter((candidate) => !negativeKeys.has(candidate.key)).map((candidate) => {
           const normalizedDistance = distance(predicted, center(candidate)) / Math.max(height(last), height(candidate), 1);
           const sizePenalty = Math.abs(Math.log(Math.max(1, height(candidate)) / Math.max(1, height(last)))) * .28;
           const sameTrackBonus = candidate.id === last.id ? .32 : 0;
           const confirmedBonus = confirmedIds.has(candidate.id) ? .2 : 0;
-          const appearanceBonus = Math.max(-.12, Math.min(.12, state.scores.get(candidate.id) || 0)) * .75;
+          const appearanceBonus = Math.max(-.12, Math.min(.12, appearanceScore(candidate))) * .75;
           return { candidate, normalizedDistance, score: normalizedDistance + sizePenalty - sameTrackBonus - confirmedBonus - appearanceBonus };
         }).filter((entry) => entry.normalizedDistance <= maxDistance
           && height(entry.candidate) / Math.max(1, height(last)) > .52
@@ -170,12 +174,12 @@ function rebuildRoute() {
       }
       const predicted = [lastCenter[0] + vx * gap, lastCenter[1] + vy * gap];
       const maxDistance = .38 + gap * 1.35;
-      const ranked = frame.items.map((candidate) => {
+      const ranked = frame.items.filter((candidate) => !negativeKeys.has(candidate.key)).map((candidate) => {
         const normalizedDistance = distance(predicted, center(candidate)) / Math.max(height(last), height(candidate), 1);
         const sizePenalty = Math.abs(Math.log(Math.max(1, height(candidate)) / Math.max(1, height(last)))) * .28;
         const sameTrackBonus = candidate.id === last.id ? .32 : 0;
         const confirmedBonus = confirmedIds.has(candidate.id) ? .2 : 0;
-        const appearanceBonus = Math.max(-.12, Math.min(.12, state.scores.get(candidate.id) || 0)) * .75;
+        const appearanceBonus = Math.max(-.12, Math.min(.12, appearanceScore(candidate))) * .75;
         return { candidate, normalizedDistance, score: normalizedDistance + sizePenalty - sameTrackBonus - confirmedBonus - appearanceBonus };
       }).filter((entry) => entry.normalizedDistance <= maxDistance
         && height(entry.candidate) / Math.max(1, height(last)) > .52
@@ -286,21 +290,28 @@ function formatTime(seconds) {
 
 function storageKey() { return `volleytag-tracking-v3:${state.videoName}:${state.tracksName}`; }
 function saveAnchors() {
-  if (state.videoName && state.tracksName) localStorage.setItem(storageKey(), JSON.stringify(state.anchors));
+  if (state.videoName && state.tracksName) localStorage.setItem(storageKey(), JSON.stringify({ version: 2, anchors: state.anchors, negatives: state.negatives }));
   renderAnchors();
 }
 function loadAnchors() {
-  try { state.anchors = JSON.parse(localStorage.getItem(storageKey()) || "[]"); } catch { state.anchors = []; }
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey()) || "[]");
+    state.anchors = Array.isArray(saved) ? saved : (saved.anchors || []);
+    state.negatives = Array.isArray(saved) ? [] : (saved.negatives || []);
+  } catch { state.anchors = []; state.negatives = []; }
   state.anchors = state.anchors.filter((anchor) => state.chunkByKey.has(anchor.key));
+  state.negatives = state.negatives.filter((negative) => state.chunkByKey.has(negative.key));
   rebuildRoute(); renderAnchors();
 }
 function renderAnchors() {
-  $("#saveState").textContent = `Якорей: ${state.anchors.length}`;
+  $("#saveState").textContent = `Якорей: ${state.anchors.length} · не я: ${state.negatives.length}`;
   const list = $("#anchorList");
-  if (!state.anchors.length) { list.innerHTML = "<p>Пока пусто.</p>"; return; }
+  if (!state.anchors.length && !state.negatives.length) { list.innerHTML = "<p>Пока пусто.</p>"; return; }
   const ordered = state.anchors.map((anchor, originalIndex) => ({ ...anchor, originalIndex })).sort((a, b) => a.time - b.time);
   list.innerHTML = ordered.map((anchor) =>
     `<div class="anchor"><time data-time="${anchor.time}">${formatTime(anchor.time)}</time><div><b>CONFIRMED</b><small>${anchor.key}</small></div><button data-delete="${anchor.originalIndex}">×</button></div>`
+  ).join("") + state.negatives.map((negative) =>
+    `<div class="anchor"><time data-time="${negative.time}">${formatTime(negative.time)}</time><div><b style="color:#ff98a6">НЕ Я</b><small>${negative.key}</small></div></div>`
   ).join("");
   list.querySelectorAll("time").forEach((element) => element.addEventListener("click", () => { video.currentTime = Number(element.dataset.time); }));
   list.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
@@ -330,6 +341,10 @@ canvas.addEventListener("click", (event) => {
 function confirmPreview() {
   if (!state.preview) return;
   const { item, time } = state.preview;
+  const previous = selectionAt(time);
+  if (previous && previous.item.key !== item.key && !state.negatives.some((negative) => negative.key === previous.item.key)) {
+    state.negatives.push({ time, key: previous.item.key, trackId: previous.item.id, reason: "corrected" });
+  }
   state.anchors = state.anchors.filter((anchor) => Math.abs(anchor.time - time) > .35);
   state.anchors.push({ time, key: item.key, trackId: item.id });
   state.preview = null; $("#confirmBox").disabled = true; $("#stageConfirm").hidden = true;
@@ -350,7 +365,9 @@ $("#tracksFile").addEventListener("change", async (event) => {
 });
 $("#scoresFile").addEventListener("change", async (event) => {
   const file = event.target.files[0]; if (!file) return;
-  state.scores = new Map(parseCsv(await file.text()).map((row) => [Number(row.track_id), Number(row.margin)]));
+  const rows = parseCsv(await file.text());
+  state.scores = new Map(rows.map((row) => [Number(row.track_id), Number(row.margin)]));
+  state.chunkScores = new Map(rows.filter((row) => row.key).map((row) => [row.key, Number(row.margin)]));
   rebuildRoute(); toast("ReID-оценки загружены");
 });
 $("#play").addEventListener("click", () => { if (video.paused) video.play(); else video.pause(); });
@@ -358,12 +375,21 @@ document.querySelectorAll("[data-seek]").forEach((button) => button.addEventList
 $("#timeline").addEventListener("input", (event) => { video.currentTime = Number(event.target.value); state.preview = null; $("#confirmBox").disabled = true; $("#stageConfirm").hidden = true; });
 $("#confirmBox").addEventListener("click", confirmPreview);
 $("#stageConfirm").addEventListener("click", confirmPreview);
+$("#rejectCurrent").addEventListener("click", () => {
+  const selected = selectionAt(video.currentTime);
+  if (!selected) { toast("Сейчас нет зелёной рамки"); return; }
+  if (!state.negatives.some((negative) => negative.key === selected.item.key)) {
+    state.negatives.push({ time: video.currentTime, key: selected.item.key, trackId: selected.item.id, reason: "manual" });
+  }
+  video.pause(); rebuildRoute(); saveAnchors();
+  setStatus("lost", "Отмечено: это не ты", "Теперь кликни по своей рамке и подтверди её.");
+});
 $("#fullscreen").addEventListener("click", () => { $("#stage").requestFullscreen?.(); });
 $("#undoAnchor").addEventListener("click", () => { state.anchors.pop(); rebuildRoute(); saveAnchors(); });
-$("#clear").addEventListener("click", () => { state.anchors = []; rebuildRoute(); saveAnchors(); });
+$("#clear").addEventListener("click", () => { state.anchors = []; state.negatives = []; rebuildRoute(); saveAnchors(); });
 $("#export").addEventListener("click", () => {
-  const payload = { version: 1, video: state.videoName, tracks: state.tracksName, roi: [Number($("#roiX").value), Number($("#roiY").value)], anchors: state.anchors };
-  const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })); link.download = "player-51-anchors.json"; link.click(); URL.revokeObjectURL(link.href);
+  const payload = { version: 2, video: state.videoName, tracks: state.tracksName, roi: [Number($("#roiX").value), Number($("#roiY").value)], anchors: state.anchors, negatives: state.negatives };
+  const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })); link.download = "player-51-feedback.json"; link.click(); URL.revokeObjectURL(link.href);
 });
 document.addEventListener("keydown", (event) => {
   if (event.code === "Space" && !event.target.matches("input")) { event.preventDefault(); if (video.paused) video.play(); else video.pause(); }
@@ -397,7 +423,9 @@ async function loadQueryFiles() {
   if (scoresUrl) {
     const response = await fetch(scoresUrl);
     if (!response.ok) throw new Error(`Не удалось загрузить ${scoresUrl}`);
-    state.scores = new Map(parseCsv(await response.text()).map((row) => [Number(row.track_id), Number(row.margin)]));
+    const rows = parseCsv(await response.text());
+    state.scores = new Map(rows.map((row) => [Number(row.track_id), Number(row.margin)]));
+    state.chunkScores = new Map(rows.filter((row) => row.key).map((row) => [row.key, Number(row.margin)]));
   }
   if (tracksUrl) {
     loadAnchors();

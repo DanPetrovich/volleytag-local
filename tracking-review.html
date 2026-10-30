@@ -31,6 +31,7 @@
         <label><input id="pauseOnLost" type="checkbox" checked> Пауза, если потерян</label>
         <input id="timeline" type="range" min="0" max="1" step="0.02" value="0" aria-label="Позиция видео">
         <button class="confirm" id="confirmBox" disabled>✓ Подтвердить выбранную рамку</button>
+        <button class="reject" id="rejectCurrent">✕ Зелёная рамка — не я</button>
       </div>
       <div class="status lost" id="status"><i></i><div><b>Данные не загружены</b><span>Клик по рамке подтверждает, что внутри ты.</span></div></div>
     </section>
@@ -58,9 +59,9 @@
       </section>
 
       <section class="card anchors">
-        <div class="title"><h2>Подтверждения</h2><div><button id="undoAnchor">Отменить последний</button><button id="clear">Очистить</button></div></div>
+        <div class="title"><h2>Обратная связь</h2><div><button id="undoAnchor">Отменить последний</button><button id="clear">Очистить</button></div></div>
         <div id="anchorList" class="anchor-list"><p>Пока пусто.</p></div>
-        <button class="export" id="export">Скачать anchors.json</button>
+        <button class="export" id="export">Скачать player-51-feedback.json</button>
       </section>
     </aside>
   </main>
