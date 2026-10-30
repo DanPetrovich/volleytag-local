@@ -18,12 +18,17 @@ const state = {
   negatives: [],
   segments: [],
   lostEvents: [],
+  manualBoxes: [],
   activeSegmentIndex: null,
   route: [],
   pausedForGap: false,
   lostSince: null,
   preview: null,
   renderedVideoTime: -1,
+  manualMode: false,
+  manualStart: null,
+  manualDraft: null,
+  suppressClick: false,
 };
 
 function parseCsv(text) {
@@ -301,6 +306,9 @@ function render() {
       `Кандидат ${state.preview.index + 1}/${state.preview.candidates.length} · кликни ещё для перебора`);
     setStatus("bridge", "Рамка ещё не подтверждена", "Повторный клик перебирает рамки; затем нажми кнопку подтверждения.");
   }
+  state.manualBoxes.filter((box) => Math.abs(box.time - video.currentTime) <= .15)
+    .forEach((box) => drawBox(box, "#66e6f2", 4, "Даня #51 · MANUAL"));
+  if (state.manualDraft) drawBox(state.manualDraft, "#66e6f2", 3, "Ручная рамка");
   $("#timecode").textContent = formatTime(video.currentTime);
   $("#timeline").value = video.currentTime;
   requestAnimationFrame(render);
@@ -357,7 +365,7 @@ function storageKey() { return `volleytag-tracking-v3:${state.videoName}:${state
 function saveAnchors() {
   if (state.videoName && state.tracksName) localStorage.setItem(storageKey(), JSON.stringify({
     version: 3, anchors: state.anchors, negatives: state.negatives,
-    segments: state.segments, lostEvents: state.lostEvents,
+    segments: state.segments, lostEvents: state.lostEvents, manualBoxes: state.manualBoxes,
     activeSegmentIndex: state.activeSegmentIndex,
   }));
   renderAnchors();
@@ -369,15 +377,16 @@ function loadAnchors() {
     state.negatives = Array.isArray(saved) ? [] : (saved.negatives || []);
     state.segments = Array.isArray(saved) ? [] : (saved.segments || []);
     state.lostEvents = Array.isArray(saved) ? [] : (saved.lostEvents || []);
+    state.manualBoxes = Array.isArray(saved) ? [] : (saved.manualBoxes || []);
     state.activeSegmentIndex = Array.isArray(saved) ? null : (saved.activeSegmentIndex ?? null);
-  } catch { state.anchors = []; state.negatives = []; state.segments = []; state.lostEvents = []; state.activeSegmentIndex = null; }
+  } catch { state.anchors = []; state.negatives = []; state.segments = []; state.lostEvents = []; state.manualBoxes = []; state.activeSegmentIndex = null; }
   state.anchors = state.anchors.filter((anchor) => state.chunkByKey.has(anchor.key));
   state.negatives = state.negatives.filter((negative) => state.chunkByKey.has(negative.key));
   rebuildRoute(); renderAnchors();
 }
 function renderAnchors() {
   $("#saveState").textContent = `Я: ${state.segments.length} · не я: ${state.negatives.length}`;
-  $("#datasetStats").textContent = `Интервалов «я»: ${state.segments.length} · «не я»: ${state.negatives.length} · потерян: ${state.lostEvents.length}`;
+  $("#datasetStats").textContent = `Интервалов «я»: ${state.segments.length} · ручных рамок: ${state.manualBoxes.length} · «не я»: ${state.negatives.length} · потерян: ${state.lostEvents.length}`;
   const active = state.activeSegmentIndex === null ? null : state.segments[state.activeSegmentIndex];
   const activeNode = $("#activeSegment");
   activeNode.className = `active-segment${active ? " live" : ""}`;
@@ -409,6 +418,7 @@ function renderAnchors() {
 function toast(text) { const node = $("#toast"); node.textContent = text; node.classList.add("show"); setTimeout(() => node.classList.remove("show"), 1800); }
 
 canvas.addEventListener("click", (event) => {
+  if (state.manualMode || state.suppressClick) return;
   if (!state.observations.length || !video.videoWidth) return;
   const g = geometry(), rx = Number($("#roiX").value) || 0, ry = Number($("#roiY").value) || 0;
   const x = (event.offsetX - g.left) / g.scale - rx, y = (event.offsetY - g.top) / g.scale - ry;
@@ -423,6 +433,36 @@ canvas.addEventListener("click", (event) => {
   $("#stageConfirm").hidden = false;
   video.pause();
   toast(candidates.length > 1 ? `Здесь ${candidates.length} рамки — повторный клик перебирает` : "Проверь фиолетовую рамку и подтверди");
+});
+
+function canvasPoint(event) {
+  const g = geometry(), rx = Number($("#roiX").value) || 0, ry = Number($("#roiY").value) || 0;
+  return [(event.offsetX - g.left) / g.scale - rx, (event.offsetY - g.top) / g.scale - ry];
+}
+
+canvas.addEventListener("pointerdown", (event) => {
+  if (!state.manualMode) return;
+  video.pause(); canvas.setPointerCapture?.(event.pointerId);
+  state.manualStart = canvasPoint(event);
+  state.manualDraft = null;
+});
+canvas.addEventListener("pointermove", (event) => {
+  if (!state.manualMode || !state.manualStart) return;
+  const [x, y] = canvasPoint(event), [sx, sy] = state.manualStart;
+  state.manualDraft = { x1: Math.min(sx, x), y1: Math.min(sy, y), x2: Math.max(sx, x), y2: Math.max(sy, y) };
+});
+canvas.addEventListener("pointerup", (event) => {
+  if (!state.manualMode || !state.manualStart) return;
+  const [x, y] = canvasPoint(event), [sx, sy] = state.manualStart;
+  const box = { time: video.currentTime, frame: Math.round(video.currentTime * 50), id: -1,
+    key: `manual:${video.currentTime.toFixed(3)}:${state.manualBoxes.length}`,
+    x1: Math.min(sx, x), y1: Math.min(sy, y), x2: Math.max(sx, x), y2: Math.max(sy, y), confidence: 1 };
+  state.manualStart = null; state.manualDraft = null; state.manualMode = false; state.suppressClick = true;
+  $("#stage").classList.remove("manual-draw"); $("#manualBox").classList.remove("active");
+  setTimeout(() => { state.suppressClick = false; }, 0);
+  if (box.x2 - box.x1 < 12 || box.y2 - box.y1 < 20) { toast("Рамка слишком маленькая — попробуй ещё раз"); return; }
+  box.domain = domainFor(box); state.manualBoxes.push(box); saveAnchors();
+  toast(`Ручная рамка сохранена: ${domainLabel(box.domain)}`);
 });
 
 function confirmPreview() {
@@ -490,13 +530,19 @@ $("#markLost").addEventListener("click", () => {
   state.preview = null; video.pause(); saveAnchors();
   setStatus("lost", "Отмечено: тебя не видно", "Продолжай видео и нажми Q, когда снова найдёшь себя.");
 });
+$("#manualBox").addEventListener("click", () => {
+  state.manualMode = !state.manualMode; state.manualStart = null; state.manualDraft = null;
+  $("#stage").classList.toggle("manual-draw", state.manualMode);
+  $("#manualBox").classList.toggle("active", state.manualMode);
+  if (state.manualMode) { video.pause(); toast("Обведи себя прямоугольником на видео"); }
+});
 $("#fullscreen").addEventListener("click", () => { $("#stage").requestFullscreen?.(); });
 $("#undoAnchor").addEventListener("click", () => {
   state.anchors.pop();
   if (state.segments.length) state.segments.pop();
   state.activeSegmentIndex = null; rebuildRoute(); saveAnchors();
 });
-$("#clear").addEventListener("click", () => { state.anchors = []; state.negatives = []; state.segments = []; state.lostEvents = []; state.activeSegmentIndex = null; rebuildRoute(); saveAnchors(); });
+$("#clear").addEventListener("click", () => { state.anchors = []; state.negatives = []; state.segments = []; state.lostEvents = []; state.manualBoxes = []; state.activeSegmentIndex = null; rebuildRoute(); saveAnchors(); });
 $("#export").addEventListener("click", () => {
   const segments = state.segments.map((segment, index) => {
     const end = segment.end ?? (index === state.activeSegmentIndex ? video.currentTime : segment.start);
@@ -507,7 +553,8 @@ $("#export").addEventListener("click", () => {
   const payload = { version: 3, video: state.videoName, tracks: state.tracksName,
     roi: [Number($("#roiX").value), Number($("#roiY").value)],
     domains: { near_back: "ближняя сторона, спиной", far_front: "дальняя сторона, лицом" },
-    segments, anchors: state.anchors, negatives: state.negatives, lostEvents: state.lostEvents };
+    segments, anchors: state.anchors, negatives: state.negatives, lostEvents: state.lostEvents,
+    manualBoxes: state.manualBoxes };
   const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })); link.download = "player-51-training-data.json"; link.click(); URL.revokeObjectURL(link.href);
 });
 document.addEventListener("keydown", (event) => {
@@ -518,6 +565,7 @@ document.addEventListener("keydown", (event) => {
   if (event.code === "KeyQ" && !event.target.matches("input,select")) { event.preventDefault(); confirmPreview(); }
   if (event.code === "KeyW" && !event.target.matches("input,select")) { event.preventDefault(); $("#rejectCurrent").click(); }
   if (event.code === "KeyE" && !event.target.matches("input,select")) { event.preventDefault(); $("#markLost").click(); }
+  if (event.code === "KeyR" && !event.target.matches("input,select")) { event.preventDefault(); $("#manualBox").click(); }
 });
 video.addEventListener("play", () => { $("#play").textContent = "❚❚ Пауза"; });
 video.addEventListener("pause", () => { $("#play").textContent = "▶ Смотреть"; });
