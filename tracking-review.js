@@ -337,7 +337,7 @@ function domainLabel(domain) {
 }
 
 function evaluationDomain() { return $("#evaluationDomain").value; }
-function evaluationStorageKey() { return `volleytag-evaluation-v4:${state.videoName}:${state.tracksName}`; }
+function evaluationStorageKey() { return VolleyTagEvaluation.storageKey(state.videoName, state.tracksName); }
 function nextEvaluationId(prefix) {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
@@ -873,6 +873,7 @@ async function loadQueryFiles() {
   }
   if (tracksUrl) {
     loadAnchors();
+    if (VolleyTagEvaluation.shouldRestoreQueryEvaluation(state.mode, videoUrl, tracksUrl)) loadEvaluation();
     setStatus("lost", "Рамки загружены", "Запусти видео и кликни по себе.");
   }
 }

@@ -54,4 +54,13 @@ assert.deepEqual(Object.keys(exportedV3), [
 ]);
 assert.equal(exportedV3.version, 3);
 
-console.log("evaluation-schema: 7 checks passed");
+const queryVideo = "vision/runs/example/source.mp4";
+const queryTracks = "vision/runs/example/tracking/tracks.csv";
+assert.equal(evaluation.shouldRestoreQueryEvaluation("evaluation", queryVideo, queryTracks), true,
+  "query evaluation reload restores after both input names are known");
+assert.equal(evaluation.shouldRestoreQueryEvaluation("training", queryVideo, queryTracks), false,
+  "training query reload does not load evaluation state");
+assert.equal(evaluation.storageKey(queryVideo, queryTracks),
+  `volleytag-evaluation-v4:${queryVideo}:${queryTracks}`, "query reload uses the populated storage key");
+
+console.log("evaluation-schema: 10 checks passed");

@@ -66,6 +66,14 @@
     return { seconds, ratio: Math.min(1, seconds / total) };
   }
 
+  function storageKey(videoName, tracksName) {
+    return `volleytag-evaluation-v4:${videoName || ""}:${tracksName || ""}`;
+  }
+
+  function shouldRestoreQueryEvaluation(mode, videoUrl, tracksUrl) {
+    return mode === "evaluation" && Boolean(videoUrl) && Boolean(tracksUrl);
+  }
+
   function fullyCovered(start, end, ranges) {
     const clipped = mergeRanges(ranges.map((range) => ({
       start_s: Math.max(start, Number(range.start_s)),
@@ -172,6 +180,6 @@
 
   return {
     SCHEMA, PRESENCE_STATES, DOMAINS, emptyEvaluation, intervalErrors,
-    reviewedCoverage, trainingExport, validateEvaluation,
+    reviewedCoverage, shouldRestoreQueryEvaluation, storageKey, trainingExport, validateEvaluation,
   };
 }));
