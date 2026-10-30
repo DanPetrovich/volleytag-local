@@ -38,7 +38,11 @@ def main() -> None:
     parser.add_argument("--max-distance", type=float, default=1.25,
                         help="Maximum center distance as a multiple of player height")
     parser.add_argument("--post-anchor-seconds", type=float, default=.8,
-                        help="Stop after this long without any later OCR confirmation")
+                        help="Trust an OCR-confirmed track this long after its last anchor")
+    parser.add_argument("--pre-anchor-seconds", type=float, default=.4,
+                        help="Trust an OCR-confirmed track this long before its first anchor")
+    parser.add_argument("--propagate-seconds", type=float, default=1.0,
+                        help="Maximum unconfirmed duration added through a continuity link")
     args = parser.parse_args()
 
     args.output.mkdir(parents=True, exist_ok=True)
@@ -53,26 +57,47 @@ def main() -> None:
 
     anchor_counts: Counter[int] = Counter()
     target_times: list[float] = []
+    anchor_times: dict[int, list[float]] = defaultdict(list)
     with args.ocr.open(encoding="utf-8") as handle:
         for row in csv.DictReader(handle):
             if row["ocr"] == args.target:
                 anchor_counts[int(row["track_id"])] += 1
-                target_times.append(float(row["time_s"]))
+                timestamp = float(row["time_s"])
+                target_times.append(timestamp)
+                anchor_times[int(row["track_id"])].append(timestamp)
     selected = {track_id for track_id, count in anchor_counts.items() if count >= args.min_anchors}
     if not selected:
         raise SystemExit(f"No track has {args.min_anchors} OCR anchors for #{args.target}")
     trust_until = max(target_times) + args.post_anchor_seconds
 
+    # A tracker ID is not an identity. During an occlusion the same ID may jump
+    # to another person, so OCR only validates a local interval around the
+    # actual reads instead of blessing the ID's entire lifetime.
+    segments: dict[int, tuple[float, float, str]] = {}
+    for track_id in selected:
+        track_start = grouped[track_id][0].time_s
+        track_end = grouped[track_id][-1].time_s
+        start = max(track_start, min(anchor_times[track_id]) - args.pre_anchor_seconds)
+        end = min(track_end, max(anchor_times[track_id]) + args.post_anchor_seconds)
+        segments[track_id] = (start, end, "OCR")
+
     links: list[tuple[int, int, float, float]] = []
     frontier = deque(selected)
     while frontier:
         source_id = frontier.popleft()
-        end = grouped[source_id][-1]
+        source_end_time = segments[source_id][1]
+        source_items = [item for item in grouped[source_id] if item.time_s <= source_end_time]
+        if not source_items:
+            continue
+        end = source_items[-1]
         best = None
         for candidate_id, items in grouped.items():
             if candidate_id in selected:
                 continue
-            start = items[0]
+            starts = [item for item in items if item.time_s >= end.time_s - .05]
+            if not starts:
+                continue
+            start = starts[0]
             if start.time_s > trust_until:
                 continue
             gap = start.time_s - end.time_s
@@ -94,15 +119,24 @@ def main() -> None:
         if best:
             _, candidate_id, gap, distance = best
             selected.add(candidate_id)
+            candidate_start = next(item.time_s for item in grouped[candidate_id]
+                                   if item.time_s >= end.time_s - .05)
+            candidate_end = min(grouped[candidate_id][-1].time_s,
+                                candidate_start + args.propagate_seconds, trust_until)
+            segments[candidate_id] = (candidate_start, candidate_end, "TRACK")
             links.append((source_id, candidate_id, gap, distance))
-            frontier.append(candidate_id)
+            # Only continue chaining if this short trusted interval reaches the
+            # natural end of the candidate track. Otherwise we deliberately stop.
+            if candidate_end >= grouped[candidate_id][-1].time_s - .05:
+                frontier.append(candidate_id)
 
     with (args.output / "segments.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
-        writer.writerow(("track_id", "start_s", "end_s", "ocr_anchors"))
-        for track_id in sorted(selected, key=lambda value: grouped[value][0].time_s):
-            writer.writerow((track_id, f"{grouped[track_id][0].time_s:.3f}",
-                             f"{grouped[track_id][-1].time_s:.3f}", anchor_counts[track_id]))
+        writer.writerow(("track_id", "start_s", "end_s", "source", "ocr_anchors"))
+        for track_id in sorted(selected, key=lambda value: segments[value][0]):
+            start, end, source = segments[track_id]
+            writer.writerow((track_id, f"{start:.3f}", f"{end:.3f}", source,
+                             anchor_counts[track_id]))
 
     cap = cv2.VideoCapture(str(args.video))
     fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
@@ -111,8 +145,9 @@ def main() -> None:
                              cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, frame_height))
     by_frame: dict[int, list[Observation]] = defaultdict(list)
     for track_id in selected:
-        items = grouped[track_id]
-        items = [item for item in items if item.time_s <= trust_until]
+        segment_start, segment_end, source = segments[track_id]
+        items = [item for item in grouped[track_id]
+                 if segment_start <= item.time_s <= segment_end]
         for item in items:
             by_frame[item.frame].append(item)
         for left, right in zip(items, items[1:]):
@@ -135,7 +170,7 @@ def main() -> None:
         court = frame[roi[1]:roi[3], roi[0]:roi[2]].copy()
         for item in by_frame.get(frame_index, []):
             x1, y1, x2, y2 = item.box
-            anchored = anchor_counts[item.track_id] >= args.min_anchors
+            anchored = segments[item.track_id][2] == "OCR"
             color = (20, 210, 255) if anchored else (60, 220, 80)
             label = f"Dan #{args.target}  {'OCR' if anchored else 'TRACK'}"
             cv2.rectangle(court, (x1, y1), (x2, y2), color, 4)

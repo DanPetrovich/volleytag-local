@@ -1,0 +1,29 @@
+{
+  "description": "Manual audit of the first five ReID candidates on Balltime-defined rallies.",
+  "rallies": [
+    {
+      "id": 41,
+      "start": "11:43",
+      "end": "11:53",
+      "balltime_action": "11:49 Attack by #51 Dan",
+      "run": "vision/runs/balltime-rally-41/reid/similarity.csv",
+      "top5_labels": {"64": true, "105": true, "56": false, "75": true, "17": true}
+    },
+    {
+      "id": 43,
+      "start": "12:05",
+      "end": "12:21",
+      "balltime_action": "12:08 Reception by #51 Dan",
+      "run": "vision/runs/balltime-rally-43/reid/similarity.csv",
+      "top5_labels": {"56": false, "123": true, "55": false, "53": false, "134": false}
+    },
+    {
+      "id": 50,
+      "start": "13:35",
+      "end": "13:59",
+      "balltime_action": "13:43 Dig by #51 Dan",
+      "run": "vision/runs/balltime-rally-50/reid/similarity.csv",
+      "top5_labels": {"22": true, "251": true, "295": true, "138": false, "239": true}
+    }
+  ]
+}
