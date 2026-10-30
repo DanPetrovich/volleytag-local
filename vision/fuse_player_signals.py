@@ -41,8 +41,14 @@ def main() -> None:
     parser.add_argument("--max-gap", type=float, default=.5)
     parser.add_argument("--max-distance", type=float, default=1.25,
                         help="Maximum center distance as a multiple of player height")
+    parser.add_argument(
+        "--min-continuation-margin", type=float, default=0.0,
+        help="Reject automatic continuation below this ReID margin; manual/OCR seeds are exempt",
+    )
     parser.add_argument("--segment-gap", type=float, default=.25,
                         help="Split a reused tracker ID after this observation gap")
+    parser.add_argument("--bridge-gap", type=float, default=.8,
+                        help="Interpolate short gaps between already selected segments")
     args = parser.parse_args()
 
     args.output.mkdir(parents=True, exist_ok=True)
@@ -126,6 +132,8 @@ def main() -> None:
         for candidate_key, items in chunks.items():
             if candidate_key in selected:
                 continue
+            if reid_scores and reid_scores.get(candidate_key[0], float("-inf")) < args.min_continuation_margin:
+                continue
             start = items[0]
             gap = start.time_s - end.time_s
             if gap < -.05 or gap > args.max_gap:
@@ -180,6 +188,28 @@ def main() -> None:
                     frame=frame, track_id=key[0],
                     confidence=min(left.confidence, right.confidence), box=box,
                 ), sources[key]))
+    ordered_selected = sorted(selected, key=lambda key: chunks[key][0].time_s)
+    bridged_frames = 0
+    for left_key, right_key in zip(ordered_selected, ordered_selected[1:]):
+        left, right = chunks[left_key][-1], chunks[right_key][0]
+        time_gap = right.time_s - left.time_s
+        frame_gap = right.frame - left.frame
+        if frame_gap <= 1 or time_gap < 0 or time_gap > args.bridge_gap:
+            continue
+        normalized = math.dist(center(left), center(right)) / max(height(left), height(right), 1)
+        if normalized > args.max_distance:
+            continue
+        for frame in range(left.frame + 1, right.frame):
+            if frame in by_frame:
+                continue
+            ratio = (frame - left.frame) / frame_gap
+            box = tuple(round(a + (b - a) * ratio) for a, b in zip(left.box, right.box))
+            by_frame[frame].append((Observation(
+                time_s=left.time_s + (right.time_s - left.time_s) * ratio,
+                frame=frame, track_id=right_key[0],
+                confidence=min(left.confidence, right.confidence), box=box,
+            ), "BRIDGE"))
+            bridged_frames += 1
     frame_index = 0
     while True:
         ok, frame = cap.read()
@@ -205,6 +235,7 @@ def main() -> None:
     print("links=" + ", ".join(f"{a[0]}:{a[1]}->{b[0]}:{b[1]} gap={gap:.2f}s dist={dist:.0f}px"
                                 for a, b, gap, dist in links))
     print(f"covered_frames={covered_frames}/{total_frames} ({covered_frames / total_frames:.1%})")
+    print(f"bridged_frames={bridged_frames}")
     print(f"output={args.output.resolve()}")
 
 

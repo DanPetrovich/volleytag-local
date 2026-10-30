@@ -35,6 +35,7 @@ def main() -> None:
         "--seed-segments", default="",
         help="Visually confirmed tracker chunks as TRACK_ID:CHUNK, comma-separated",
     )
+    parser.add_argument("--min-continuation-margin", type=float, default=0.0)
     parser.add_argument("--reuse", action="store_true",
                         help="Reuse completed stage files in the output directory")
     args = parser.parse_args()
@@ -71,6 +72,7 @@ def main() -> None:
         ]
         if args.seed_segments:
             fusion_command.extend(["--seed-segments", args.seed_segments])
+        fusion_command.extend(["--min-continuation-margin", str(args.min_continuation_margin)])
         run(fusion_command)
     except subprocess.CalledProcessError:
         fusion_ok = False
@@ -93,6 +95,7 @@ def main() -> None:
         "detector_imgsz": args.detector_imgsz,
         "detector_conf": args.detector_conf,
         "seed_segments": args.seed_segments,
+        "min_continuation_margin": args.min_continuation_margin,
         "profile": str(args.profile.resolve()),
         "fusion_status": "complete" if fusion_ok else "needs_review",
         "ocr_target_hits": len(target_hits),
