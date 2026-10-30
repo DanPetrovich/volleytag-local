@@ -54,7 +54,16 @@
         <label class="file">Видео<input id="videoFile" type="file" accept="video/*"></label>
         <label class="file">tracks.csv<input id="tracksFile" type="file" accept=".csv,text/csv"></label>
         <label class="file optional">similarity.csv <small>необязательно</small><input id="scoresFile" type="file" accept=".csv,text/csv"></label>
+        <label class="file optional">Импорт JSON <small>v3 / v4</small><input id="annotationFile" type="file" accept=".json,application/json"></label>
         <div class="roi"><label>ROI X<input id="roiX" type="number" value="40"></label><label>ROI Y<input id="roiY" type="number" value="70"></label></div>
+      </section>
+
+      <section class="card mode-card">
+        <h2>Режим разметки</h2>
+        <select id="annotationMode">
+          <option value="training">Training / review v3</option>
+          <option value="evaluation">Evaluation v4 (замороженный тест)</option>
+        </select>
       </section>
 
       <section class="card dataset-card">
@@ -88,10 +97,54 @@
         <div id="anchorList" class="anchor-list"><p>Пока пусто.</p></div>
         <button class="export" id="export">Скачать player-51-training-data.json</button>
       </section>
+
+      <section class="card evaluation-card" id="evaluationCard" hidden>
+        <h2>Evaluation v4</h2>
+        <p>Состояния присутствия и GT задаются человеком. <b>Uncertain</b> не считается positive или negative.</p>
+        <div class="evaluation-guide" role="note">
+          <b>Порядок одного прохода</b>
+          <ol>
+            <li><kbd>B</kbd> начать reviewed range → выбрать domain.</li>
+            <li><kbd>1–4</kbd> отметить presence: visible / occluded / out of frame / uncertain.</li>
+            <li>Для visible: <kbd>Q</kbd> подтвердить найденную рамку или <kbd>R</kbd> нарисовать GT.</li>
+            <li><kbd>G</kbd> — только явный validated gap; <kbd>C</kbd> — correction.</li>
+            <li><kbd>B</kbd> завершить reviewed range.</li>
+          </ol>
+          <p><b>Visible валиден</b>, если весь интервал покрыт минимум двумя GT keyframes у его границ либо GT вместе с validated gap. <b>Review complete</b> доступен для честного экспорта только при 100% reviewed coverage.</p>
+        </div>
+        <label>Подтверждённый ракурс
+          <select id="evaluationDomain">
+            <option value="near_back">near/back · ближняя, спиной</option>
+            <option value="far_front">far/front · дальняя, лицом</option>
+          </select>
+        </label>
+        <div class="evaluation-actions">
+          <button data-presence="visible">1 · visible</button>
+          <button data-presence="occluded">2 · occluded</button>
+          <button data-presence="out_of_frame">3 · out of frame</button>
+          <button data-presence="uncertain">4 · uncertain</button>
+          <button id="toggleReviewed">B · reviewed range</button>
+          <button id="toggleGap">G · validated gap</button>
+          <button id="addCorrection">C · correction</button>
+        </div>
+        <div class="evaluation-summary" id="evaluationSummary"></div>
+        <div class="evaluation-list" id="evaluationList"></div>
+        <label class="complete"><input id="reviewComplete" type="checkbox"> Review complete (только при 100% coverage)</label>
+        <details>
+          <summary>Метаданные и происхождение</summary>
+          <label>Annotator<input id="evalAnnotator" type="text"></label>
+          <label>Video SHA-256<input id="evalVideoHash" type="text" inputmode="latin"></label>
+          <label>Tracks SHA-256<input id="evalTracksHash" type="text" inputmode="latin"></label>
+          <label>Route/model SHA-256<input id="evalRouteHash" type="text" inputmode="latin"></label>
+          <label>Code commit<input id="evalCommit" type="text" inputmode="latin"></label>
+        </details>
+        <button class="export" id="exportEvaluation">Скачать player-51-evaluation.json</button>
+      </section>
     </aside>
   </main>
 
   <div class="toast" id="toast"></div>
+  <script src="evaluation-schema.js"></script>
   <script src="tracking-review.js"></script>
 </body>
 </html>
