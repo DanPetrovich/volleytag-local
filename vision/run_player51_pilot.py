@@ -28,7 +28,13 @@ def main() -> None:
     parser.add_argument("--target", default="51")
     parser.add_argument("--roi", default="40,70,1900,1020")
     parser.add_argument("--stride", type=int, default=2)
+    parser.add_argument("--detector-imgsz", type=int, default=960)
+    parser.add_argument("--detector-conf", type=float, default=.18)
     parser.add_argument("--ocr-sample-seconds", type=float, default=.25)
+    parser.add_argument(
+        "--seed-segments", default="",
+        help="Visually confirmed tracker chunks as TRACK_ID:CHUNK, comma-separated",
+    )
     parser.add_argument("--reuse", action="store_true",
                         help="Reuse completed stage files in the output directory")
     args = parser.parse_args()
@@ -44,7 +50,8 @@ def main() -> None:
 
     if not (args.reuse and (tracking / "tracks.csv").exists()):
         run([python, "vision/track_players.py", str(args.video), "--output", str(tracking),
-             "--roi", args.roi, "--stride", str(args.stride)])
+             "--roi", args.roi, "--stride", str(args.stride),
+             "--imgsz", str(args.detector_imgsz), "--conf", str(args.detector_conf)])
     if not (args.reuse and (ocr / "ocr.csv").exists()):
         run([python, "vision/detect_jersey_number.py", str(args.video), str(tracking / "tracks.csv"),
              "--output", str(ocr), "--roi", args.roi, "--target", args.target,
@@ -56,9 +63,15 @@ def main() -> None:
 
     fusion_ok = True
     try:
-        run([python, "vision/fuse_player_signals.py", str(args.video), str(tracking / "tracks.csv"),
-             str(ocr / "ocr.csv"), "--similarity", str(reid / "similarity.csv"),
-             "--output", str(fused), "--roi", args.roi, "--target", args.target])
+        fusion_command = [
+            python, "vision/fuse_player_signals.py", str(args.video),
+            str(tracking / "tracks.csv"), str(ocr / "ocr.csv"),
+            "--similarity", str(reid / "similarity.csv"),
+            "--output", str(fused), "--roi", args.roi, "--target", args.target,
+        ]
+        if args.seed_segments:
+            fusion_command.extend(["--seed-segments", args.seed_segments])
+        run(fusion_command)
     except subprocess.CalledProcessError:
         fusion_ok = False
         print("No reliable OCR anchor: review reid/candidates.jpg; no automatic final box was emitted.")
@@ -77,6 +90,9 @@ def main() -> None:
     report = {
         "video": str(args.video.resolve()),
         "target": args.target,
+        "detector_imgsz": args.detector_imgsz,
+        "detector_conf": args.detector_conf,
+        "seed_segments": args.seed_segments,
         "profile": str(args.profile.resolve()),
         "fusion_status": "complete" if fusion_ok else "needs_review",
         "ocr_target_hits": len(target_hits),

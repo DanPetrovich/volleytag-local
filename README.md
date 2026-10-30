@@ -203,6 +203,26 @@ curl https://api.groq.com/openai/v1/models \
 `fusion_status: needs_review` и сохраняет `reid/candidates.jpg`, но намеренно не рисует
 «уверенную» рамку по одному ReID. На одинаковой форме это важная защита от ложного игрока.
 
+Если игрок далеко от камеры, обычный размер детекции может пропустить его полностью. Для такого
+розыгрыша можно повысить детализацию, уменьшить порог и после просмотра `tracking/tracked.mp4`
+подтвердить один непрерывный кусок в формате `ID:CHUNK`:
+
+```bash
+.venv-vision/bin/python vision/run_player51_pilot.py rally.mp4 \
+  --output vision/runs/serve-rally \
+  --profile models/player51-multiview.npz \
+  --detector-imgsz 1536 \
+  --detector-conf 0.08 \
+  --seed-segments 25:0
+```
+
+Номер chunk можно сопоставить с временным ID по `fused/chunks.csv`; этот файл создаётся и при
+первом запуске без якоря, когда программа останавливается на `needs_review`. Ручной seed
+относится только к одному непрерывному куску,
+а не ко всему глобальному ID: трекер иногда повторно использует ID после пропуска. После seed
+геометрическая сшивка выбирает одну непрерывную ветку и не выводит одновременно несколько
+перекрывающихся боксов. Это полуавтоматический режим, а не автоматическое распознавание подачи.
+
 Файл профиля персонален и исключён из Git. Его можно собрать из уже проверенных временных ID:
 
 ```bash
@@ -278,7 +298,8 @@ ID трекера сначала режется на непрерывные ку
 .venv-vision/bin/python vision/fuse_player_signals.py match.mp4 \
   vision/runs/test/tracks.csv vision/runs/number-51/ocr.csv \
   --similarity vision/runs/player-51/similarity.csv \
-  --target 51 --output vision/runs/fused-51
+  --target 51 --output vision/runs/fused-51 \
+  --seed-segments 25:0
 ```
 
 Установка в отдельное окружение:

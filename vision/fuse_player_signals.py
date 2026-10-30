@@ -34,6 +34,10 @@ def main() -> None:
     parser.add_argument("--output", type=Path, default=Path("vision/runs/fused-player"))
     parser.add_argument("--roi", default="40,70,1900,1020")
     parser.add_argument("--min-anchors", type=int, default=2)
+    parser.add_argument(
+        "--seed-segments", default="",
+        help="Confirmed continuous track chunks as TRACK_ID:CHUNK, comma-separated",
+    )
     parser.add_argument("--max-gap", type=float, default=.5)
     parser.add_argument("--max-distance", type=float, default=1.25,
                         help="Maximum center distance as a multiple of player height")
@@ -73,6 +77,13 @@ def main() -> None:
             for observation in current:
                 observation_chunk[(observation.frame, observation.track_id)] = key
 
+    with (args.output / "chunks.csv").open("w", newline="", encoding="utf-8") as handle:
+        writer = csv.writer(handle)
+        writer.writerow(("track_id", "chunk", "start_s", "end_s", "observations"))
+        for key, items in sorted(chunks.items(), key=lambda value: value[1][0].time_s):
+            writer.writerow((key[0], key[1], f"{items[0].time_s:.3f}",
+                             f"{items[-1].time_s:.3f}", len(items)))
+
     anchor_counts: Counter[tuple[int, int]] = Counter()
     with args.ocr.open(encoding="utf-8") as handle:
         for row in csv.DictReader(handle):
@@ -81,11 +92,30 @@ def main() -> None:
                 key = observation_chunk.get(lookup)
                 if key:
                     anchor_counts[key] += 1
-    selected = {key for key, count in anchor_counts.items() if count >= args.min_anchors}
-    if not selected:
-        raise SystemExit(f"No continuous track segment has {args.min_anchors} OCR anchors for #{args.target}")
+    manual_seeds: set[tuple[int, int]] = set()
+    for value in args.seed_segments.split(","):
+        if not value:
+            continue
+        try:
+            track_id, chunk_index = (int(part) for part in value.split(":"))
+        except (ValueError, TypeError):
+            raise SystemExit(f"Invalid --seed-segments value: {value!r}; expected TRACK_ID:CHUNK")
+        key = (track_id, chunk_index)
+        if key not in chunks:
+            raise SystemExit(f"Seed segment is not present: {value}")
+        manual_seeds.add(key)
 
-    sources: dict[tuple[int, int], str] = {key: "OCR" for key in selected}
+    selected = {key for key, count in anchor_counts.items() if count >= args.min_anchors}
+    selected.update(manual_seeds)
+    if not selected:
+        raise SystemExit(
+            f"No continuous track segment has {args.min_anchors} OCR anchors for #{args.target}; "
+            "provide --seed-segments after visually confirming a chunk"
+        )
+
+    sources: dict[tuple[int, int], str] = {
+        key: ("MANUAL" if key in manual_seeds else "OCR") for key in selected
+    }
 
     links: list[tuple[tuple[int, int], tuple[int, int], float, float]] = []
     frontier = deque(selected)
@@ -158,9 +188,9 @@ def main() -> None:
         court = frame[roi[1]:roi[3], roi[0]:roi[2]].copy()
         for item, source in by_frame.get(frame_index, []):
             x1, y1, x2, y2 = item.box
-            anchored = source == "OCR"
+            anchored = source in {"OCR", "MANUAL"}
             color = (20, 210, 255) if anchored else (60, 220, 80)
-            label = f"Dan #{args.target}  {'OCR' if anchored else 'TRACK'}"
+            label = f"Dan #{args.target}  {source}"
             cv2.rectangle(court, (x1, y1), (x2, y2), color, 4)
             cv2.putText(court, label, (x1, max(28, y1 - 9)), cv2.FONT_HERSHEY_SIMPLEX,
                         .75, color, 2, cv2.LINE_AA)
