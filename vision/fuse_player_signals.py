@@ -37,12 +37,8 @@ def main() -> None:
     parser.add_argument("--max-gap", type=float, default=.5)
     parser.add_argument("--max-distance", type=float, default=1.25,
                         help="Maximum center distance as a multiple of player height")
-    parser.add_argument("--post-anchor-seconds", type=float, default=.8,
-                        help="Trust an OCR-confirmed track this long after its last anchor")
-    parser.add_argument("--pre-anchor-seconds", type=float, default=.4,
-                        help="Trust an OCR-confirmed track this long before its first anchor")
-    parser.add_argument("--propagate-seconds", type=float, default=1.0,
-                        help="Maximum unconfirmed duration added through a continuity link")
+    parser.add_argument("--segment-gap", type=float, default=.25,
+                        help="Split a reused tracker ID after this observation gap")
     args = parser.parse_args()
 
     args.output.mkdir(parents=True, exist_ok=True)
@@ -55,51 +51,52 @@ def main() -> None:
             for row in csv.DictReader(handle):
                 reid_scores[int(row["track_id"])] = float(row["margin"])
 
-    anchor_counts: Counter[int] = Counter()
-    target_times: list[float] = []
-    anchor_times: dict[int, list[float]] = defaultdict(list)
+    # Tracker IDs can be reused after an occlusion. Split them into continuous
+    # pieces first; an OCR hit validates a piece, never the global ID.
+    chunks: dict[tuple[int, int], list[Observation]] = {}
+    observation_chunk: dict[tuple[int, int], tuple[int, int]] = {}
+    for track_id, items in grouped.items():
+        chunk_index = 0
+        current: list[Observation] = []
+        for item in items:
+            if current and item.time_s - current[-1].time_s > args.segment_gap:
+                key = (track_id, chunk_index)
+                chunks[key] = current
+                for observation in current:
+                    observation_chunk[(observation.frame, observation.track_id)] = key
+                chunk_index += 1
+                current = []
+            current.append(item)
+        if current:
+            key = (track_id, chunk_index)
+            chunks[key] = current
+            for observation in current:
+                observation_chunk[(observation.frame, observation.track_id)] = key
+
+    anchor_counts: Counter[tuple[int, int]] = Counter()
     with args.ocr.open(encoding="utf-8") as handle:
         for row in csv.DictReader(handle):
             if row["ocr"] == args.target:
-                anchor_counts[int(row["track_id"])] += 1
-                timestamp = float(row["time_s"])
-                target_times.append(timestamp)
-                anchor_times[int(row["track_id"])].append(timestamp)
-    selected = {track_id for track_id, count in anchor_counts.items() if count >= args.min_anchors}
+                lookup = (int(row["frame"]), int(row["track_id"]))
+                key = observation_chunk.get(lookup)
+                if key:
+                    anchor_counts[key] += 1
+    selected = {key for key, count in anchor_counts.items() if count >= args.min_anchors}
     if not selected:
-        raise SystemExit(f"No track has {args.min_anchors} OCR anchors for #{args.target}")
-    trust_until = max(target_times) + args.post_anchor_seconds
+        raise SystemExit(f"No continuous track segment has {args.min_anchors} OCR anchors for #{args.target}")
 
-    # A tracker ID is not an identity. During an occlusion the same ID may jump
-    # to another person, so OCR only validates a local interval around the
-    # actual reads instead of blessing the ID's entire lifetime.
-    segments: dict[int, tuple[float, float, str]] = {}
-    for track_id in selected:
-        track_start = grouped[track_id][0].time_s
-        track_end = grouped[track_id][-1].time_s
-        start = max(track_start, min(anchor_times[track_id]) - args.pre_anchor_seconds)
-        end = min(track_end, max(anchor_times[track_id]) + args.post_anchor_seconds)
-        segments[track_id] = (start, end, "OCR")
+    sources: dict[tuple[int, int], str] = {key: "OCR" for key in selected}
 
-    links: list[tuple[int, int, float, float]] = []
+    links: list[tuple[tuple[int, int], tuple[int, int], float, float]] = []
     frontier = deque(selected)
     while frontier:
-        source_id = frontier.popleft()
-        source_end_time = segments[source_id][1]
-        source_items = [item for item in grouped[source_id] if item.time_s <= source_end_time]
-        if not source_items:
-            continue
-        end = source_items[-1]
+        source_key = frontier.popleft()
+        end = chunks[source_key][-1]
         best = None
-        for candidate_id, items in grouped.items():
-            if candidate_id in selected:
+        for candidate_key, items in chunks.items():
+            if candidate_key in selected:
                 continue
-            starts = [item for item in items if item.time_s >= end.time_s - .05]
-            if not starts:
-                continue
-            start = starts[0]
-            if start.time_s > trust_until:
-                continue
+            start = items[0]
             gap = start.time_s - end.time_s
             if gap < -.05 or gap > args.max_gap:
                 continue
@@ -112,44 +109,35 @@ def main() -> None:
             # Geometry is the main signal. ReID is only a tie-breaker: appearance
             # embeddings are useful, but volleyball uniforms make them unsafe as
             # a sole identity decision.
-            appearance_bonus = max(-.10, min(.10, reid_scores.get(candidate_id, 0.0)))
+            appearance_bonus = max(-.10, min(.10, reid_scores.get(candidate_key[0], 0.0)))
             score = normalized + max(gap, 0) * .35 - appearance_bonus * 1.5
             if best is None or score < best[0]:
-                best = (score, candidate_id, gap, distance)
+                best = (score, candidate_key, gap, distance)
         if best:
-            _, candidate_id, gap, distance = best
-            selected.add(candidate_id)
-            candidate_start = next(item.time_s for item in grouped[candidate_id]
-                                   if item.time_s >= end.time_s - .05)
-            candidate_end = min(grouped[candidate_id][-1].time_s,
-                                candidate_start + args.propagate_seconds, trust_until)
-            segments[candidate_id] = (candidate_start, candidate_end, "TRACK")
-            links.append((source_id, candidate_id, gap, distance))
-            # Only continue chaining if this short trusted interval reaches the
-            # natural end of the candidate track. Otherwise we deliberately stop.
-            if candidate_end >= grouped[candidate_id][-1].time_s - .05:
-                frontier.append(candidate_id)
+            _, candidate_key, gap, distance = best
+            selected.add(candidate_key)
+            sources[candidate_key] = "TRACK"
+            links.append((source_key, candidate_key, gap, distance))
+            frontier.append(candidate_key)
 
     with (args.output / "segments.csv").open("w", newline="", encoding="utf-8") as handle:
         writer = csv.writer(handle)
-        writer.writerow(("track_id", "start_s", "end_s", "source", "ocr_anchors"))
-        for track_id in sorted(selected, key=lambda value: segments[value][0]):
-            start, end, source = segments[track_id]
-            writer.writerow((track_id, f"{start:.3f}", f"{end:.3f}", source,
-                             anchor_counts[track_id]))
+        writer.writerow(("track_id", "chunk", "start_s", "end_s", "source", "ocr_anchors"))
+        for key in sorted(selected, key=lambda value: chunks[value][0].time_s):
+            items = chunks[key]
+            writer.writerow((key[0], key[1], f"{items[0].time_s:.3f}",
+                             f"{items[-1].time_s:.3f}", sources[key], anchor_counts[key]))
 
     cap = cv2.VideoCapture(str(args.video))
     fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
     width, frame_height = roi[2] - roi[0], roi[3] - roi[1]
     writer = cv2.VideoWriter(str(args.output / f"fused-{args.target}.mp4"),
                              cv2.VideoWriter_fourcc(*"mp4v"), fps, (width, frame_height))
-    by_frame: dict[int, list[Observation]] = defaultdict(list)
-    for track_id in selected:
-        segment_start, segment_end, source = segments[track_id]
-        items = [item for item in grouped[track_id]
-                 if segment_start <= item.time_s <= segment_end]
+    by_frame: dict[int, list[tuple[Observation, str]]] = defaultdict(list)
+    for key in selected:
+        items = chunks[key]
         for item in items:
-            by_frame[item.frame].append(item)
+            by_frame[item.frame].append((item, sources[key]))
         for left, right in zip(items, items[1:]):
             gap = right.frame - left.frame
             if gap <= 1 or gap > 6:
@@ -157,20 +145,20 @@ def main() -> None:
             for frame in range(left.frame + 1, right.frame):
                 ratio = (frame - left.frame) / gap
                 box = tuple(round(a + (b - a) * ratio) for a, b in zip(left.box, right.box))
-                by_frame[frame].append(Observation(
+                by_frame[frame].append((Observation(
                     time_s=left.time_s + (right.time_s - left.time_s) * ratio,
-                    frame=frame, track_id=track_id,
+                    frame=frame, track_id=key[0],
                     confidence=min(left.confidence, right.confidence), box=box,
-                ))
+                ), sources[key]))
     frame_index = 0
     while True:
         ok, frame = cap.read()
         if not ok:
             break
         court = frame[roi[1]:roi[3], roi[0]:roi[2]].copy()
-        for item in by_frame.get(frame_index, []):
+        for item, source in by_frame.get(frame_index, []):
             x1, y1, x2, y2 = item.box
-            anchored = segments[item.track_id][2] == "OCR"
+            anchored = source == "OCR"
             color = (20, 210, 255) if anchored else (60, 220, 80)
             label = f"Dan #{args.target}  {'OCR' if anchored else 'TRACK'}"
             cv2.rectangle(court, (x1, y1), (x2, y2), color, 4)
@@ -183,8 +171,8 @@ def main() -> None:
 
     covered_frames = len(by_frame)
     total_frames = max(frame_index, 1)
-    print("selected=" + ",".join(map(str, sorted(selected))))
-    print("links=" + ", ".join(f"{a}->{b} gap={gap:.2f}s dist={dist:.0f}px"
+    print("selected=" + ",".join(f"{track}:{chunk}" for track, chunk in sorted(selected)))
+    print("links=" + ", ".join(f"{a[0]}:{a[1]}->{b[0]}:{b[1]} gap={gap:.2f}s dist={dist:.0f}px"
                                 for a, b, gap, dist in links))
     print(f"covered_frames={covered_frames}/{total_frames} ({covered_frames / total_frames:.1%})")
     print(f"output={args.output.resolve()}")

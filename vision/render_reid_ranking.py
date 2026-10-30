@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
-from collections import defaultdict
+from collections import Counter, defaultdict
 from pathlib import Path
 
 import cv2
@@ -58,6 +58,8 @@ def main() -> None:
                              (width, height))
     colors = ((20, 210, 255), (255, 210, 40), (190, 90, 255))
     frame_index = 0
+    selected_frames = 0
+    selected_tracks: Counter[int] = Counter()
     while True:
         ok, frame = cap.read()
         if not ok:
@@ -71,6 +73,9 @@ def main() -> None:
                 continue
             eligible.append((score, item))
         eligible.sort(key=lambda value: value[0], reverse=True)
+        if eligible:
+            selected_frames += 1
+            selected_tracks[eligible[0][1].track_id] += 1
         for rank, (score, item) in enumerate(eligible[:args.top], 1):
             x1, y1, x2, y2 = item.box
             color = colors[min(rank - 1, len(colors) - 1)]
@@ -85,6 +90,10 @@ def main() -> None:
         frame_index += 1
     writer.release()
     cap.release()
+    coverage = selected_frames / max(frame_index, 1)
+    print(f"coverage={selected_frames}/{frame_index} ({coverage:.1%})")
+    print("top1_tracks=" + ",".join(f"{track_id}:{count / fps:.2f}s"
+                                    for track_id, count in selected_tracks.most_common()))
     print(args.output.resolve())
 
 
