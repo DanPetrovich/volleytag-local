@@ -30,11 +30,12 @@ def split_chunks(grouped: dict[int, list[Observation]], gap: float = .25):
     return chunks
 
 
-def samples_around(items: list[Observation], time_s: float, limit: int = 5):
+def samples_around(items: list[Observation], time_s: float, limit: int = 5,
+                   radius: float = .45):
     nearby = sorted(items, key=lambda item: (abs(item.time_s - time_s), -item.quality))
     selected: list[Observation] = []
     for item in nearby:
-        if abs(item.time_s - time_s) > .45:
+        if abs(item.time_s - time_s) > radius:
             continue
         if all(abs(item.time_s - other.time_s) >= .09 for other in selected):
             selected.append(item)
@@ -69,12 +70,25 @@ def main() -> None:
     crops: dict[str, list[np.ndarray]] = {"positive": [], "negative": []}
     metadata = []
     seen = set()
+    negative_times_by_key: dict[str, list[float]] = defaultdict(list)
+    for entry in feedback.get("negatives", []):
+        negative_times_by_key[entry["key"]].append(float(entry["time"]))
+    lost_times = [float(entry["time"]) for entry in feedback.get("lostEvents", [])]
     for kind, field in (("positive", "anchors"), ("negative", "negatives")):
         for entry in feedback.get(field, []):
             key, time_s = entry["key"], float(entry["time"])
             if key not in chunks:
                 continue
-            for item in samples_around(chunks[key], time_s, args.samples_per_anchor):
+            # Positive crops stay close to the exact human click. The former
+            # +/-0.45 s window could cross a short ID switch visible only after
+            # the user paused. Negatives may use the wider diagnostic window.
+            radius = .22 if kind == "positive" else .45
+            for item in samples_around(chunks[key], time_s, args.samples_per_anchor, radius):
+                if kind == "positive" and (any(abs(item.time_s - value) <= .35
+                                               for value in negative_times_by_key.get(key, []))
+                                           or any(abs(item.time_s - value) <= .25
+                                                  for value in lost_times)):
+                    continue
                 identity = (kind, item.frame, item.track_id)
                 if identity in seen:
                     continue

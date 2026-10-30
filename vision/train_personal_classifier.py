@@ -90,6 +90,10 @@ def collect_feedback_clip(spec, full_video: Path, output: Path):
     cap = cv2.VideoCapture(str(full_video))
     roi = tuple(spec.get("roi", [40, 70, 1900, 1020]))
     rows, seen = [], set()
+    negative_times_by_key = defaultdict(list)
+    for entry in feedback.get("negatives", []):
+        negative_times_by_key[entry["key"]].append(float(entry["time"]))
+    lost_times = [float(entry["time"]) for entry in feedback.get("lostEvents", [])]
     for label, field in ((1, "anchors"), (0, "negatives")):
         for entry in feedback.get(field, []):
             key = entry["key"]
@@ -98,7 +102,13 @@ def collect_feedback_clip(spec, full_video: Path, output: Path):
             around = sorted(chunks[key], key=lambda item: abs(item.time_s - float(entry["time"])))
             selected = []
             for item in around:
-                if abs(item.time_s - float(entry["time"])) > .6:
+                radius = .22 if label == 1 else .6
+                if abs(item.time_s - float(entry["time"])) > radius:
+                    continue
+                if label == 1 and (any(abs(item.time_s - value) <= .35
+                                       for value in negative_times_by_key.get(key, []))
+                                   or any(abs(item.time_s - value) <= .25
+                                          for value in lost_times)):
                     continue
                 if all(abs(item.time_s - other.time_s) >= .12 for other in selected):
                     selected.append(item)
