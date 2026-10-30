@@ -462,6 +462,12 @@ $("#scoresFile").addEventListener("change", async (event) => {
   rebuildRoute(); toast("ReID-оценки загружены");
 });
 $("#play").addEventListener("click", () => { if (video.paused) video.play(); else video.pause(); });
+$("#playbackRate").addEventListener("change", (event) => {
+  const rate = Number(event.target.value) || 1;
+  video.playbackRate = rate;
+  localStorage.setItem("volleytag-playback-rate", String(rate));
+  toast(`Скорость: ${String(rate).replace(".", ",")}×`);
+});
 document.querySelectorAll("[data-seek]").forEach((button) => button.addEventListener("click", () => seekTo(video.currentTime + Number(button.dataset.seek))));
 $("#timeline").addEventListener("input", (event) => seekTo(Number(event.target.value)));
 $("#confirmBox").addEventListener("click", confirmPreview);
@@ -517,7 +523,13 @@ video.addEventListener("play", () => { $("#play").textContent = "❚❚ Пауз
 video.addEventListener("pause", () => { $("#play").textContent = "▶ Смотреть"; });
 video.addEventListener("loadedmetadata", () => {
   $("#timeline").max = video.duration || 1;
-  const start = Number(new URLSearchParams(location.search).get("start") || 0);
+  const params = new URLSearchParams(location.search);
+  const start = Number(params.get("start") || 0);
+  const requestedRate = Number(params.get("speed") || localStorage.getItem("volleytag-playback-rate") || 1);
+  const rate = [1, 1.25, 1.5, 2].includes(requestedRate) ? requestedRate : 1;
+  video.playbackRate = rate;
+  $("#playbackRate").value = String(rate);
+  localStorage.setItem("volleytag-playback-rate", String(rate));
   if (start > 0 && start < video.duration) video.currentTime = start;
 });
 video.addEventListener("loadeddata", () => { state.renderedVideoTime = -1; });

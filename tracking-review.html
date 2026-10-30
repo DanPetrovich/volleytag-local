@@ -28,6 +28,14 @@
         <button data-seek="0.1">+0,1</button>
         <button data-seek="5">+5 с</button>
         <b id="timecode">00:00.0</b>
+        <label class="speed-control">Скорость
+          <select id="playbackRate" aria-label="Скорость воспроизведения">
+            <option value="1">1×</option>
+            <option value="1.25">1,25×</option>
+            <option value="1.5">1,5×</option>
+            <option value="2">2×</option>
+          </select>
+        </label>
         <button id="fullscreen">⛶ На весь экран</button>
         <label><input id="pauseOnLost" type="checkbox" checked> Пауза, если потерян</label>
         <input id="timeline" type="range" min="0" max="1" step="0.02" value="0" aria-label="Позиция видео">
