@@ -826,7 +826,7 @@ document.addEventListener("keydown", (event) => {
     }
     if (event.code === "KeyB") { event.preventDefault(); $("#toggleReviewed").click(); }
     if (event.code === "KeyG") { event.preventDefault(); $("#toggleGap").click(); }
-    if (event.code === "KeyC") { event.preventDefault(); $("#addCorrection").click(); }
+    if (event.code === "KeyW") { event.preventDefault(); $("#addCorrection").click(); }
   }
   if (state.mode === "training" && event.code === "KeyW" && !event.target.matches("input,select")) { event.preventDefault(); $("#rejectCurrent").click(); }
   if (state.mode === "training" && event.code === "KeyE" && !event.target.matches("input,select")) { event.preventDefault(); $("#markLost").click(); }

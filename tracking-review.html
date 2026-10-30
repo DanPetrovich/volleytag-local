@@ -107,7 +107,7 @@
             <li><kbd>B</kbd> начать reviewed range → выбрать domain.</li>
             <li><kbd>1–4</kbd> отметить presence: visible / occluded / out of frame / uncertain.</li>
             <li>Для visible: <kbd>Q</kbd> подтвердить найденную рамку или <kbd>R</kbd> нарисовать GT.</li>
-            <li><kbd>G</kbd> — только явный validated gap; <kbd>C</kbd> — correction.</li>
+            <li><kbd>G</kbd> — только явный validated gap; <kbd>W</kbd> — correction.</li>
             <li><kbd>B</kbd> завершить reviewed range.</li>
           </ol>
           <p><b>Visible валиден</b>, если весь интервал покрыт минимум двумя GT keyframes у его границ либо GT вместе с validated gap. <b>Review complete</b> доступен для честного экспорта только при 100% reviewed coverage.</p>
@@ -125,7 +125,7 @@
           <button data-presence="uncertain">4 · uncertain</button>
           <button id="toggleReviewed">B · reviewed range</button>
           <button id="toggleGap">G · validated gap</button>
-          <button id="addCorrection">C · correction</button>
+          <button id="addCorrection">W · correction</button>
         </div>
         <div class="evaluation-summary" id="evaluationSummary"></div>
         <div class="evaluation-list" id="evaluationList"></div>
