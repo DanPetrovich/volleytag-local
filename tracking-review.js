@@ -266,6 +266,19 @@ function drawBox(item, color, width, label) {
   }
 }
 
+function evaluationKeyframeAt(time, tolerance = .15) {
+  let nearest = null;
+  state.evaluation.trajectory_intervals.forEach((trajectory) => {
+    (trajectory.keyframes || []).forEach((keyframe) => {
+      const distance = Math.abs(Number(keyframe.time_s) - time);
+      if (distance <= tolerance && (!nearest || distance < nearest.distance)) nearest = { keyframe, distance };
+    });
+  });
+  if (!nearest) return null;
+  const [x1, y1, x2, y2] = nearest.keyframe.box;
+  return { x1, y1, x2, y2 };
+}
+
 function render() {
   const rect = canvas.getBoundingClientRect();
   const ratio = window.devicePixelRatio || 1;
@@ -299,9 +312,18 @@ function render() {
     setStatus(lostFor < 1.0 ? "bridge" : "lost",
       lostFor < 1.0 ? "Короткий разрыв" : "Игрок потерян",
       lostFor < 1.0 ? "Жду следующую рамку, видео не останавливаю." : "Кликни по своей рамке, чтобы продолжить.");
-    if (!video.paused && $("#pauseOnLost").checked && !state.pausedForGap && lostFor >= 1.0) {
+    if (state.mode === "training" && !video.paused && $("#pauseOnLost").checked && !state.pausedForGap && lostFor >= 1.0) {
       state.pausedForGap = true; video.pause();
     }
+  }
+  const groundTruth = state.mode === "evaluation" ? evaluationKeyframeAt(video.currentTime) : null;
+  if (groundTruth) {
+    drawBox(groundTruth, "#b7ff36", 5, "Даня #51 · HUMAN GT");
+    setStatus("ok", "Human GT сохранён", "Зелёная рамка — подтверждённая тобой правильная позиция.");
+  } else if (state.mode === "evaluation" && !state.preview) {
+    const active = state.evaluation.presence_intervals.find((entry) => entry.id === state.evaluation.activePresenceId);
+    setStatus("bridge", active ? `Размечается: ${active.state}` : "Жду разметку presence",
+      active?.state === "visible" ? "Кликни по своей рамке и нажми Q либо нарисуй её через R." : "Выбери состояние клавишами 1–4.");
   }
   if (state.preview && Math.abs(state.preview.time - video.currentTime) <= .15) {
     drawBox(state.preview.item, "#b584ff", 5,
@@ -472,6 +494,8 @@ function renderEvaluation() {
   const duration = Number.isFinite(video.duration) ? video.duration : 0;
   const coverage = VolleyTagEvaluation.reviewedCoverage(state.evaluation.reviewed_ranges, duration);
   $("#evaluationSummary").textContent = `Reviewed: ${coverage.seconds.toFixed(1)} / ${duration.toFixed(1)} с (${(coverage.ratio * 100).toFixed(1)}%) · presence: ${state.evaluation.presence_intervals.length} · corrections: ${state.evaluation.corrections.length}`;
+  const keyframeCount = state.evaluation.trajectory_intervals.reduce((total, entry) => total + (entry.keyframes || []).length, 0);
+  $("#saveState").textContent = `GT: ${keyframeCount} · presence: ${state.evaluation.presence_intervals.length}`;
   document.querySelectorAll("[data-presence]").forEach((button) => {
     const active = state.evaluation.presence_intervals.find((entry) => entry.id === state.evaluation.activePresenceId);
     button.classList.toggle("active", active?.state === button.dataset.presence);
@@ -509,9 +533,16 @@ function setAnnotationMode(mode) {
   $(".anchors").hidden = evaluation;
   $("#rejectCurrent").hidden = evaluation;
   $("#markLost").hidden = evaluation;
+  $("#pauseOnLost").closest("label").hidden = evaluation;
   $("#confirmBox").textContent = evaluation ? "Q · ✓ Добавить human GT keyframe" : "Q · ✓ Это я — начать интервал";
   $("#manualBox").textContent = evaluation ? "R · ▱ Нарисовать human GT рамку" : "R · ▱ Нарисовать рамку вручную";
-  if (evaluation) loadEvaluation();
+  if (evaluation) {
+    $("#pauseOnLost").checked = false;
+    loadEvaluation();
+  } else {
+    $("#pauseOnLost").checked = true;
+    updateDatasetStats();
+  }
 }
 
 function closeActiveSegment(end, reason) {
