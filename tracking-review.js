@@ -103,15 +103,31 @@ function boxIou(a, b) {
   return intersection / Math.max(1, areaA + areaB - intersection);
 }
 
+function boxArea(item) { return Math.max(0, item.x2 - item.x1) * Math.max(0, item.y2 - item.y1); }
+
+function nestedDuplicate(a, b) {
+  const x1 = Math.max(a.x1, b.x1), y1 = Math.max(a.y1, b.y1);
+  const x2 = Math.min(a.x2, b.x2), y2 = Math.min(a.y2, b.y2);
+  const intersection = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
+  const smallerArea = Math.min(boxArea(a), boxArea(b));
+  const largerWidth = Math.max(a.x2 - a.x1, b.x2 - b.x1);
+  return intersection / Math.max(1, smallerArea) > .82
+    && Math.abs(center(a)[0] - center(b)[0]) < largerWidth * .28;
+}
+
 function deduplicate(items) {
   const kept = [];
   [...items].sort((a, b) => b.confidence - a.confidence).forEach((item) => {
-    const duplicate = kept.some((other) => {
+    const duplicateIndex = kept.findIndex((other) => {
       const heightRatio = height(item) / Math.max(1, height(other));
-      return boxIou(item, other) > .55 && heightRatio > .68 && heightRatio < 1.47
-        && distance(center(item), center(other)) < Math.min(height(item), height(other)) * .42;
+      return (boxIou(item, other) > .55 && heightRatio > .68 && heightRatio < 1.47
+        && distance(center(item), center(other)) < Math.min(height(item), height(other)) * .42)
+        || nestedDuplicate(item, other);
     });
-    if (!duplicate) kept.push(item);
+    if (duplicateIndex < 0) kept.push(item);
+    else if (nestedDuplicate(item, kept[duplicateIndex]) && boxArea(item) > boxArea(kept[duplicateIndex]) * 1.2) {
+      kept[duplicateIndex] = item;
+    }
   });
   return kept;
 }
@@ -346,8 +362,9 @@ function render() {
   }
   context.setTransform(ratio, 0, 0, ratio, 0, 0); context.clearRect(0, 0, rect.width, rect.height);
   displayObservationsAt(video.currentTime).forEach((item) => drawBox(item, "rgba(200,210,235,.32)", 1, ""));
+  const groundTruth = state.mode === "evaluation" ? evaluationKeyframeAt(video.currentTime) : null;
   const selected = selectionAt(video.currentTime);
-  if (selected) {
+  if (selected && !groundTruth) {
     const color = selected.source === "BRIDGE" ? "#ffd84a" : "#b7ff36";
     drawBox(selected.item, color, 4, `Даня #51 · ${selected.source}`);
     setStatus(selected.source === "BRIDGE" ? "bridge" : "ok", selected.source === "BRIDGE" ? "Короткий разрыв" : "Игрок сопровождается", `${selected.source} · track ${selected.item.id}`);
@@ -363,7 +380,6 @@ function render() {
       state.pausedForGap = true; video.pause();
     }
   }
-  const groundTruth = state.mode === "evaluation" ? evaluationKeyframeAt(video.currentTime) : null;
   if (groundTruth) {
     drawBox(groundTruth, "#b7ff36", 5, "Даня #51 · HUMAN GT");
     setStatus("ok", "Human GT сохранён", "Зелёная рамка — подтверждённая тобой правильная позиция.");
