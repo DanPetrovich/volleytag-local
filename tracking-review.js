@@ -13,6 +13,7 @@ const state = {
   anchors: [],
   route: [],
   pausedForGap: false,
+  preview: null,
 };
 
 function parseCsv(text) {
@@ -181,7 +182,13 @@ function render() {
       state.pausedForGap = true; video.pause();
     }
   }
+  if (state.preview && Math.abs(state.preview.time - video.currentTime) <= .15) {
+    drawBox(state.preview.item, "#b584ff", 5,
+      `Кандидат ${state.preview.index + 1}/${state.preview.candidates.length} · кликни ещё для перебора`);
+    setStatus("bridge", "Рамка ещё не подтверждена", "Повторный клик перебирает рамки; затем нажми кнопку подтверждения.");
+  }
   $("#timecode").textContent = formatTime(video.currentTime);
+  $("#timeline").value = video.currentTime;
   requestAnimationFrame(render);
 }
 
@@ -195,7 +202,7 @@ function formatTime(seconds) {
   return `${String(minutes).padStart(2, "0")}:${rest.toFixed(1).padStart(4, "0")}`;
 }
 
-function storageKey() { return `volleytag-tracking:${state.videoName}:${state.tracksName}`; }
+function storageKey() { return `volleytag-tracking-v3:${state.videoName}:${state.tracksName}`; }
 function saveAnchors() {
   if (state.videoName && state.tracksName) localStorage.setItem(storageKey(), JSON.stringify(state.anchors));
   renderAnchors();
@@ -209,8 +216,9 @@ function renderAnchors() {
   $("#saveState").textContent = `Якорей: ${state.anchors.length}`;
   const list = $("#anchorList");
   if (!state.anchors.length) { list.innerHTML = "<p>Пока пусто.</p>"; return; }
-  list.innerHTML = [...state.anchors].sort((a, b) => a.time - b.time).map((anchor, index) =>
-    `<div class="anchor"><time data-time="${anchor.time}">${formatTime(anchor.time)}</time><div><b>CONFIRMED</b><small>${anchor.key}</small></div><button data-delete="${index}">×</button></div>`
+  const ordered = state.anchors.map((anchor, originalIndex) => ({ ...anchor, originalIndex })).sort((a, b) => a.time - b.time);
+  list.innerHTML = ordered.map((anchor) =>
+    `<div class="anchor"><time data-time="${anchor.time}">${formatTime(anchor.time)}</time><div><b>CONFIRMED</b><small>${anchor.key}</small></div><button data-delete="${anchor.originalIndex}">×</button></div>`
   ).join("");
   list.querySelectorAll("time").forEach((element) => element.addEventListener("click", () => { video.currentTime = Number(element.dataset.time); }));
   list.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
@@ -225,13 +233,26 @@ canvas.addEventListener("click", (event) => {
   const g = geometry(), rx = Number($("#roiX").value) || 0, ry = Number($("#roiY").value) || 0;
   const x = (event.offsetX - g.left) / g.scale - rx, y = (event.offsetY - g.top) / g.scale - ry;
   const candidates = observationsAt(video.currentTime).filter((item) => x >= item.x1 && x <= item.x2 && y >= item.y1 && y <= item.y2);
-  candidates.sort((a, b) => (a.x2 - a.x1) * (a.y2 - a.y1) - (b.x2 - b.x1) * (b.y2 - b.y1));
+  candidates.sort((a, b) => distance(center(a), [x, y]) - distance(center(b), [x, y]));
   if (!candidates.length) { toast("Здесь нет найденной рамки"); return; }
-  const item = candidates[0];
-  state.anchors = state.anchors.filter((anchor) => Math.abs(anchor.time - video.currentTime) > .35);
-  state.anchors.push({ time: video.currentTime, key: item.key, trackId: item.id });
-  rebuildRoute(); saveAnchors(); toast(`Подтверждено: ${item.key}`);
+  const sameClick = state.preview && Math.abs(state.preview.time - video.currentTime) <= .15
+    && Math.hypot(state.preview.x - x, state.preview.y - y) < 40;
+  const index = sameClick ? (state.preview.index + 1) % candidates.length : 0;
+  state.preview = { time: video.currentTime, x, y, candidates, index, item: candidates[index] };
+  $("#confirmBox").disabled = false;
+  $("#stageConfirm").hidden = false;
+  video.pause();
+  toast(candidates.length > 1 ? `Здесь ${candidates.length} рамки — повторный клик перебирает` : "Проверь фиолетовую рамку и подтверди");
 });
+
+function confirmPreview() {
+  if (!state.preview) return;
+  const { item, time } = state.preview;
+  state.anchors = state.anchors.filter((anchor) => Math.abs(anchor.time - time) > .35);
+  state.anchors.push({ time, key: item.key, trackId: item.id });
+  state.preview = null; $("#confirmBox").disabled = true; $("#stageConfirm").hidden = true;
+  rebuildRoute(); saveAnchors(); toast(`Подтверждено: ${item.key}`);
+}
 
 $("#videoFile").addEventListener("change", (event) => {
   const file = event.target.files[0]; if (!file) return;
@@ -252,6 +273,11 @@ $("#scoresFile").addEventListener("change", async (event) => {
 });
 $("#play").addEventListener("click", () => { if (video.paused) video.play(); else video.pause(); });
 document.querySelectorAll("[data-seek]").forEach((button) => button.addEventListener("click", () => { video.currentTime = Math.max(0, video.currentTime + Number(button.dataset.seek)); }));
+$("#timeline").addEventListener("input", (event) => { video.currentTime = Number(event.target.value); state.preview = null; $("#confirmBox").disabled = true; $("#stageConfirm").hidden = true; });
+$("#confirmBox").addEventListener("click", confirmPreview);
+$("#stageConfirm").addEventListener("click", confirmPreview);
+$("#fullscreen").addEventListener("click", () => { $("#stage").requestFullscreen?.(); });
+$("#undoAnchor").addEventListener("click", () => { state.anchors.pop(); rebuildRoute(); saveAnchors(); });
 $("#clear").addEventListener("click", () => { state.anchors = []; rebuildRoute(); saveAnchors(); });
 $("#export").addEventListener("click", () => {
   const payload = { version: 1, video: state.videoName, tracks: state.tracksName, roi: [Number($("#roiX").value), Number($("#roiY").value)], anchors: state.anchors };
@@ -261,9 +287,15 @@ document.addEventListener("keydown", (event) => {
   if (event.code === "Space" && !event.target.matches("input")) { event.preventDefault(); if (video.paused) video.play(); else video.pause(); }
   if (event.code === "ArrowLeft") video.currentTime = Math.max(0, video.currentTime - 5);
   if (event.code === "ArrowRight") video.currentTime += 5;
+  if (event.code === "Enter" && state.preview) confirmPreview();
 });
 video.addEventListener("play", () => { $("#play").textContent = "❚❚ Пауза"; });
 video.addEventListener("pause", () => { $("#play").textContent = "▶ Смотреть"; });
+video.addEventListener("loadedmetadata", () => {
+  $("#timeline").max = video.duration || 1;
+  const start = Number(new URLSearchParams(location.search).get("start") || 0);
+  if (start > 0 && start < video.duration) video.currentTime = start;
+});
 window.addEventListener("resize", () => { canvas.width = 0; });
 
 async function loadQueryFiles() {

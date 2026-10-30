@@ -15,16 +15,22 @@
   <main>
     <section class="viewer">
       <div class="stage" id="stage">
-        <video id="video" controls preload="metadata"></video>
+        <video id="video" preload="metadata"></video>
         <canvas id="overlay"></canvas>
+        <button class="stage-confirm" id="stageConfirm" hidden>✓ Это я — подтвердить</button>
         <div class="empty" id="empty">Загрузи видео и tracks.csv</div>
       </div>
       <div class="transport">
         <button data-seek="-5">−5 с</button>
+        <button data-seek="-0.1">−0,1</button>
         <button id="play">▶ Смотреть</button>
+        <button data-seek="0.1">+0,1</button>
         <button data-seek="5">+5 с</button>
         <b id="timecode">00:00.0</b>
+        <button id="fullscreen">⛶ На весь экран</button>
         <label><input id="pauseOnLost" type="checkbox" checked> Пауза, если потерян</label>
+        <input id="timeline" type="range" min="0" max="1" step="0.02" value="0" aria-label="Позиция видео">
+        <button class="confirm" id="confirmBox" disabled>✓ Подтвердить выбранную рамку</button>
       </div>
       <div class="status lost" id="status"><i></i><div><b>Данные не загружены</b><span>Клик по рамке подтверждает, что внутри ты.</span></div></div>
     </section>
@@ -43,14 +49,16 @@
         <h2>Как пользоваться</h2>
         <ol>
           <li>Запусти видео.</li>
-          <li>Кликни по своей рамке.</li>
-          <li>Если рамка потерялась или ушла на другого — кликни по себе снова.</li>
+          <li>Кликни по себе: выбранная рамка станет фиолетовой.</li>
+          <li>Если рамки наложились, кликай там же, чтобы перебрать их.</li>
+          <li>Нажми «Это я — подтвердить». Ошибку можно отменить.</li>
+          <li>Если рамка потерялась или ушла на другого — подтверди себя снова.</li>
         </ol>
         <p><em>CONFIRMED</em> — выбранный тобой фрагмент. <em>TRACK</em> — автоматическое продолжение. <em>BRIDGE</em> — короткий разрыв между двумя фрагментами.</p>
       </section>
 
       <section class="card anchors">
-        <div class="title"><h2>Подтверждения</h2><button id="clear">Очистить</button></div>
+        <div class="title"><h2>Подтверждения</h2><div><button id="undoAnchor">Отменить последний</button><button id="clear">Очистить</button></div></div>
         <div id="anchorList" class="anchor-list"><p>Пока пусто.</p></div>
         <button class="export" id="export">Скачать anchors.json</button>
       </section>
