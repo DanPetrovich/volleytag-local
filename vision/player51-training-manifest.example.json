@@ -1,0 +1,41 @@
+{
+  "video": "/path/to/full-match.mp4",
+  "training_clips": [
+    {
+      "name": "set1-0645-0720",
+      "type": "track_ids",
+      "offset_seconds": 405,
+      "tracks": "vision/runs/set1-long-reid/tracks.csv",
+      "positive_ids": [7, 249, 261, 259],
+      "positive_segments": [
+        {"track_id": 7, "start_s": 0.0, "end_s": 29.44},
+        {"track_id": 249, "start_s": 29.52, "end_s": 31.44},
+        {"track_id": 261, "start_s": 31.64, "end_s": 34.68},
+        {"track_id": 259, "start_s": 34.64, "end_s": 35.0}
+      ],
+      "roi": [40, 70, 1900, 1020]
+    },
+    {
+      "name": "set2-2540-2557",
+      "type": "track_ids",
+      "offset_seconds": 1540,
+      "tracks": "vision/runs/original-2540-2557/tracking/tracks.csv",
+      "positive_ids": [5, 39, 88],
+      "roi": [40, 70, 1900, 1020]
+    },
+    {
+      "name": "set2-4458-4528",
+      "type": "feedback",
+      "offset_seconds": 2698,
+      "tracks": "vision/runs/review-4458-4528/tracking/tracks.csv",
+      "feedback": "vision/runs/review-4458-4528/player-51-feedback-latest.json",
+      "roi": [40, 70, 1900, 1020]
+    }
+  ],
+  "test_clip": {
+    "name": "set3-unseen",
+    "start_seconds": 2880,
+    "end_seconds": 3900,
+    "side_switch_approx_seconds": 3240
+  }
+}

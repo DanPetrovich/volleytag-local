@@ -31,8 +31,9 @@
         <button id="fullscreen">⛶ На весь экран</button>
         <label><input id="pauseOnLost" type="checkbox" checked> Пауза, если потерян</label>
         <input id="timeline" type="range" min="0" max="1" step="0.02" value="0" aria-label="Позиция видео">
-        <button class="confirm" id="confirmBox" disabled>✓ Подтвердить выбранную рамку</button>
-        <button class="reject" id="rejectCurrent">✕ Зелёная рамка — не я</button>
+        <button class="confirm" id="confirmBox" disabled>Q · ✓ Это я — начать интервал</button>
+        <button class="reject" id="rejectCurrent">W · ✕ Текущая рамка — не я</button>
+        <button class="lost-button" id="markLost">E · ◌ Потерян / рамки нет</button>
       </div>
       <div class="status lost" id="status"><i></i><div><b>Данные не загружены</b><span>Клик по рамке подтверждает, что внутри ты.</span></div></div>
     </section>
@@ -47,14 +48,28 @@
         <div class="roi"><label>ROI X<input id="roiX" type="number" value="40"></label><label>ROI Y<input id="roiY" type="number" value="70"></label></div>
       </section>
 
+      <section class="card dataset-card">
+        <h2>Датасет личности</h2>
+        <p>Сторона определяется по положению ног. Если ошиблась — выбери вручную перед подтверждением.</p>
+        <label>Ракурс
+          <select id="domainMode">
+            <option value="auto">Автоматически</option>
+            <option value="near_back">Ближняя сторона · спина</option>
+            <option value="far_front">Дальняя сторона · лицо</option>
+          </select>
+        </label>
+        <div class="dataset-stats" id="datasetStats">Интервалов: 0 · потерян: 0</div>
+        <div class="active-segment" id="activeSegment">Сейчас нет активного интервала</div>
+      </section>
+
       <section class="card help">
         <h2>Как пользоваться</h2>
         <ol>
           <li>Запусти видео.</li>
           <li>Кликни по себе: выбранная рамка станет фиолетовой.</li>
           <li>Если рамки наложились, кликай там же, чтобы перебрать их.</li>
-          <li>Нажми «Это я — подтвердить». Ошибку можно отменить.</li>
-          <li>Если рамка потерялась или ушла на другого — подтверди себя снова.</li>
+          <li>Нажми <b>Q</b>: начнётся подтверждённый интервал «это я».</li>
+          <li>Если рамка ушла на другого — <b>W</b>. Если тебя не видно — <b>E</b>.</li>
         </ol>
         <p><em>CONFIRMED</em> — выбранный тобой фрагмент. <em>TRACK</em> — автоматическое продолжение. <em>BRIDGE</em> — короткий разрыв между двумя фрагментами.</p>
       </section>
@@ -62,7 +77,7 @@
       <section class="card anchors">
         <div class="title"><h2>Обратная связь</h2><div><button id="undoAnchor">Отменить последний</button><button id="clear">Очистить</button></div></div>
         <div id="anchorList" class="anchor-list"><p>Пока пусто.</p></div>
-        <button class="export" id="export">Скачать player-51-feedback.json</button>
+        <button class="export" id="export">Скачать player-51-training-data.json</button>
       </section>
     </aside>
   </main>

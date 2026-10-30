@@ -16,6 +16,9 @@ const state = {
   chunkScores: new Map(),
   anchors: [],
   negatives: [],
+  segments: [],
+  lostEvents: [],
+  activeSegmentIndex: null,
   route: [],
   pausedForGap: false,
   preview: null,
@@ -303,9 +306,49 @@ function formatTime(seconds) {
   return `${String(minutes).padStart(2, "0")}:${rest.toFixed(1).padStart(4, "0")}`;
 }
 
+function domainFor(item) {
+  const manual = $("#domainMode").value;
+  if (manual !== "auto") return manual;
+  return item.y2 < 470 ? "far_front" : "near_back";
+}
+
+function domainLabel(domain) {
+  return domain === "near_back" ? "ближняя · спина" : "дальняя · лицо";
+}
+
+function closeActiveSegment(end, reason) {
+  const index = state.activeSegmentIndex;
+  if (index === null || !state.segments[index]) return;
+  state.segments[index].end = Math.max(state.segments[index].start, end);
+  state.segments[index].endReason = reason;
+  state.activeSegmentIndex = null;
+}
+
+function startPositiveSegment(item, time) {
+  closeActiveSegment(time, "new-positive");
+  const domain = domainFor(item);
+  state.segments.push({
+    label: "positive", start: time, end: null, key: item.key,
+    trackId: item.id, domain, source: "human-confirmed",
+  });
+  state.activeSegmentIndex = state.segments.length - 1;
+  return domain;
+}
+
+function seekTo(time) {
+  closeActiveSegment(video.currentTime, "seek");
+  video.currentTime = Math.max(0, Math.min(video.duration || Infinity, time));
+  state.preview = null; $("#confirmBox").disabled = true; $("#stageConfirm").hidden = true;
+  saveAnchors();
+}
+
 function storageKey() { return `volleytag-tracking-v3:${state.videoName}:${state.tracksName}`; }
 function saveAnchors() {
-  if (state.videoName && state.tracksName) localStorage.setItem(storageKey(), JSON.stringify({ version: 2, anchors: state.anchors, negatives: state.negatives }));
+  if (state.videoName && state.tracksName) localStorage.setItem(storageKey(), JSON.stringify({
+    version: 3, anchors: state.anchors, negatives: state.negatives,
+    segments: state.segments, lostEvents: state.lostEvents,
+    activeSegmentIndex: state.activeSegmentIndex,
+  }));
   renderAnchors();
 }
 function loadAnchors() {
@@ -313,13 +356,23 @@ function loadAnchors() {
     const saved = JSON.parse(localStorage.getItem(storageKey()) || "[]");
     state.anchors = Array.isArray(saved) ? saved : (saved.anchors || []);
     state.negatives = Array.isArray(saved) ? [] : (saved.negatives || []);
-  } catch { state.anchors = []; state.negatives = []; }
+    state.segments = Array.isArray(saved) ? [] : (saved.segments || []);
+    state.lostEvents = Array.isArray(saved) ? [] : (saved.lostEvents || []);
+    state.activeSegmentIndex = Array.isArray(saved) ? null : (saved.activeSegmentIndex ?? null);
+  } catch { state.anchors = []; state.negatives = []; state.segments = []; state.lostEvents = []; state.activeSegmentIndex = null; }
   state.anchors = state.anchors.filter((anchor) => state.chunkByKey.has(anchor.key));
   state.negatives = state.negatives.filter((negative) => state.chunkByKey.has(negative.key));
   rebuildRoute(); renderAnchors();
 }
 function renderAnchors() {
-  $("#saveState").textContent = `Якорей: ${state.anchors.length} · не я: ${state.negatives.length}`;
+  $("#saveState").textContent = `Я: ${state.segments.length} · не я: ${state.negatives.length}`;
+  $("#datasetStats").textContent = `Интервалов «я»: ${state.segments.length} · «не я»: ${state.negatives.length} · потерян: ${state.lostEvents.length}`;
+  const active = state.activeSegmentIndex === null ? null : state.segments[state.activeSegmentIndex];
+  const activeNode = $("#activeSegment");
+  activeNode.className = `active-segment${active ? " live" : ""}`;
+  activeNode.textContent = active
+    ? `● ${formatTime(active.start)} → сейчас · ${domainLabel(active.domain)} · ${active.key}`
+    : "Сейчас нет активного интервала";
   const list = $("#anchorList");
   if (!state.anchors.length && !state.negatives.length) { list.innerHTML = "<p>Пока пусто.</p>"; return; }
   const ordered = state.anchors.map((anchor, originalIndex) => ({ ...anchor, originalIndex })).sort((a, b) => a.time - b.time);
@@ -330,7 +383,15 @@ function renderAnchors() {
   ).join("");
   list.querySelectorAll("time").forEach((element) => element.addEventListener("click", () => { video.currentTime = Number(element.dataset.time); }));
   list.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
-    state.anchors.splice(Number(button.dataset.delete), 1); rebuildRoute(); saveAnchors();
+    const removed = state.anchors.splice(Number(button.dataset.delete), 1)[0];
+    const segmentIndex = state.segments.findIndex((segment) => removed
+      && Math.abs(segment.start - removed.time) < .35 && segment.key === removed.key);
+    if (segmentIndex >= 0) {
+      state.segments.splice(segmentIndex, 1);
+      if (state.activeSegmentIndex === segmentIndex) state.activeSegmentIndex = null;
+      else if (state.activeSegmentIndex > segmentIndex) state.activeSegmentIndex -= 1;
+    }
+    rebuildRoute(); saveAnchors();
   }));
 }
 
@@ -354,16 +415,20 @@ canvas.addEventListener("click", (event) => {
 });
 
 function confirmPreview() {
-  if (!state.preview) return;
-  const { item, time } = state.preview;
+  const selected = state.preview?.item || selectionAt(video.currentTime)?.item;
+  if (!selected) { toast("Сначала кликни по своей рамке"); return; }
+  const item = selected, time = video.currentTime;
   const previous = selectionAt(time);
-  if (previous && previous.item.key !== item.key && !state.negatives.some((negative) => negative.key === previous.item.key)) {
-    state.negatives.push({ time, key: previous.item.key, trackId: previous.item.id, reason: "corrected" });
+  if (previous && previous.item.key !== item.key && !state.negatives.some((negative) =>
+    negative.key === previous.item.key && Math.abs(negative.time - time) < .5)) {
+    state.negatives.push({ time, key: previous.item.key, trackId: previous.item.id,
+      reason: "corrected", domain: domainFor(previous.item) });
   }
   state.anchors = state.anchors.filter((anchor) => Math.abs(anchor.time - time) > .35);
-  state.anchors.push({ time, key: item.key, trackId: item.id });
+  const domain = startPositiveSegment(item, time);
+  state.anchors.push({ time, key: item.key, trackId: item.id, domain });
   state.preview = null; $("#confirmBox").disabled = true; $("#stageConfirm").hidden = true;
-  rebuildRoute(); saveAnchors(); toast(`Подтверждено: ${item.key}`);
+  rebuildRoute(); saveAnchors(); toast(`Начат интервал: ${domainLabel(domain)}`);
 }
 
 $("#videoFile").addEventListener("change", (event) => {
@@ -386,31 +451,56 @@ $("#scoresFile").addEventListener("change", async (event) => {
   rebuildRoute(); toast("ReID-оценки загружены");
 });
 $("#play").addEventListener("click", () => { if (video.paused) video.play(); else video.pause(); });
-document.querySelectorAll("[data-seek]").forEach((button) => button.addEventListener("click", () => { video.currentTime = Math.max(0, video.currentTime + Number(button.dataset.seek)); }));
-$("#timeline").addEventListener("input", (event) => { video.currentTime = Number(event.target.value); state.preview = null; $("#confirmBox").disabled = true; $("#stageConfirm").hidden = true; });
+document.querySelectorAll("[data-seek]").forEach((button) => button.addEventListener("click", () => seekTo(video.currentTime + Number(button.dataset.seek))));
+$("#timeline").addEventListener("input", (event) => seekTo(Number(event.target.value)));
 $("#confirmBox").addEventListener("click", confirmPreview);
 $("#stageConfirm").addEventListener("click", confirmPreview);
 $("#rejectCurrent").addEventListener("click", () => {
-  const selected = selectionAt(video.currentTime);
+  const selected = state.preview ? { item: state.preview.item } : selectionAt(video.currentTime);
   if (!selected) { toast("Сейчас нет зелёной рамки"); return; }
-  if (!state.negatives.some((negative) => negative.key === selected.item.key)) {
-    state.negatives.push({ time: video.currentTime, key: selected.item.key, trackId: selected.item.id, reason: "manual" });
+  closeActiveSegment(video.currentTime, "negative");
+  if (!state.negatives.some((negative) => negative.key === selected.item.key
+    && Math.abs(negative.time - video.currentTime) < .5)) {
+    state.negatives.push({ time: video.currentTime, key: selected.item.key, trackId: selected.item.id,
+      reason: "manual", domain: domainFor(selected.item) });
   }
   video.pause(); rebuildRoute(); saveAnchors();
   setStatus("lost", "Отмечено: это не ты", "Теперь кликни по своей рамке и подтверди её.");
 });
+$("#markLost").addEventListener("click", () => {
+  closeActiveSegment(video.currentTime, "lost");
+  state.lostEvents.push({ time: video.currentTime, reason: "not-visible" });
+  state.preview = null; video.pause(); saveAnchors();
+  setStatus("lost", "Отмечено: тебя не видно", "Продолжай видео и нажми Q, когда снова найдёшь себя.");
+});
 $("#fullscreen").addEventListener("click", () => { $("#stage").requestFullscreen?.(); });
-$("#undoAnchor").addEventListener("click", () => { state.anchors.pop(); rebuildRoute(); saveAnchors(); });
-$("#clear").addEventListener("click", () => { state.anchors = []; state.negatives = []; rebuildRoute(); saveAnchors(); });
+$("#undoAnchor").addEventListener("click", () => {
+  state.anchors.pop();
+  if (state.segments.length) state.segments.pop();
+  state.activeSegmentIndex = null; rebuildRoute(); saveAnchors();
+});
+$("#clear").addEventListener("click", () => { state.anchors = []; state.negatives = []; state.segments = []; state.lostEvents = []; state.activeSegmentIndex = null; rebuildRoute(); saveAnchors(); });
 $("#export").addEventListener("click", () => {
-  const payload = { version: 2, video: state.videoName, tracks: state.tracksName, roi: [Number($("#roiX").value), Number($("#roiY").value)], anchors: state.anchors, negatives: state.negatives };
-  const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })); link.download = "player-51-feedback.json"; link.click(); URL.revokeObjectURL(link.href);
+  const segments = state.segments.map((segment, index) => {
+    const end = segment.end ?? (index === state.activeSegmentIndex ? video.currentTime : segment.start);
+    const routeKeys = [...new Set(state.route.filter((entry) =>
+      entry.item.time >= segment.start && entry.item.time <= end).map((entry) => entry.item.key))];
+    return { ...segment, end, routeKeys };
+  });
+  const payload = { version: 3, video: state.videoName, tracks: state.tracksName,
+    roi: [Number($("#roiX").value), Number($("#roiY").value)],
+    domains: { near_back: "ближняя сторона, спиной", far_front: "дальняя сторона, лицом" },
+    segments, anchors: state.anchors, negatives: state.negatives, lostEvents: state.lostEvents };
+  const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })); link.download = "player-51-training-data.json"; link.click(); URL.revokeObjectURL(link.href);
 });
 document.addEventListener("keydown", (event) => {
   if (event.code === "Space" && !event.target.matches("input")) { event.preventDefault(); if (video.paused) video.play(); else video.pause(); }
-  if (event.code === "ArrowLeft") video.currentTime = Math.max(0, video.currentTime - 5);
-  if (event.code === "ArrowRight") video.currentTime += 5;
+  if (event.code === "ArrowLeft") seekTo(video.currentTime - 5);
+  if (event.code === "ArrowRight") seekTo(video.currentTime + 5);
   if (event.code === "Enter" && state.preview) confirmPreview();
+  if (event.code === "KeyQ" && !event.target.matches("input,select")) { event.preventDefault(); confirmPreview(); }
+  if (event.code === "KeyW" && !event.target.matches("input,select")) { event.preventDefault(); $("#rejectCurrent").click(); }
+  if (event.code === "KeyE" && !event.target.matches("input,select")) { event.preventDefault(); $("#markLost").click(); }
 });
 video.addEventListener("play", () => { $("#play").textContent = "❚❚ Пауза"; });
 video.addEventListener("pause", () => { $("#play").textContent = "▶ Смотреть"; });
