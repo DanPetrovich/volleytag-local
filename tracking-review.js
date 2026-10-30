@@ -7,6 +7,7 @@ const state = {
   videoName: "",
   tracksName: "",
   observations: [],
+  frames: [],
   chunks: [],
   chunkByKey: new Map(),
   scores: new Map(),
@@ -58,6 +59,15 @@ function buildChunks(rows) {
   });
   chunks.sort((a, b) => a.start - b.start);
   state.observations = chunks.flatMap((chunk) => chunk.items).sort((a, b) => a.time - b.time);
+  const byFrame = new Map();
+  state.observations.forEach((item) => {
+    if (!byFrame.has(item.frame)) byFrame.set(item.frame, []);
+    byFrame.get(item.frame).push(item);
+  });
+  state.frames = [...byFrame.values()].map((items) => ({
+    time: items[0].time,
+    items: deduplicate(items),
+  })).sort((a, b) => a.time - b.time);
   state.chunks = chunks;
   state.chunkByKey = new Map(chunks.map((chunk) => [chunk.key, chunk]));
 }
@@ -66,44 +76,116 @@ function center(item) { return [(item.x1 + item.x2) / 2, (item.y1 + item.y2) / 2
 function height(item) { return item.y2 - item.y1; }
 function distance(a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1]); }
 
+function boxIou(a, b) {
+  const x1 = Math.max(a.x1, b.x1), y1 = Math.max(a.y1, b.y1);
+  const x2 = Math.min(a.x2, b.x2), y2 = Math.min(a.y2, b.y2);
+  const intersection = Math.max(0, x2 - x1) * Math.max(0, y2 - y1);
+  const areaA = Math.max(0, a.x2 - a.x1) * Math.max(0, a.y2 - a.y1);
+  const areaB = Math.max(0, b.x2 - b.x1) * Math.max(0, b.y2 - b.y1);
+  return intersection / Math.max(1, areaA + areaB - intersection);
+}
+
+function deduplicate(items) {
+  const kept = [];
+  [...items].sort((a, b) => b.confidence - a.confidence).forEach((item) => {
+    const duplicate = kept.some((other) => {
+      const heightRatio = height(item) / Math.max(1, height(other));
+      return boxIou(item, other) > .55 && heightRatio > .68 && heightRatio < 1.47
+        && distance(center(item), center(other)) < Math.min(height(item), height(other)) * .42;
+    });
+    if (!duplicate) kept.push(item);
+  });
+  return kept;
+}
+
 function rebuildRoute() {
   const anchors = [...state.anchors].sort((a, b) => a.time - b.time);
-  const selected = new Map();
-  anchors.forEach((anchor) => {
-    const chunk = state.chunkByKey.get(anchor.key);
-    if (chunk) selected.set(chunk.key, { chunk, source: "CONFIRMED" });
-  });
-
+  const points = new Map();
   anchors.forEach((anchor, anchorIndex) => {
-    let current = state.chunkByKey.get(anchor.key);
+    const chunk = state.chunkByKey.get(anchor.key);
+    if (!chunk) return;
+    const seed = nearest(chunk.items, anchor.time, .2);
+    if (!seed) return;
     const stopAt = anchors[anchorIndex + 1]?.time ?? Infinity;
-    const visited = new Set();
-    while (current && current.end < stopAt && !visited.has(current.key)) {
-      visited.add(current.key);
-      const end = current.items.at(-1);
-      const candidates = state.chunks.filter((candidate) => {
-        if (selected.has(candidate.key) || candidate.start >= stopAt) return false;
-        const gap = candidate.start - current.end;
-        if (gap < -.05 || gap > .8) return false;
-        const margin = state.scores.get(candidate.id);
-        if (state.scores.size && (margin === undefined || margin < 0)) return false;
-        const first = candidate.items[0];
-        return distance(center(end), center(first)) / Math.max(height(end), height(first), 1) <= 1.25;
-      });
-      candidates.sort((left, right) => {
-        const score = (candidate) => {
-          const first = candidate.items[0];
-          const gap = Math.max(0, candidate.start - current.end);
-          const geometry = distance(center(end), center(first)) / Math.max(height(end), height(first), 1);
-          return geometry + gap * .35 - Math.max(-.1, Math.min(.1, state.scores.get(candidate.id) || 0)) * 1.5;
-        };
-        return score(left) - score(right);
-      });
-      current = candidates[0];
-      if (current) selected.set(current.key, { chunk: current, source: "TRACK" });
+    let last = seed, previous = null, lastSeenTime = anchor.time;
+    points.set(seed.frame, { item: seed, source: "CONFIRMED" });
+    if (anchorIndex === 0) {
+      const earlierFrames = state.frames.filter((frame) => frame.time < anchor.time - .02).reverse();
+      for (const frame of earlierFrames) {
+        const gap = lastSeenTime - frame.time;
+        if (gap > .85) break;
+        const lastCenter = center(last);
+        let vx = 0, vy = 0;
+        if (previous && previous.time > last.time) {
+          const previousCenter = center(previous), dt = previous.time - last.time;
+          vx = (lastCenter[0] - previousCenter[0]) / dt;
+          vy = (lastCenter[1] - previousCenter[1]) / dt;
+          const speed = Math.hypot(vx, vy), maxSpeed = height(last) * 4;
+          if (speed > maxSpeed) { vx *= maxSpeed / speed; vy *= maxSpeed / speed; }
+        }
+        const predicted = [lastCenter[0] + vx * gap, lastCenter[1] + vy * gap];
+        const maxDistance = .38 + gap * 1.35;
+        const ranked = frame.items.map((candidate) => {
+          const normalizedDistance = distance(predicted, center(candidate)) / Math.max(height(last), height(candidate), 1);
+          const sizePenalty = Math.abs(Math.log(Math.max(1, height(candidate)) / Math.max(1, height(last)))) * .28;
+          const sameTrackBonus = candidate.id === last.id ? .32 : 0;
+          const appearanceBonus = Math.max(-.12, Math.min(.12, state.scores.get(candidate.id) || 0)) * .75;
+          return { candidate, normalizedDistance, score: normalizedDistance + sizePenalty - sameTrackBonus - appearanceBonus };
+        }).filter((entry) => entry.normalizedDistance <= maxDistance
+          && height(entry.candidate) / Math.max(1, height(last)) > .52
+          && height(entry.candidate) / Math.max(1, height(last)) < 1.9)
+          .sort((a, b) => a.score - b.score);
+        const chosen = ranked[0]?.candidate;
+        if (chosen) {
+          previous = last; last = chosen; lastSeenTime = frame.time;
+          points.set(chosen.frame, { item: chosen, source: "TRACK" });
+        } else if (gap <= .35) {
+          const bridge = { ...last, time: frame.time, frame: frame.items[0]?.frame ?? last.frame };
+          const dx = vx * gap, dy = vy * gap;
+          bridge.x1 += dx; bridge.x2 += dx; bridge.y1 += dy; bridge.y2 += dy;
+          points.set(bridge.frame, { item: bridge, source: "BRIDGE" });
+        }
+      }
+      last = seed; previous = null; lastSeenTime = anchor.time;
+    }
+    const frames = state.frames.filter((frame) => frame.time > anchor.time + .02 && frame.time < stopAt - .02);
+    for (const frame of frames) {
+      const gap = frame.time - lastSeenTime;
+      if (gap > .85) break;
+      const lastCenter = center(last);
+      let vx = 0, vy = 0;
+      if (previous && last.time > previous.time) {
+        const previousCenter = center(previous), dt = last.time - previous.time;
+        vx = (lastCenter[0] - previousCenter[0]) / dt;
+        vy = (lastCenter[1] - previousCenter[1]) / dt;
+        const speed = Math.hypot(vx, vy), maxSpeed = height(last) * 4;
+        if (speed > maxSpeed) { vx *= maxSpeed / speed; vy *= maxSpeed / speed; }
+      }
+      const predicted = [lastCenter[0] + vx * gap, lastCenter[1] + vy * gap];
+      const maxDistance = .38 + gap * 1.35;
+      const ranked = frame.items.map((candidate) => {
+        const normalizedDistance = distance(predicted, center(candidate)) / Math.max(height(last), height(candidate), 1);
+        const sizePenalty = Math.abs(Math.log(Math.max(1, height(candidate)) / Math.max(1, height(last)))) * .28;
+        const sameTrackBonus = candidate.id === last.id ? .32 : 0;
+        const appearanceBonus = Math.max(-.12, Math.min(.12, state.scores.get(candidate.id) || 0)) * .75;
+        return { candidate, normalizedDistance, score: normalizedDistance + sizePenalty - sameTrackBonus - appearanceBonus };
+      }).filter((entry) => entry.normalizedDistance <= maxDistance
+        && height(entry.candidate) / Math.max(1, height(last)) > .52
+        && height(entry.candidate) / Math.max(1, height(last)) < 1.9)
+        .sort((a, b) => a.score - b.score);
+      const chosen = ranked[0]?.candidate;
+      if (chosen) {
+        previous = last; last = chosen; lastSeenTime = frame.time;
+        points.set(chosen.frame, { item: chosen, source: "TRACK" });
+      } else if (gap <= .35) {
+        const bridge = { ...last, time: frame.time, frame: frame.items[0]?.frame ?? last.frame };
+        const dx = vx * gap, dy = vy * gap;
+        bridge.x1 += dx; bridge.x2 += dx; bridge.y1 += dy; bridge.y2 += dy;
+        points.set(bridge.frame, { item: bridge, source: "BRIDGE" });
+      }
     }
   });
-  state.route = [...selected.values()].sort((a, b) => a.chunk.start - b.chunk.start);
+  state.route = [...points.values()].sort((a, b) => a.item.time - b.item.time);
 }
 
 function nearest(items, time, maxDelta = .09) {
@@ -116,29 +198,21 @@ function nearest(items, time, maxDelta = .09) {
 }
 
 function selectionAt(time) {
-  for (const entry of state.route) {
-    if (time >= entry.chunk.start - .06 && time <= entry.chunk.end + .06) {
-      const item = nearest(entry.chunk.items, time);
-      if (item) return { item, source: entry.source };
-    }
-  }
-  for (let index = 0; index < state.route.length - 1; index += 1) {
-    const left = state.route[index].chunk;
-    const right = state.route[index + 1].chunk;
-    const gap = right.start - left.end;
-    if (gap <= 0 || gap > .8 || time <= left.end || time >= right.start) continue;
-    const a = left.items.at(-1), b = right.items[0];
-    if (distance(center(a), center(b)) / Math.max(height(a), height(b), 1) > 1.25) continue;
-    const ratio = (time - left.end) / gap;
-    const item = { time, key: right.key, id: right.id };
-    ["x1", "y1", "x2", "y2"].forEach((key) => { item[key] = a[key] + (b[key] - a[key]) * ratio; });
-    return { item, source: "BRIDGE" };
-  }
-  return null;
+  let best = null;
+  state.route.forEach((entry) => {
+    const delta = Math.abs(entry.item.time - time);
+    if (delta <= .07 && (!best || delta < best.delta)) best = { ...entry, delta };
+  });
+  return best ? { item: best.item, source: best.source } : null;
 }
 
 function observationsAt(time) {
-  return state.observations.filter((item) => Math.abs(item.time - time) <= .055);
+  let best = null;
+  state.frames.forEach((frame) => {
+    const delta = Math.abs(frame.time - time);
+    if (delta <= .055 && (!best || delta < best.delta)) best = { items: frame.items, delta };
+  });
+  return best?.items || [];
 }
 
 function geometry() {
