@@ -100,17 +100,23 @@ function deduplicate(items) {
 
 function rebuildRoute() {
   const anchors = [...state.anchors].sort((a, b) => a.time - b.time);
+  const confirmedIds = new Set(anchors.map((anchor) => anchor.trackId));
   const points = new Map();
+  const putPoint = (item, source, anchorDistance) => {
+    const current = points.get(item.frame);
+    if (!current || anchorDistance <= current.anchorDistance) points.set(item.frame, { item, source, anchorDistance });
+  };
   anchors.forEach((anchor, anchorIndex) => {
     const chunk = state.chunkByKey.get(anchor.key);
     if (!chunk) return;
     const seed = nearest(chunk.items, anchor.time, .2);
     if (!seed) return;
     const stopAt = anchors[anchorIndex + 1]?.time ?? Infinity;
+    const previousAnchorTime = anchors[anchorIndex - 1]?.time ?? -Infinity;
     let last = seed, previous = null, lastSeenTime = anchor.time;
-    points.set(seed.frame, { item: seed, source: "CONFIRMED" });
-    if (anchorIndex === 0) {
-      const earlierFrames = state.frames.filter((frame) => frame.time < anchor.time - .02).reverse();
+    putPoint(seed, "CONFIRMED", 0);
+    {
+      const earlierFrames = state.frames.filter((frame) => frame.time < anchor.time - .02 && frame.time > previousAnchorTime + .02).reverse();
       for (const frame of earlierFrames) {
         const gap = lastSeenTime - frame.time;
         if (gap > .85) break;
@@ -129,8 +135,9 @@ function rebuildRoute() {
           const normalizedDistance = distance(predicted, center(candidate)) / Math.max(height(last), height(candidate), 1);
           const sizePenalty = Math.abs(Math.log(Math.max(1, height(candidate)) / Math.max(1, height(last)))) * .28;
           const sameTrackBonus = candidate.id === last.id ? .32 : 0;
+          const confirmedBonus = confirmedIds.has(candidate.id) ? .2 : 0;
           const appearanceBonus = Math.max(-.12, Math.min(.12, state.scores.get(candidate.id) || 0)) * .75;
-          return { candidate, normalizedDistance, score: normalizedDistance + sizePenalty - sameTrackBonus - appearanceBonus };
+          return { candidate, normalizedDistance, score: normalizedDistance + sizePenalty - sameTrackBonus - confirmedBonus - appearanceBonus };
         }).filter((entry) => entry.normalizedDistance <= maxDistance
           && height(entry.candidate) / Math.max(1, height(last)) > .52
           && height(entry.candidate) / Math.max(1, height(last)) < 1.9)
@@ -138,12 +145,12 @@ function rebuildRoute() {
         const chosen = ranked[0]?.candidate;
         if (chosen) {
           previous = last; last = chosen; lastSeenTime = frame.time;
-          points.set(chosen.frame, { item: chosen, source: "TRACK" });
+          putPoint(chosen, "TRACK", anchor.time - frame.time);
         } else if (gap <= .35) {
           const bridge = { ...last, time: frame.time, frame: frame.items[0]?.frame ?? last.frame };
           const dx = vx * gap, dy = vy * gap;
           bridge.x1 += dx; bridge.x2 += dx; bridge.y1 += dy; bridge.y2 += dy;
-          points.set(bridge.frame, { item: bridge, source: "BRIDGE" });
+          putPoint(bridge, "BRIDGE", anchor.time - frame.time);
         }
       }
       last = seed; previous = null; lastSeenTime = anchor.time;
@@ -167,8 +174,9 @@ function rebuildRoute() {
         const normalizedDistance = distance(predicted, center(candidate)) / Math.max(height(last), height(candidate), 1);
         const sizePenalty = Math.abs(Math.log(Math.max(1, height(candidate)) / Math.max(1, height(last)))) * .28;
         const sameTrackBonus = candidate.id === last.id ? .32 : 0;
+        const confirmedBonus = confirmedIds.has(candidate.id) ? .2 : 0;
         const appearanceBonus = Math.max(-.12, Math.min(.12, state.scores.get(candidate.id) || 0)) * .75;
-        return { candidate, normalizedDistance, score: normalizedDistance + sizePenalty - sameTrackBonus - appearanceBonus };
+        return { candidate, normalizedDistance, score: normalizedDistance + sizePenalty - sameTrackBonus - confirmedBonus - appearanceBonus };
       }).filter((entry) => entry.normalizedDistance <= maxDistance
         && height(entry.candidate) / Math.max(1, height(last)) > .52
         && height(entry.candidate) / Math.max(1, height(last)) < 1.9)
@@ -176,12 +184,12 @@ function rebuildRoute() {
       const chosen = ranked[0]?.candidate;
       if (chosen) {
         previous = last; last = chosen; lastSeenTime = frame.time;
-        points.set(chosen.frame, { item: chosen, source: "TRACK" });
+        putPoint(chosen, "TRACK", frame.time - anchor.time);
       } else if (gap <= .35) {
         const bridge = { ...last, time: frame.time, frame: frame.items[0]?.frame ?? last.frame };
         const dx = vx * gap, dy = vy * gap;
         bridge.x1 += dx; bridge.x2 += dx; bridge.y1 += dy; bridge.y2 += dy;
-        points.set(bridge.frame, { item: bridge, source: "BRIDGE" });
+        putPoint(bridge, "BRIDGE", frame.time - anchor.time);
       }
     }
   });
