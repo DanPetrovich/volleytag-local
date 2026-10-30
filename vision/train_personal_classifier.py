@@ -55,7 +55,8 @@ def collect_id_clip(spec, full_video: Path, output: Path):
     grouped = read_tracks(Path(spec["tracks"]))
     positive_ids = set(spec["positive_ids"])
     positive_segments = spec.get("positive_segments")
-    cap = cv2.VideoCapture(str(full_video))
+    source_video = Path(spec.get("video", full_video))
+    cap = cv2.VideoCapture(str(source_video))
     roi = tuple(spec.get("roi", [40, 70, 1900, 1020]))
     rows = []
     for track_id, items in grouped.items():
@@ -73,7 +74,7 @@ def collect_id_clip(spec, full_video: Path, output: Path):
         labeled = ((1, positives, .35, 50), (0, negatives, .8, 8))
         for label, candidates, interval, limit in labeled:
             for item in sample_track(candidates, interval, limit):
-                crop = crop_at(cap, item, spec["offset_seconds"], roi)
+                crop = crop_at(cap, item, spec.get("offset_seconds", 0), roi)
                 if crop is None or crop.shape[0] < 35 or crop.shape[1] < 15:
                     continue
                 name = f'{spec["name"]}-y{label}-id{track_id}-f{item.frame}.jpg'
@@ -87,8 +88,11 @@ def collect_feedback_clip(spec, full_video: Path, output: Path):
     grouped = read_tracks(Path(spec["tracks"]))
     chunks = split_chunks(grouped)
     feedback = json.loads(Path(spec["feedback"]).read_text(encoding="utf-8"))
-    cap = cv2.VideoCapture(str(full_video))
+    source_video = Path(spec.get("video", full_video))
+    cap = cv2.VideoCapture(str(source_video))
     roi = tuple(spec.get("roi", [40, 70, 1900, 1020]))
+    wanted_domain = spec.get("domain")
+    offset_seconds = spec.get("offset_seconds", 0)
     rows, seen = [], set()
     negative_times_by_key = defaultdict(list)
     for entry in feedback.get("negatives", []):
@@ -96,6 +100,8 @@ def collect_feedback_clip(spec, full_video: Path, output: Path):
     lost_times = [float(entry["time"]) for entry in feedback.get("lostEvents", [])]
     for label, field in ((1, "anchors"), (0, "negatives")):
         for entry in feedback.get(field, []):
+            if wanted_domain and entry.get("domain") != wanted_domain:
+                continue
             key = entry["key"]
             if key not in chunks:
                 continue
@@ -119,12 +125,33 @@ def collect_feedback_clip(spec, full_video: Path, output: Path):
                 if identity in seen:
                     continue
                 seen.add(identity)
-                crop = crop_at(cap, item, spec["offset_seconds"], roi)
+                crop = crop_at(cap, item, offset_seconds, roi)
                 if crop is None or crop.shape[0] < 35 or crop.shape[1] < 15:
                     continue
                 name = f'{spec["name"]}-y{label}-{key.replace(":", "-")}-f{item.frame}.jpg'
                 cv2.imwrite(str(output / name), crop)
                 rows.append((name, label, spec["name"], item.time_s, item.track_id))
+    # A hand-drawn box is an exact human positive and is especially valuable
+    # when the generic detector missed a small far-court player completely.
+    fps = cap.get(cv2.CAP_PROP_FPS) or 50.0
+    for index, entry in enumerate(feedback.get("manualBoxes", [])):
+        if wanted_domain and entry.get("domain") != wanted_domain:
+            continue
+        time_s = float(entry["time"])
+        item = Observation(
+            time_s=time_s,
+            frame=round(time_s * fps),
+            track_id=-1,
+            confidence=1.0,
+            box=(round(entry["x1"]), round(entry["y1"]),
+                 round(entry["x2"]), round(entry["y2"])),
+        )
+        crop = crop_at(cap, item, offset_seconds, roi)
+        if crop is None or crop.shape[0] < 35 or crop.shape[1] < 15:
+            continue
+        name = f'{spec["name"]}-y1-manual-{index:03d}-f{item.frame}.jpg'
+        cv2.imwrite(str(output / name), crop)
+        rows.append((name, 1, spec["name"], time_s, -1))
     cap.release()
     return rows
 
@@ -157,37 +184,54 @@ def main():
     parser.add_argument("manifest", type=Path)
     parser.add_argument("--output", type=Path, default=Path("vision/runs/personal-classifier"))
     parser.add_argument("--batch-size", type=int, default=16)
+    parser.add_argument("--reuse-embeddings", action="store_true",
+                        help="Reuse output/dataset.csv and output/embeddings.npy")
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     crop_dir = args.output / "crops"
     crop_dir.mkdir(exist_ok=True)
     manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
-    full_video = Path(manifest["video"])
-    rows = []
-    for spec in manifest["training_clips"]:
-        rows.extend((collect_feedback_clip if spec["type"] == "feedback" else collect_id_clip)(
-            spec, full_video, crop_dir))
-    if not rows or len({row[1] for row in rows}) != 2:
-        raise SystemExit("Need both positive and negative crops")
-    with (args.output / "dataset.csv").open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(("file", "label", "group", "time_s", "track_id"))
-        writer.writerows(rows)
-    paths = [crop_dir / row[0] for row in rows]
+    full_video = Path(manifest.get("video", "."))
+    dataset_path = args.output / "dataset.csv"
+    embeddings_path = args.output / "embeddings.npy"
+    if args.reuse_embeddings:
+        if not dataset_path.is_file() or not embeddings_path.is_file():
+            raise SystemExit("--reuse-embeddings requires dataset.csv and embeddings.npy")
+        with dataset_path.open(encoding="utf-8") as handle:
+            records = list(csv.DictReader(handle))
+        rows = [(row["file"], int(row["label"]), row["group"],
+                 float(row["time_s"]), int(row["track_id"])) for row in records]
+        x = np.load(embeddings_path)
+        device = "reused"
+        if len(x) != len(rows):
+            raise SystemExit("Saved embeddings do not match dataset.csv")
+    else:
+        rows = []
+        for spec in manifest["training_clips"]:
+            rows.extend((collect_feedback_clip if spec["type"] == "feedback" else collect_id_clip)(
+                spec, full_video, crop_dir))
+        if not rows or len({row[1] for row in rows}) != 2:
+            raise SystemExit("Need both positive and negative crops")
+        with dataset_path.open("w", newline="", encoding="utf-8") as handle:
+            writer = csv.writer(handle)
+            writer.writerow(("file", "label", "group", "time_s", "track_id"))
+            writer.writerows(rows)
+        paths = [crop_dir / row[0] for row in rows]
+        x, device = embed(paths, args.batch_size)
+        np.save(embeddings_path, x)
     y = np.array([row[1] for row in rows])
     groups = np.array([row[2] for row in rows])
-    x, device = embed(paths, args.batch_size)
-    np.save(args.output / "embeddings.npy", x)
 
     predictions = np.zeros(len(y), dtype=float)
     folds = []
-    for train, valid in LeaveOneGroupOut().split(x, y, groups):
-        if len(set(y[train])) < 2 or len(set(y[valid])) < 2:
-            continue
-        classifier = new_classifier().fit(x[train], y[train])
-        predictions[valid] = classifier.predict_proba(x[valid])[:, 1]
-        folds.append({"held_out": str(groups[valid][0]), "samples": len(valid),
-                      "auc": float(roc_auc_score(y[valid], predictions[valid]))})
+    if len(set(groups)) >= 2:
+        for train, valid in LeaveOneGroupOut().split(x, y, groups):
+            if len(set(y[train])) < 2 or len(set(y[valid])) < 2:
+                continue
+            classifier = new_classifier().fit(x[train], y[train])
+            predictions[valid] = classifier.predict_proba(x[valid])[:, 1]
+            folds.append({"held_out": str(groups[valid][0]), "samples": len(valid),
+                          "auc": float(roc_auc_score(y[valid], predictions[valid]))})
     evaluated = predictions > 0
     threshold = .5
     report = {

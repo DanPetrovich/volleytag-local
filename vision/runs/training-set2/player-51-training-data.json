@@ -1,0 +1,6527 @@
+{
+  "version": 3,
+  "video": "vision/runs/training-set2/source.mp4",
+  "tracks": "vision/runs/training-set2/tracking/tracks.csv",
+  "roi": [
+    40,
+    70
+  ],
+  "domains": {
+    "near_back": "ближняя сторона, спиной",
+    "far_front": "дальняя сторона, лицом"
+  },
+  "segments": [
+    {
+      "label": "positive",
+      "start": 0,
+      "end": 20.702692,
+      "key": "11:0",
+      "trackId": 11,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "11:0",
+        "100013:0",
+        "100010:0",
+        "15:0",
+        "100070:0",
+        "100010:1",
+        "100013:1",
+        "100070:1",
+        "100010:2",
+        "79:0",
+        "100099:0",
+        "100100:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 20.702692,
+      "end": 62.792716,
+      "key": "79:0",
+      "trackId": 79,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "100099:0",
+        "79:0",
+        "15:0",
+        "100010:2",
+        "100139:0",
+        "100161:1",
+        "100168:0",
+        "20:1",
+        "100001:0",
+        "32:2",
+        "144:0",
+        "100210:0",
+        "100008:1",
+        "6:2",
+        "100217:0",
+        "100217:1",
+        "5:2",
+        "20:4",
+        "100268:0",
+        "185:1",
+        "100213:4",
+        "100268:1",
+        "188:0",
+        "224:0",
+        "100349:0",
+        "100327:1",
+        "243:0",
+        "136:4",
+        "100189:3",
+        "227:3",
+        "100340:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 62.792716,
+      "end": 67.394522,
+      "key": "227:3",
+      "trackId": 227,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "227:3",
+        "100340:1",
+        "100189:3",
+        "100303:4",
+        "45:5",
+        "278:0",
+        "227:4"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 67.394522,
+      "end": 75.758698,
+      "key": "227:4",
+      "trackId": 227,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "227:4",
+        "100189:3",
+        "100431:0",
+        "278:2",
+        "227:5"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 75.758698,
+      "end": 82.192995,
+      "key": "227:5",
+      "trackId": 227,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "227:5",
+        "100189:3",
+        "100370:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 87.234065,
+      "end": 89.098023,
+      "key": "368:1",
+      "trackId": 368,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "100533:1",
+        "368:1",
+        "100370:1",
+        "100533:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 89.098023,
+      "end": 98.15236,
+      "key": "368:2",
+      "trackId": 368,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "368:2",
+        "100533:2",
+        "100402:2",
+        "100598:0",
+        "394:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 103.515612,
+      "end": 105.057399,
+      "key": "394:1",
+      "trackId": 394,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "100598:1",
+        "394:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 106.056275,
+      "end": 108.505296,
+      "key": "489:0",
+      "trackId": 489,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "100598:1",
+        "489:0",
+        "485:0",
+        "100752:0",
+        "100598:2",
+        "100758:0",
+        "489:1",
+        "368:5"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 108.505296,
+      "end": 109.739502,
+      "key": "368:5",
+      "trackId": 368,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "100598:2",
+        "368:5",
+        "384:1",
+        "100619:0",
+        "495:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 109.739502,
+      "end": 111.825503,
+      "key": "495:1",
+      "trackId": 495,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "100598:2",
+        "368:6",
+        "368:7"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 111.825503,
+      "end": 124.538049,
+      "key": "368:7",
+      "trackId": 368,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "100598:2",
+        "368:7",
+        "100748:0",
+        "227:9",
+        "368:9",
+        "227:10",
+        "100402:2",
+        "433:6"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 124.538049,
+      "end": 127.18254,
+      "key": "433:6",
+      "trackId": 433,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "100598:2",
+        "433:6",
+        "100665:1",
+        "407:3",
+        "100857:0",
+        "556:1",
+        "100821:0",
+        "121:5",
+        "100872:0",
+        "573:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 127.182827,
+      "end": 129.405977,
+      "key": "573:0",
+      "trackId": 573,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "573:0",
+        "100872:0",
+        "100878:0",
+        "529:3",
+        "552:3",
+        "487:3",
+        "100895:0",
+        "585:0",
+        "585:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 130.134204,
+      "end": 135.08775,
+      "key": "585:1",
+      "trackId": 585,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "100895:0",
+        "585:1",
+        "585:2",
+        "100807:2",
+        "100914:0",
+        "597:0",
+        "100949:0",
+        "622:0",
+        "100992:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 135.08775,
+      "end": 137.100721,
+      "key": "622:0",
+      "trackId": 622,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "622:0",
+        "100949:0",
+        "648:0",
+        "100932:2",
+        "100598:3",
+        "670:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 137.100721,
+      "end": 138.200671,
+      "key": "670:0",
+      "trackId": 670,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "100949:0",
+        "670:0",
+        "581:2",
+        "101016:1",
+        "598:3"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 138.200671,
+      "end": 149.280055,
+      "key": "598:3",
+      "trackId": 598,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "100949:0",
+        "598:3",
+        "101033:2",
+        "581:3",
+        "581:4",
+        "101064:1",
+        "101066:0",
+        "708:1",
+        "100842:3",
+        "615:5"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 149.280055,
+      "end": 150.384007,
+      "key": "615:5",
+      "trackId": 615,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "615:5",
+        "100842:3",
+        "101038:1",
+        "615:6"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 150.384112,
+      "end": 150.384112,
+      "key": "708:2",
+      "trackId": 708,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": []
+    },
+    {
+      "label": "positive",
+      "start": 150.384112,
+      "end": 152.416156,
+      "key": "615:6",
+      "trackId": 615,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "615:6",
+        "100842:3",
+        "101107:0",
+        "728:0",
+        "101116:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 152.920727,
+      "end": 154.583778,
+      "key": "734:0",
+      "trackId": 734,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "734:0",
+        "101116:0",
+        "581:7",
+        "101033:3"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 154.583778,
+      "end": 155.827017,
+      "key": "738:1",
+      "trackId": 738,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "738:1",
+        "101033:3",
+        "755:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 155.827017,
+      "end": 170.883751,
+      "key": "755:0",
+      "trackId": 755,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "101033:3",
+        "755:0",
+        "101180:0",
+        "844:0",
+        "101107:1",
+        "755:1",
+        "844:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 170.883751,
+      "end": 175.868666,
+      "key": "755:1",
+      "trackId": 755,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "755:1",
+        "101033:3",
+        "101107:1",
+        "864:0",
+        "101173:0",
+        "868:0",
+        "101033:4"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 175.868938,
+      "end": 177.094188,
+      "key": "755:2",
+      "trackId": 755,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "755:2",
+        "101033:4"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 177.757334,
+      "end": 182.475269,
+      "key": "755:3",
+      "trackId": 755,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "755:3",
+        "101033:4",
+        "755:4"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 182.475269,
+      "end": 184.990936,
+      "key": "755:4",
+      "trackId": 755,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "755:4",
+        "101033:4",
+        "101389:0",
+        "878:0",
+        "758:9",
+        "878:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 184.990936,
+      "end": 186.296598,
+      "key": "878:1",
+      "trackId": 878,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "878:1",
+        "101033:4",
+        "758:10"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 186.296775,
+      "end": 191.716243,
+      "key": "758:10",
+      "trackId": 758,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "758:10",
+        "101033:4",
+        "101458:2",
+        "101463:1",
+        "844:6",
+        "758:11",
+        "101173:4",
+        "755:5",
+        "101451:1",
+        "912:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 191.716469,
+      "end": 199.6815,
+      "key": "912:1",
+      "trackId": 912,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "101033:4",
+        "912:1",
+        "101547:0",
+        "101033:5",
+        "101561:0",
+        "878:2",
+        "101389:2",
+        "912:2",
+        "101033:6",
+        "878:3",
+        "912:3",
+        "878:4",
+        "983:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 199.681659,
+      "end": 201.004743,
+      "key": "983:1",
+      "trackId": 983,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "983:1",
+        "101033:6",
+        "101212:0",
+        "974:0",
+        "101033:7",
+        "101607:0",
+        "983:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 201.004944,
+      "end": 204.613618,
+      "key": "983:2",
+      "trackId": 983,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "101607:0",
+        "983:2",
+        "1037:0",
+        "1037:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 204.613811,
+      "end": 206.117456,
+      "key": "983:2",
+      "trackId": 983,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "101607:0",
+        "983:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 206.117549,
+      "end": 231.430952,
+      "key": "983:2",
+      "trackId": 983,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "101607:0",
+        "983:2",
+        "101706:0",
+        "755:9",
+        "101620:0",
+        "101799:1",
+        "101453:2",
+        "101841:0",
+        "1147:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 232.171163,
+      "end": 233.224907,
+      "key": "755:9",
+      "trackId": 755,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "755:9",
+        "101841:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 233.224907,
+      "end": 259.000181,
+      "key": "755:9",
+      "trackId": 755,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "101841:1",
+        "755:9",
+        "101453:2",
+        "101841:2",
+        "102165:0",
+        "101922:1",
+        "755:10"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 259.000181,
+      "end": 264.648948,
+      "key": "755:10",
+      "trackId": 755,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "101841:2",
+        "755:10",
+        "101922:1",
+        "102221:0",
+        "1314:1",
+        "102165:1",
+        "1357:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 264.649148,
+      "end": 278.683347,
+      "key": "1357:0",
+      "trackId": 1357,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "seek",
+      "routeKeys": [
+        "102221:0",
+        "1357:0",
+        "102337:0",
+        "1399:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 289.691231,
+      "end": 291.921332,
+      "key": "1448:1",
+      "trackId": 1448,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "1448:1",
+        "102402:1",
+        "102461:0",
+        "102112:4",
+        "1420:1",
+        "1290:3",
+        "101938:6",
+        "102455:0",
+        "102068:3",
+        "1324:4"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 292.694911,
+      "end": 294.267377,
+      "key": "1324:4",
+      "trackId": 1324,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "1324:4",
+        "102068:3",
+        "102402:1",
+        "1500:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 294.267377,
+      "end": 299.405122,
+      "key": "1500:0",
+      "trackId": 1500,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "1500:0",
+        "102402:1",
+        "102426:0",
+        "102525:0",
+        "1431:1",
+        "1431:2",
+        "1500:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 300.077253,
+      "end": 301.311519,
+      "key": "1500:3",
+      "trackId": 1500,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "1500:3",
+        "102402:1",
+        "1299:5"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 301.311519,
+      "end": 305.795729,
+      "key": "1299:5",
+      "trackId": 1299,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "102402:1",
+        "1299:5",
+        "102086:3",
+        "102484:5",
+        "102571:0",
+        "790:26",
+        "102402:2",
+        "101938:8",
+        "1527:0",
+        "1559:0",
+        "1559:1",
+        "102566:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 305.795729,
+      "end": 307.581817,
+      "key": "1559:1",
+      "trackId": 1559,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "seek",
+      "routeKeys": [
+        "1559:1",
+        "101938:8"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 315.640412,
+      "end": 317.862306,
+      "key": "1579:2",
+      "trackId": 1579,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "102703:0",
+        "1579:2",
+        "102739:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 317.862306,
+      "end": 320.317294,
+      "key": "1579:2",
+      "trackId": 1579,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "1579:2",
+        "102703:0",
+        "102739:0",
+        "102724:0",
+        "1632:0",
+        "1324:6",
+        "102068:5",
+        "102756:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 320.317294,
+      "end": 321.625643,
+      "key": "1324:6",
+      "trackId": 1324,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "102756:0",
+        "1324:6",
+        "102068:6",
+        "102703:0",
+        "1642:0",
+        "102767:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 321.625643,
+      "end": 326.458134,
+      "key": "1642:0",
+      "trackId": 1642,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "102703:0",
+        "1642:0",
+        "1635:1",
+        "102716:0",
+        "1324:7",
+        "102756:0",
+        "102427:2",
+        "1629:1",
+        "1580:4",
+        "102710:1",
+        "1619:2",
+        "102420:2",
+        "1591:1",
+        "102769:2",
+        "102791:2",
+        "102725:2",
+        "102807:0",
+        "1658:0",
+        "102805:1",
+        "1659:0",
+        "1662:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 326.458134,
+      "end": 330.059916,
+      "key": "1662:0",
+      "trackId": 1662,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "102807:0",
+        "1662:0",
+        "1664:0",
+        "102828:0",
+        "102805:1",
+        "1659:0",
+        "102725:3",
+        "1658:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 330.059916,
+      "end": 332.933174,
+      "key": "1658:2",
+      "trackId": 1658,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "102725:3",
+        "1658:2",
+        "1658:3",
+        "102841:0",
+        "1679:0",
+        "1662:3",
+        "1664:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 332.933174,
+      "end": 334.797787,
+      "key": "1664:0",
+      "trackId": 1664,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "102725:3",
+        "1664:0",
+        "1662:4",
+        "102850:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 334.797787,
+      "end": 336.281539,
+      "key": "1662:4",
+      "trackId": 1662,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "1662:4",
+        "102850:0",
+        "1668:1",
+        "102725:3"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 336.281539,
+      "end": 339.036818,
+      "key": "1662:4",
+      "trackId": 1662,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "1662:4",
+        "102725:3",
+        "102863:0",
+        "102864:0",
+        "1662:5",
+        "102756:1",
+        "1324:7",
+        "102870:0",
+        "1711:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 339.036818,
+      "end": 342.944825,
+      "key": "1711:0",
+      "trackId": 1711,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "102870:0",
+        "1711:0",
+        "102889:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 347.583837,
+      "end": 352.026644,
+      "key": "1662:8",
+      "trackId": 1662,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "1662:8",
+        "102957:1",
+        "1658:5",
+        "102953:1",
+        "102864:1",
+        "1763:3",
+        "102972:0",
+        "1662:9",
+        "102841:2",
+        "1658:6",
+        "102984:0",
+        "1580:6"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 352.026644,
+      "end": 356.430494,
+      "key": "1580:6",
+      "trackId": 1580,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "102841:2",
+        "1580:6",
+        "102427:3",
+        "1658:6",
+        "102984:0",
+        "102703:0",
+        "1619:3",
+        "102427:4",
+        "103027:0",
+        "1805:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 356.430494,
+      "end": 362.240499,
+      "key": "1805:0",
+      "trackId": 1805,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "103027:0",
+        "1805:0",
+        "1823:0",
+        "103052:0",
+        "1812:1",
+        "103077:1",
+        "1840:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 362.240499,
+      "end": 364.518288,
+      "key": "1840:0",
+      "trackId": 1840,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "lost",
+      "routeKeys": [
+        "103077:1",
+        "1840:0",
+        "1840:1",
+        "1812:3"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 369.665026,
+      "end": 370.513339,
+      "key": "1580:9",
+      "trackId": 1580,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "1580:9",
+        "103225:0",
+        "103132:1",
+        "1840:3",
+        "103252:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 370.513339,
+      "end": 375.102865,
+      "key": "1840:3",
+      "trackId": 1840,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "103225:0",
+        "1872:1",
+        "103252:0",
+        "1840:4",
+        "103266:0",
+        "103132:1",
+        "1840:5",
+        "1221:15",
+        "103079:0",
+        "102756:1",
+        "1883:1",
+        "102158:5",
+        "103079:1",
+        "1840:7",
+        "102158:6",
+        "1927:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 375.10323,
+      "end": 377.84082,
+      "key": "1927:0",
+      "trackId": 1927,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "102158:6",
+        "1927:1",
+        "1927:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 377.84082,
+      "end": 382.534999,
+      "key": "1927:2",
+      "trackId": 1927,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "102158:6",
+        "1927:2",
+        "1840:9",
+        "103352:1",
+        "103368:0",
+        "1973:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 382.534999,
+      "end": 393.576466,
+      "key": "1973:0",
+      "trackId": 1973,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "seek",
+      "routeKeys": [
+        "103368:0",
+        "1973:0",
+        "103354:1",
+        "102158:6",
+        "103079:1",
+        "103406:0",
+        "103412:0",
+        "1998:0",
+        "103420:0",
+        "1840:10",
+        "102158:7",
+        "2037:0",
+        "2039:0",
+        "1840:11",
+        "103445:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 376.285708,
+      "end": 377.263648,
+      "key": "1927:1",
+      "trackId": 1927,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "1927:1",
+        "102158:6"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 377.263648,
+      "end": 383.655451,
+      "key": "1927:2",
+      "trackId": 1927,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "1927:2",
+        "102158:6",
+        "1840:9",
+        "103352:1",
+        "103368:0",
+        "1973:0",
+        "103354:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 383.655451,
+      "end": 387.017162,
+      "key": "1973:0",
+      "trackId": 1973,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "103354:1",
+        "1973:0",
+        "102158:6",
+        "103079:1",
+        "103406:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 388.01876,
+      "end": 393.594219,
+      "key": "1998:0",
+      "trackId": 1998,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "seek",
+      "routeKeys": [
+        "103412:0",
+        "1998:0",
+        "103420:0",
+        "102158:6",
+        "1840:10",
+        "102158:7",
+        "2037:0",
+        "2039:0",
+        "1840:11",
+        "103445:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 433.783382,
+      "end": 434.9643,
+      "key": "2313:0",
+      "trackId": 2313,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "2313:0",
+        "103856:1",
+        "2313:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 434.9643,
+      "end": 436.23327,
+      "key": "2313:1",
+      "trackId": 2313,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "2313:1",
+        "103856:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 437.45321,
+      "end": 443.520989,
+      "key": "2313:2",
+      "trackId": 2313,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "103856:1",
+        "2313:2",
+        "103908:1",
+        "2313:3",
+        "2313:4",
+        "103523:1",
+        "1637:4"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 445.319712,
+      "end": 449.47275,
+      "key": "2363:1",
+      "trackId": 2363,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "103856:1",
+        "2363:1",
+        "103535:1",
+        "2109:2",
+        "103955:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 449.473079,
+      "end": 454.436941,
+      "key": "2109:2",
+      "trackId": 2109,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "2109:2",
+        "103535:1",
+        "2313:5",
+        "103744:6",
+        "103901:3",
+        "2304:2",
+        "104041:0",
+        "104053:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 460.358105,
+      "end": 464.03371,
+      "key": "2446:0",
+      "trackId": 2446,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "2446:0",
+        "104105:0",
+        "2412:2",
+        "104040:1",
+        "2415:2",
+        "2422:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 469.670227,
+      "end": 488.220028,
+      "key": "2505:0",
+      "trackId": 2505,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "2505:0",
+        "104161:1",
+        "2288:3",
+        "104208:0",
+        "104004:1",
+        "2395:0",
+        "104004:2",
+        "104341:0",
+        "2581:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 488.220028,
+      "end": 490.104738,
+      "key": "2581:0",
+      "trackId": 2581,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "104341:0",
+        "2581:0",
+        "104004:3",
+        "104347:1",
+        "2588:0",
+        "104353:0",
+        "2591:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 490.104738,
+      "end": 492.403465,
+      "key": "2591:0",
+      "trackId": 2591,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "104353:0",
+        "2591:0",
+        "2597:0",
+        "104360:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 496.254127,
+      "end": 498.149324,
+      "key": "2581:1",
+      "trackId": 2581,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "104411:0",
+        "2581:1",
+        "104398:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 498.149324,
+      "end": 499.191314,
+      "key": "2581:1",
+      "trackId": 2581,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "104398:0",
+        "2620:2",
+        "104440:0",
+        "103817:6",
+        "2639:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 499.191314,
+      "end": 500.817533,
+      "key": "2639:0",
+      "trackId": 2639,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "2639:0",
+        "103817:6",
+        "104458:0",
+        "2639:1",
+        "2650:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 500.817533,
+      "end": 507.846697,
+      "key": "2650:0",
+      "trackId": 2650,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "104458:0",
+        "2639:1",
+        "103817:7",
+        "2622:1",
+        "104493:0",
+        "104488:0",
+        "2457:3",
+        "104147:5",
+        "2673:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 507.846697,
+      "end": 517.195335,
+      "key": "2673:0",
+      "trackId": 2673,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "103817:7",
+        "2673:0",
+        "104212:4",
+        "2581:4",
+        "103817:8",
+        "2673:1",
+        "104640:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 517.195335,
+      "end": 519.534747,
+      "key": "2673:1",
+      "trackId": 2673,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "2673:1",
+        "103817:8",
+        "104640:1",
+        "2673:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 519.534747,
+      "end": 528.640648,
+      "key": "2673:2",
+      "trackId": 2673,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "104640:1",
+        "2673:2",
+        "104670:0",
+        "2742:0",
+        "104670:1",
+        "104723:0",
+        "2673:3",
+        "2770:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 528.640648,
+      "end": 532.718591,
+      "key": "2770:0",
+      "trackId": 2770,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "104723:0",
+        "2770:0",
+        "104684:0",
+        "2673:4",
+        "104640:2",
+        "2770:1",
+        "104770:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 532.718591,
+      "end": 534.763729,
+      "key": "2770:1",
+      "trackId": 2770,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "104684:0",
+        "2770:1",
+        "2747:2",
+        "104779:0",
+        "2770:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 534.763729,
+      "end": 554.817511,
+      "key": "2770:2",
+      "trackId": 2770,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "2770:2",
+        "104684:0",
+        "104800:0",
+        "104684:1",
+        "2809:0",
+        "104832:1",
+        "2861:0",
+        "2873:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 554.817511,
+      "end": 562.626332,
+      "key": "2873:0",
+      "trackId": 2873,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "104684:1",
+        "2873:0",
+        "2873:1",
+        "105023:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 562.626332,
+      "end": 564.033781,
+      "key": "2873:1",
+      "trackId": 2873,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "105023:0",
+        "2873:1",
+        "104144:4",
+        "105055:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 564.929879,
+      "end": 568.542768,
+      "key": "2873:2",
+      "trackId": 2873,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "105055:0",
+        "105054:1",
+        "2873:2",
+        "105073:1",
+        "105054:2",
+        "2873:3",
+        "104794:0",
+        "2834:2",
+        "105115:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 568.542768,
+      "end": 570.568016,
+      "key": "2834:2",
+      "trackId": 2834,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "104794:0",
+        "2834:2",
+        "2933:1",
+        "2834:3",
+        "105139:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 570.568016,
+      "end": 584.199273,
+      "key": "2834:3",
+      "trackId": 2834,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "2834:3",
+        "105139:0",
+        "105182:0",
+        "105091:0",
+        "2736:4",
+        "104814:2",
+        "2921:1",
+        "2966:0",
+        "105227:0",
+        "105173:4",
+        "105238:0",
+        "2983:0",
+        "105246:0",
+        "105259:0",
+        "105139:2",
+        "2998:0",
+        "2834:4",
+        "105236:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 584.199273,
+      "end": 593.607701,
+      "key": "2834:4",
+      "trackId": 2834,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "2834:4",
+        "105139:2",
+        "105293:0",
+        "105285:1",
+        "2820:7",
+        "3031:0",
+        "3031:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 593.607701,
+      "end": 594.754957,
+      "key": "3031:1",
+      "trackId": 3031,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "105285:1",
+        "3031:1",
+        "3031:2",
+        "105393:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 594.754957,
+      "end": 597.77972,
+      "key": "3031:2",
+      "trackId": 3031,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3031:2",
+        "105285:1",
+        "104794:1",
+        "2933:5",
+        "105285:2",
+        "3031:3"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 597.77972,
+      "end": 599.602462,
+      "key": "3031:3",
+      "trackId": 3031,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3031:3",
+        "105285:2",
+        "105420:0",
+        "105374:0",
+        "105285:3",
+        "3031:4"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 599.602462,
+      "end": 605.949393,
+      "key": "3031:4",
+      "trackId": 3031,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "105285:3",
+        "3031:4",
+        "3105:0",
+        "3105:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 605.949393,
+      "end": 611.183354,
+      "key": "3105:1",
+      "trackId": 3105,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "105285:3",
+        "3105:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 626.146744,
+      "end": 627.733113,
+      "key": "3221:1",
+      "trackId": 3221,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "105653:0",
+        "3221:1",
+        "3221:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 627.733113,
+      "end": 633.982005,
+      "key": "3221:2",
+      "trackId": 3221,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "105653:0",
+        "3221:2",
+        "105539:2",
+        "2734:5",
+        "105681:1",
+        "3257:0",
+        "105734:0",
+        "3263:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 633.982005,
+      "end": 636.733946,
+      "key": "3263:0",
+      "trackId": 3263,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3263:0",
+        "105734:0",
+        "105539:2",
+        "3257:2",
+        "3275:0",
+        "3278:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 636.733946,
+      "end": 637.697354,
+      "key": "3278:0",
+      "trackId": 3278,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "105734:0",
+        "105779:0",
+        "105633:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 639.767589,
+      "end": 647.354259,
+      "key": "3278:2",
+      "trackId": 3278,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3278:2",
+        "105734:1",
+        "105684:0",
+        "105789:0",
+        "3165:2",
+        "105314:3",
+        "3206:0",
+        "3211:1",
+        "3206:1",
+        "105734:4",
+        "3278:5"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 647.354259,
+      "end": 653.59549,
+      "key": "3278:5",
+      "trackId": 3278,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3278:5",
+        "105734:4",
+        "2734:10",
+        "3257:4",
+        "105539:3",
+        "105893:0",
+        "3344:0",
+        "3344:1",
+        "105938:0",
+        "3365:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 653.59549,
+      "end": 656.589011,
+      "key": "3365:0",
+      "trackId": 3365,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3365:0",
+        "105938:0",
+        "3365:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 656.589011,
+      "end": 658.329888,
+      "key": "3365:1",
+      "trackId": 3365,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3365:1",
+        "105938:0",
+        "3304:3",
+        "105813:1",
+        "105813:2",
+        "3365:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 658.329888,
+      "end": 660.705101,
+      "key": "3365:2",
+      "trackId": 3365,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "105938:0",
+        "3365:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 660.705101,
+      "end": 667.174128,
+      "key": "3365:2",
+      "trackId": 3365,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "105938:0",
+        "3365:2",
+        "3165:4",
+        "105996:1",
+        "3417:0",
+        "3165:6"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 667.174128,
+      "end": 669.162274,
+      "key": "3165:6",
+      "trackId": 3165,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3165:6",
+        "105938:0",
+        "3417:1",
+        "105996:1",
+        "3257:7",
+        "105539:4",
+        "3417:2",
+        "106081:0",
+        "3441:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 669.162274,
+      "end": 677.057196,
+      "key": "3441:0",
+      "trackId": 3441,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3441:0",
+        "106081:0",
+        "3441:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 677.057196,
+      "end": 685.087137,
+      "key": "3441:1",
+      "trackId": 3441,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "106081:0",
+        "3441:1",
+        "106197:0",
+        "3498:0",
+        "3377:5",
+        "3495:0",
+        "106182:1",
+        "3441:2",
+        "106081:1",
+        "106221:1",
+        "3520:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 685.087137,
+      "end": 692.837606,
+      "key": "3520:0",
+      "trackId": 3520,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3520:0",
+        "106221:1",
+        "3540:0",
+        "106254:0",
+        "3520:1",
+        "3546:3",
+        "3527:1",
+        "3520:2",
+        "106314:0",
+        "3527:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 692.837606,
+      "end": 695.506987,
+      "key": "3527:2",
+      "trackId": 3527,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "106314:0",
+        "3527:2",
+        "106329:0",
+        "3578:0",
+        "106285:0",
+        "106237:1",
+        "106237:2",
+        "106314:1",
+        "106344:0",
+        "106345:0",
+        "3578:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 695.506987,
+      "end": 705.546704,
+      "key": "3578:1",
+      "trackId": 3578,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "106345:0",
+        "3578:1",
+        "3527:3",
+        "106357:0",
+        "106385:0",
+        "106391:0",
+        "3622:1",
+        "3527:4",
+        "106345:1",
+        "106409:0",
+        "3597:0",
+        "106269:1",
+        "3527:5",
+        "3635:0",
+        "106345:2",
+        "3635:1",
+        "106406:1",
+        "106345:3"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 705.546704,
+      "end": 706.654505,
+      "key": "3635:1",
+      "trackId": 3635,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "106345:3",
+        "106269:2",
+        "3635:1",
+        "106254:0",
+        "106269:3",
+        "3635:2",
+        "3659:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 706.654505,
+      "end": 709.225858,
+      "key": "3659:0",
+      "trackId": 3659,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "106269:3",
+        "3659:0",
+        "106459:0",
+        "3659:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 709.225858,
+      "end": 712.74442,
+      "key": "3659:1",
+      "trackId": 3659,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "106269:3",
+        "3659:1",
+        "3665:0",
+        "3659:2",
+        "3692:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 712.74442,
+      "end": 717.131617,
+      "key": "3692:0",
+      "trackId": 3692,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3692:0",
+        "106269:3",
+        "106237:2",
+        "3629:0",
+        "3679:3"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 717.131617,
+      "end": 719.124979,
+      "key": "3679:3",
+      "trackId": 3679,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "106269:3",
+        "3679:3",
+        "3673:1",
+        "106544:1",
+        "106570:1",
+        "106269:4",
+        "3710:1",
+        "106269:5",
+        "3721:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 719.124979,
+      "end": 720.993084,
+      "key": "3721:0",
+      "trackId": 3721,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "106269:5",
+        "3721:0",
+        "3722:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 720.993084,
+      "end": 729.508379,
+      "key": "3722:1",
+      "trackId": 3722,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3722:1",
+        "106269:5",
+        "106366:0",
+        "3257:12",
+        "3722:2",
+        "106611:1",
+        "106628:0",
+        "3653:3",
+        "106680:0",
+        "3769:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 729.508379,
+      "end": 740.059656,
+      "key": "3769:0",
+      "trackId": 3769,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "106680:0",
+        "3769:0",
+        "106440:1",
+        "3653:4",
+        "3778:1",
+        "3653:5",
+        "106802:0",
+        "3769:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 740.059656,
+      "end": 743.960024,
+      "key": "3769:2",
+      "trackId": 3769,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "106802:0",
+        "3769:2",
+        "3828:1",
+        "106825:0",
+        "3847:0",
+        "3847:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 743.960024,
+      "end": 750.485795,
+      "key": "3847:2",
+      "trackId": 3847,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3847:2",
+        "106825:0",
+        "106852:0",
+        "3463:6",
+        "106678:2",
+        "106858:1",
+        "106825:1",
+        "3868:1",
+        "3868:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 750.485795,
+      "end": 752.498347,
+      "key": "3868:2",
+      "trackId": 3868,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3868:2",
+        "106825:1",
+        "3879:1",
+        "3879:2",
+        "3873:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 752.498347,
+      "end": 757.247885,
+      "key": "3873:1",
+      "trackId": 3873,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3873:1",
+        "106825:1",
+        "106948:0",
+        "106961:0",
+        "3893:1",
+        "106972:1",
+        "106997:0",
+        "3923:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 757.247885,
+      "end": 758.57001,
+      "key": "3923:0",
+      "trackId": 3923,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "106997:0",
+        "3923:0",
+        "3923:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 758.57001,
+      "end": 759.780825,
+      "key": "3923:1",
+      "trackId": 3923,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3923:1",
+        "106997:0",
+        "3923:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 759.780825,
+      "end": 764.04998,
+      "key": "3923:2",
+      "trackId": 3923,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3923:2",
+        "106997:0",
+        "107043:0",
+        "3944:1",
+        "3956:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 764.04998,
+      "end": 769.028383,
+      "key": "3956:0",
+      "trackId": 3956,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "106997:0",
+        "3956:0",
+        "3923:3",
+        "3923:4"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 769.028383,
+      "end": 775.761712,
+      "key": "3923:4",
+      "trackId": 3923,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "106997:0",
+        "3923:4",
+        "107094:0",
+        "3982:0",
+        "3923:5",
+        "3944:4",
+        "107074:1",
+        "106997:1",
+        "107074:2",
+        "3944:5",
+        "3923:6"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 775.761712,
+      "end": 787.594789,
+      "key": "3923:6",
+      "trackId": 3923,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3923:6",
+        "106997:1",
+        "107146:0",
+        "107056:2",
+        "107056:3",
+        "107269:0",
+        "4051:1",
+        "107205:0",
+        "3887:3",
+        "107295:1",
+        "107056:4",
+        "106858:2",
+        "4075:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 787.594789,
+      "end": 789.17192,
+      "key": "4075:0",
+      "trackId": 4075,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "4075:0",
+        "107056:4",
+        "4075:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 789.17192,
+      "end": 795.351239,
+      "key": "4075:1",
+      "trackId": 4075,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "4075:1",
+        "107056:4",
+        "4065:1",
+        "4091:0",
+        "4104:0",
+        "3887:4",
+        "107317:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 772.9,
+      "end": 782.833148,
+      "key": "3982:0",
+      "trackId": 3982,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "3982:0",
+        "106997:0",
+        "3923:5",
+        "3944:4",
+        "107074:1",
+        "106997:1",
+        "107074:2",
+        "3944:5",
+        "3923:6",
+        "107146:0",
+        "107056:2",
+        "107056:3"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 782.833148,
+      "end": 786.01173,
+      "key": "107056:3",
+      "trackId": 107056,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "107056:3",
+        "3923:6",
+        "107269:0",
+        "4051:1",
+        "107205:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 786.986376,
+      "end": 793.404655,
+      "key": "107056:4",
+      "trackId": 107056,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "seek",
+      "routeKeys": [
+        "107056:4",
+        "3887:3",
+        "106858:2",
+        "4075:0",
+        "4075:1",
+        "4065:1",
+        "4091:0",
+        "4104:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 849.283672,
+      "end": 859.685736,
+      "key": "108149:1",
+      "trackId": 108149,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "108149:1",
+        "4535:0",
+        "108202:0",
+        "4535:1",
+        "108149:2",
+        "4552:0",
+        "108108:0",
+        "4527:3",
+        "108105:0",
+        "108236:0",
+        "4589:0",
+        "4535:3"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 859.685736,
+      "end": 882.988566,
+      "key": "108236:0",
+      "trackId": 108236,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "108236:0",
+        "4535:4",
+        "108336:0",
+        "4624:0",
+        "4653:0",
+        "108374:0",
+        "108236:1",
+        "4535:5",
+        "108317:1",
+        "4477:6",
+        "108236:2",
+        "108456:0",
+        "108447:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 882.988566,
+      "end": 899.62852,
+      "key": "108447:1",
+      "trackId": 108447,
+      "domain": "near_back",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "108447:1",
+        "4535:5",
+        "108550:0",
+        "108112:0",
+        "4670:1",
+        "4794:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 899.62852,
+      "end": 944.378115,
+      "key": "108447:1",
+      "trackId": 108447,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "108447:1",
+        "4794:0",
+        "4783:1",
+        "108583:1",
+        "108612:1",
+        "4742:1",
+        "108618:1",
+        "4742:2",
+        "108688:0",
+        "108770:0",
+        "4893:0",
+        "4742:3",
+        "4643:0",
+        "4914:0",
+        "108624:2",
+        "4477:11",
+        "108956:0",
+        "5000:1",
+        "108935:1",
+        "5000:2",
+        "4814:1",
+        "108837:0",
+        "108872:2",
+        "108993:0",
+        "5021:0",
+        "108992:0",
+        "4996:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 944.378115,
+      "end": 946.228453,
+      "key": "108992:0",
+      "trackId": 108992,
+      "domain": "near_back",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "108992:0",
+        "4996:2",
+        "4910:1",
+        "108823:0",
+        "108872:3",
+        "108978:1",
+        "4935:1",
+        "5030:0",
+        "5032:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 946.228453,
+      "end": 950.220986,
+      "key": "108872:3",
+      "trackId": 108872,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "108872:3",
+        "5032:0",
+        "5023:1",
+        "4996:3",
+        "108999:1",
+        "5040:0",
+        "5023:2",
+        "5052:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 950.220986,
+      "end": 953.362997,
+      "key": "108872:3",
+      "trackId": 108872,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "108872:3",
+        "5052:0",
+        "109000:0",
+        "5008:2",
+        "109078:0",
+        "5075:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 953.362997,
+      "end": 955.763689,
+      "key": "109078:0",
+      "trackId": 109078,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "109078:0",
+        "5075:0",
+        "108935:2",
+        "5071:0",
+        "109078:1",
+        "5075:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 955.763689,
+      "end": 982.820295,
+      "key": "109078:1",
+      "trackId": 109078,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "109078:1",
+        "5075:1",
+        "5140:0",
+        "5071:0",
+        "109144:0",
+        "109303:0",
+        "5094:4",
+        "109308:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 982.820295,
+      "end": 1001.597331,
+      "key": "109303:0",
+      "trackId": 109303,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "seek",
+      "routeKeys": [
+        "109303:0",
+        "5094:4",
+        "5094:5",
+        "5265:0",
+        "5265:1",
+        "5243:1",
+        "5265:2",
+        "5265:3",
+        "5277:1",
+        "5265:4",
+        "109458:1",
+        "4956:1",
+        "109470:0",
+        "108036:8"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1049.381356,
+      "end": 1055.620191,
+      "key": "110186:0",
+      "trackId": 110186,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "110186:0",
+        "5603:2",
+        "110020:2",
+        "5576:2",
+        "110186:1",
+        "5603:4",
+        "5708:0",
+        "5603:5"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1055.620191,
+      "end": 1085.013491,
+      "key": "110186:1",
+      "trackId": 110186,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "seek",
+      "routeKeys": [
+        "110186:1",
+        "5603:5",
+        "5645:4",
+        "5603:6",
+        "110490:0",
+        "5810:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1093.464488,
+      "end": 1100.78398,
+      "key": "110624:0",
+      "trackId": 110624,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "110624:0",
+        "5887:2",
+        "110632:0",
+        "5917:0",
+        "110676:1",
+        "110685:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1100.78398,
+      "end": 1105.280493,
+      "key": "110685:0",
+      "trackId": 110685,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "110685:0",
+        "5952:0",
+        "5917:1",
+        "110544:3",
+        "5944:0",
+        "110712:0",
+        "5972:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1105.280493,
+      "end": 1114.743392,
+      "key": "110712:0",
+      "trackId": 110712,
+      "domain": "near_back",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "110712:0",
+        "5972:0",
+        "5887:6",
+        "110683:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1114.743392,
+      "end": 1129.685903,
+      "key": "110683:2",
+      "trackId": 110683,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "110683:2",
+        "5887:6",
+        "110735:3",
+        "6036:0",
+        "110830:0",
+        "6055:0",
+        "6073:0",
+        "6021:0",
+        "110683:3",
+        "5887:7"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1129.685903,
+      "end": 1144.033498,
+      "key": "110683:3",
+      "trackId": 110683,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "110683:3",
+        "5887:7",
+        "5887:8",
+        "110978:0",
+        "6033:7",
+        "111023:1",
+        "6021:2",
+        "111042:0",
+        "6135:0",
+        "6112:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1144.033498,
+      "end": 1171.328178,
+      "key": "111042:0",
+      "trackId": 111042,
+      "domain": "near_back",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111042:0",
+        "6112:1",
+        "6126:1",
+        "6112:3",
+        "6041:4",
+        "6112:4",
+        "6041:5",
+        "5889:5",
+        "6041:6",
+        "5618:4",
+        "110088:4",
+        "111285:0",
+        "5618:5"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1171.328178,
+      "end": 1174.912627,
+      "key": "111285:0",
+      "trackId": 111285,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111285:0",
+        "5618:5",
+        "111318:0",
+        "6252:1",
+        "111301:0",
+        "111255:0",
+        "6043:3",
+        "5747:2",
+        "110239:2",
+        "111354:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1174.912627,
+      "end": 1177.25801,
+      "key": "111354:0",
+      "trackId": 111354,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111354:0",
+        "111285:1",
+        "6192:0",
+        "111198:0",
+        "6285:1",
+        "111373:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1177.25801,
+      "end": 1200.02894,
+      "key": "111373:0",
+      "trackId": 111373,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111373:0",
+        "6285:1",
+        "110616:0",
+        "5911:0",
+        "111545:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1200.02894,
+      "end": 1202.278537,
+      "key": "111545:0",
+      "trackId": 111545,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111545:0",
+        "6397:0",
+        "111559:0",
+        "110185:6",
+        "6325:0",
+        "111429:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1202.278537,
+      "end": 1206.922191,
+      "key": "111545:0",
+      "trackId": 111545,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111545:0",
+        "6397:2",
+        "6397:3",
+        "110616:0",
+        "5911:0",
+        "111593:0",
+        "6192:5",
+        "111217:2",
+        "111528:1",
+        "111217:4",
+        "111531:1",
+        "111596:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1206.922191,
+      "end": 1210.02683,
+      "key": "111596:1",
+      "trackId": 111596,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111596:1",
+        "111385:1",
+        "111630:0",
+        "6389:4"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1210.02683,
+      "end": 1212.431827,
+      "key": "111630:0",
+      "trackId": 111630,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111630:0",
+        "6444:0",
+        "111531:1",
+        "6385:2",
+        "111630:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1212.431827,
+      "end": 1224.239404,
+      "key": "111630:1",
+      "trackId": 111630,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111630:1",
+        "6461:0",
+        "6461:1",
+        "6470:0",
+        "111612:0",
+        "111786:0",
+        "110616:0",
+        "5911:0",
+        "111861:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1224.239404,
+      "end": 1232.994818,
+      "key": "111861:0",
+      "trackId": 111861,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111861:0",
+        "6539:0",
+        "110616:0",
+        "5911:0",
+        "111861:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1232.994818,
+      "end": 1236.408507,
+      "key": "111861:1",
+      "trackId": 111861,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111861:1",
+        "111786:1",
+        "6492:3",
+        "111927:0",
+        "6580:0",
+        "111934:0",
+        "111861:2",
+        "6580:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1236.408507,
+      "end": 1238.439083,
+      "key": "111861:2",
+      "trackId": 111861,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111861:2",
+        "6595:0",
+        "111949:0",
+        "111965:0",
+        "111861:3",
+        "5704:26"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1238.439083,
+      "end": 1240.610603,
+      "key": "111861:3",
+      "trackId": 111861,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111861:3",
+        "5704:26",
+        "111369:2",
+        "111980:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1240.610603,
+      "end": 1241.799009,
+      "key": "111980:1",
+      "trackId": 111980,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111980:1",
+        "111995:0",
+        "111932:1",
+        "6554:4",
+        "111861:4"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1241.799009,
+      "end": 1243.246913,
+      "key": "111861:4",
+      "trackId": 111861,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "111861:4",
+        "112021:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1243.246913,
+      "end": 1258.695901,
+      "key": "112021:0",
+      "trackId": 112021,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "negative",
+      "routeKeys": [
+        "112021:0",
+        "6633:0",
+        "6639:0",
+        "112062:0",
+        "6633:1",
+        "6621:1",
+        "111369:2",
+        "112114:0",
+        "6621:2",
+        "6691:0",
+        "112127:0",
+        "6621:3",
+        "6691:1",
+        "6621:4",
+        "112151:0",
+        "6700:0",
+        "112146:0"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1259.344068,
+      "end": 1260.626168,
+      "key": "112146:0",
+      "trackId": 112146,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "112146:0",
+        "6621:5",
+        "6700:1",
+        "112151:1"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1260.626168,
+      "end": 1262.160211,
+      "key": "112151:1",
+      "trackId": 112151,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "112151:1",
+        "6700:1",
+        "111369:2",
+        "112151:2",
+        "6700:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1262.160211,
+      "end": 1267.000442,
+      "key": "112151:2",
+      "trackId": 112151,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "112151:2",
+        "6700:2",
+        "112205:0",
+        "112241:0",
+        "6700:3",
+        "112275:0",
+        "6731:2"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1267.000442,
+      "end": 1289.002474,
+      "key": "112275:0",
+      "trackId": 112275,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "endReason": "new-positive",
+      "routeKeys": [
+        "112275:0",
+        "6731:2",
+        "112293:0",
+        "112295:3",
+        "112365:0",
+        "112326:0",
+        "6790:0",
+        "112419:0",
+        "6835:0",
+        "6739:3",
+        "6838:0",
+        "6828:1",
+        "6821:1",
+        "6731:3",
+        "112421:4"
+      ]
+    },
+    {
+      "label": "positive",
+      "start": 1289.002474,
+      "end": 1295.291378,
+      "key": "112419:0",
+      "trackId": 112419,
+      "domain": "far_front",
+      "source": "human-confirmed",
+      "routeKeys": [
+        "112419:0",
+        "6731:3",
+        "112503:0",
+        "6731:4",
+        "6731:5",
+        "112519:0"
+      ]
+    }
+  ],
+  "anchors": [
+    {
+      "time": 0,
+      "key": "11:0",
+      "trackId": 11,
+      "domain": "far_front"
+    },
+    {
+      "time": 20.702692,
+      "key": "79:0",
+      "trackId": 79,
+      "domain": "far_front"
+    },
+    {
+      "time": 62.792716,
+      "key": "227:3",
+      "trackId": 227,
+      "domain": "far_front"
+    },
+    {
+      "time": 67.394522,
+      "key": "227:4",
+      "trackId": 227,
+      "domain": "far_front"
+    },
+    {
+      "time": 75.758698,
+      "key": "227:5",
+      "trackId": 227,
+      "domain": "far_front"
+    },
+    {
+      "time": 87.234065,
+      "key": "368:1",
+      "trackId": 368,
+      "domain": "far_front"
+    },
+    {
+      "time": 89.098023,
+      "key": "368:2",
+      "trackId": 368,
+      "domain": "far_front"
+    },
+    {
+      "time": 103.515612,
+      "key": "394:1",
+      "trackId": 394,
+      "domain": "far_front"
+    },
+    {
+      "time": 106.056275,
+      "key": "489:0",
+      "trackId": 489,
+      "domain": "far_front"
+    },
+    {
+      "time": 108.505296,
+      "key": "368:5",
+      "trackId": 368,
+      "domain": "far_front"
+    },
+    {
+      "time": 109.739502,
+      "key": "495:1",
+      "trackId": 495,
+      "domain": "far_front"
+    },
+    {
+      "time": 111.825503,
+      "key": "368:7",
+      "trackId": 368,
+      "domain": "far_front"
+    },
+    {
+      "time": 124.538049,
+      "key": "433:6",
+      "trackId": 433,
+      "domain": "far_front"
+    },
+    {
+      "time": 127.182827,
+      "key": "573:0",
+      "trackId": 573,
+      "domain": "far_front"
+    },
+    {
+      "time": 130.134204,
+      "key": "585:1",
+      "trackId": 585,
+      "domain": "far_front"
+    },
+    {
+      "time": 135.08775,
+      "key": "622:0",
+      "trackId": 622,
+      "domain": "far_front"
+    },
+    {
+      "time": 137.100721,
+      "key": "670:0",
+      "trackId": 670,
+      "domain": "far_front"
+    },
+    {
+      "time": 138.200671,
+      "key": "598:3",
+      "trackId": 598,
+      "domain": "far_front"
+    },
+    {
+      "time": 149.280055,
+      "key": "615:5",
+      "trackId": 615,
+      "domain": "far_front"
+    },
+    {
+      "time": 150.384112,
+      "key": "615:6",
+      "trackId": 615,
+      "domain": "far_front"
+    },
+    {
+      "time": 152.920727,
+      "key": "734:0",
+      "trackId": 734,
+      "domain": "far_front"
+    },
+    {
+      "time": 154.583778,
+      "key": "738:1",
+      "trackId": 738,
+      "domain": "far_front"
+    },
+    {
+      "time": 155.827017,
+      "key": "755:0",
+      "trackId": 755,
+      "domain": "far_front"
+    },
+    {
+      "time": 170.883751,
+      "key": "755:1",
+      "trackId": 755,
+      "domain": "far_front"
+    },
+    {
+      "time": 175.868938,
+      "key": "755:2",
+      "trackId": 755,
+      "domain": "far_front"
+    },
+    {
+      "time": 177.757334,
+      "key": "755:3",
+      "trackId": 755,
+      "domain": "far_front"
+    },
+    {
+      "time": 182.475269,
+      "key": "755:4",
+      "trackId": 755,
+      "domain": "far_front"
+    },
+    {
+      "time": 184.990936,
+      "key": "878:1",
+      "trackId": 878,
+      "domain": "far_front"
+    },
+    {
+      "time": 186.296775,
+      "key": "758:10",
+      "trackId": 758,
+      "domain": "far_front"
+    },
+    {
+      "time": 191.716469,
+      "key": "912:1",
+      "trackId": 912,
+      "domain": "far_front"
+    },
+    {
+      "time": 199.681659,
+      "key": "983:1",
+      "trackId": 983,
+      "domain": "far_front"
+    },
+    {
+      "time": 201.004944,
+      "key": "983:2",
+      "trackId": 983,
+      "domain": "far_front"
+    },
+    {
+      "time": 204.613811,
+      "key": "983:2",
+      "trackId": 983,
+      "domain": "far_front"
+    },
+    {
+      "time": 206.117549,
+      "key": "983:2",
+      "trackId": 983,
+      "domain": "far_front"
+    },
+    {
+      "time": 232.171163,
+      "key": "755:9",
+      "trackId": 755,
+      "domain": "far_front"
+    },
+    {
+      "time": 233.224907,
+      "key": "755:9",
+      "trackId": 755,
+      "domain": "far_front"
+    },
+    {
+      "time": 259.000181,
+      "key": "755:10",
+      "trackId": 755,
+      "domain": "far_front"
+    },
+    {
+      "time": 264.649148,
+      "key": "1357:0",
+      "trackId": 1357,
+      "domain": "far_front"
+    },
+    {
+      "time": 289.691231,
+      "key": "1448:1",
+      "trackId": 1448,
+      "domain": "far_front"
+    },
+    {
+      "time": 292.694911,
+      "key": "1324:4",
+      "trackId": 1324,
+      "domain": "far_front"
+    },
+    {
+      "time": 294.267377,
+      "key": "1500:0",
+      "trackId": 1500,
+      "domain": "far_front"
+    },
+    {
+      "time": 300.077253,
+      "key": "1500:3",
+      "trackId": 1500,
+      "domain": "far_front"
+    },
+    {
+      "time": 301.311519,
+      "key": "1299:5",
+      "trackId": 1299,
+      "domain": "far_front"
+    },
+    {
+      "time": 305.795729,
+      "key": "1559:1",
+      "trackId": 1559,
+      "domain": "far_front"
+    },
+    {
+      "time": 315.640412,
+      "key": "1579:2",
+      "trackId": 1579,
+      "domain": "far_front"
+    },
+    {
+      "time": 317.862306,
+      "key": "1579:2",
+      "trackId": 1579,
+      "domain": "far_front"
+    },
+    {
+      "time": 320.317294,
+      "key": "1324:6",
+      "trackId": 1324,
+      "domain": "far_front"
+    },
+    {
+      "time": 321.625643,
+      "key": "1642:0",
+      "trackId": 1642,
+      "domain": "far_front"
+    },
+    {
+      "time": 326.458134,
+      "key": "1662:0",
+      "trackId": 1662,
+      "domain": "far_front"
+    },
+    {
+      "time": 330.059916,
+      "key": "1658:2",
+      "trackId": 1658,
+      "domain": "far_front"
+    },
+    {
+      "time": 332.933174,
+      "key": "1664:0",
+      "trackId": 1664,
+      "domain": "far_front"
+    },
+    {
+      "time": 334.797787,
+      "key": "1662:4",
+      "trackId": 1662,
+      "domain": "far_front"
+    },
+    {
+      "time": 336.281539,
+      "key": "1662:4",
+      "trackId": 1662,
+      "domain": "far_front"
+    },
+    {
+      "time": 339.036818,
+      "key": "1711:0",
+      "trackId": 1711,
+      "domain": "far_front"
+    },
+    {
+      "time": 347.583837,
+      "key": "1662:8",
+      "trackId": 1662,
+      "domain": "far_front"
+    },
+    {
+      "time": 352.026644,
+      "key": "1580:6",
+      "trackId": 1580,
+      "domain": "far_front"
+    },
+    {
+      "time": 356.430494,
+      "key": "1805:0",
+      "trackId": 1805,
+      "domain": "far_front"
+    },
+    {
+      "time": 362.240499,
+      "key": "1840:0",
+      "trackId": 1840,
+      "domain": "far_front"
+    },
+    {
+      "time": 369.665026,
+      "key": "1580:9",
+      "trackId": 1580,
+      "domain": "far_front"
+    },
+    {
+      "time": 370.513339,
+      "key": "1840:3",
+      "trackId": 1840,
+      "domain": "far_front"
+    },
+    {
+      "time": 375.10323,
+      "key": "1927:0",
+      "trackId": 1927,
+      "domain": "far_front"
+    },
+    {
+      "time": 377.84082,
+      "key": "1927:2",
+      "trackId": 1927,
+      "domain": "far_front"
+    },
+    {
+      "time": 382.534999,
+      "key": "1973:0",
+      "trackId": 1973,
+      "domain": "far_front"
+    },
+    {
+      "time": 376.285708,
+      "key": "1927:1",
+      "trackId": 1927,
+      "domain": "far_front"
+    },
+    {
+      "time": 377.263648,
+      "key": "1927:2",
+      "trackId": 1927,
+      "domain": "far_front"
+    },
+    {
+      "time": 383.655451,
+      "key": "1973:0",
+      "trackId": 1973,
+      "domain": "far_front"
+    },
+    {
+      "time": 388.01876,
+      "key": "1998:0",
+      "trackId": 1998,
+      "domain": "far_front"
+    },
+    {
+      "time": 433.783382,
+      "key": "2313:0",
+      "trackId": 2313,
+      "domain": "far_front"
+    },
+    {
+      "time": 434.9643,
+      "key": "2313:1",
+      "trackId": 2313,
+      "domain": "far_front"
+    },
+    {
+      "time": 437.45321,
+      "key": "2313:2",
+      "trackId": 2313,
+      "domain": "far_front"
+    },
+    {
+      "time": 445.319712,
+      "key": "2363:1",
+      "trackId": 2363,
+      "domain": "far_front"
+    },
+    {
+      "time": 449.473079,
+      "key": "2109:2",
+      "trackId": 2109,
+      "domain": "far_front"
+    },
+    {
+      "time": 460.358105,
+      "key": "2446:0",
+      "trackId": 2446,
+      "domain": "far_front"
+    },
+    {
+      "time": 469.670227,
+      "key": "2505:0",
+      "trackId": 2505,
+      "domain": "far_front"
+    },
+    {
+      "time": 488.220028,
+      "key": "2581:0",
+      "trackId": 2581,
+      "domain": "far_front"
+    },
+    {
+      "time": 490.104738,
+      "key": "2591:0",
+      "trackId": 2591,
+      "domain": "far_front"
+    },
+    {
+      "time": 496.254127,
+      "key": "2581:1",
+      "trackId": 2581,
+      "domain": "far_front"
+    },
+    {
+      "time": 498.149324,
+      "key": "2581:1",
+      "trackId": 2581,
+      "domain": "far_front"
+    },
+    {
+      "time": 499.191314,
+      "key": "2639:0",
+      "trackId": 2639,
+      "domain": "far_front"
+    },
+    {
+      "time": 500.817533,
+      "key": "2650:0",
+      "trackId": 2650,
+      "domain": "far_front"
+    },
+    {
+      "time": 507.846697,
+      "key": "2673:0",
+      "trackId": 2673,
+      "domain": "far_front"
+    },
+    {
+      "time": 517.195335,
+      "key": "2673:1",
+      "trackId": 2673,
+      "domain": "far_front"
+    },
+    {
+      "time": 519.534747,
+      "key": "2673:2",
+      "trackId": 2673,
+      "domain": "far_front"
+    },
+    {
+      "time": 528.640648,
+      "key": "2770:0",
+      "trackId": 2770,
+      "domain": "far_front"
+    },
+    {
+      "time": 532.718591,
+      "key": "2770:1",
+      "trackId": 2770,
+      "domain": "far_front"
+    },
+    {
+      "time": 534.763729,
+      "key": "2770:2",
+      "trackId": 2770,
+      "domain": "far_front"
+    },
+    {
+      "time": 554.817511,
+      "key": "2873:0",
+      "trackId": 2873,
+      "domain": "far_front"
+    },
+    {
+      "time": 562.626332,
+      "key": "2873:1",
+      "trackId": 2873,
+      "domain": "far_front"
+    },
+    {
+      "time": 564.929879,
+      "key": "2873:2",
+      "trackId": 2873,
+      "domain": "far_front"
+    },
+    {
+      "time": 568.542768,
+      "key": "2834:2",
+      "trackId": 2834,
+      "domain": "far_front"
+    },
+    {
+      "time": 570.568016,
+      "key": "2834:3",
+      "trackId": 2834,
+      "domain": "far_front"
+    },
+    {
+      "time": 584.199273,
+      "key": "2834:4",
+      "trackId": 2834,
+      "domain": "far_front"
+    },
+    {
+      "time": 593.607701,
+      "key": "3031:1",
+      "trackId": 3031,
+      "domain": "far_front"
+    },
+    {
+      "time": 594.754957,
+      "key": "3031:2",
+      "trackId": 3031,
+      "domain": "far_front"
+    },
+    {
+      "time": 597.77972,
+      "key": "3031:3",
+      "trackId": 3031,
+      "domain": "far_front"
+    },
+    {
+      "time": 599.602462,
+      "key": "3031:4",
+      "trackId": 3031,
+      "domain": "far_front"
+    },
+    {
+      "time": 605.949393,
+      "key": "3105:1",
+      "trackId": 3105,
+      "domain": "far_front"
+    },
+    {
+      "time": 626.146744,
+      "key": "3221:1",
+      "trackId": 3221,
+      "domain": "far_front"
+    },
+    {
+      "time": 627.733113,
+      "key": "3221:2",
+      "trackId": 3221,
+      "domain": "far_front"
+    },
+    {
+      "time": 633.982005,
+      "key": "3263:0",
+      "trackId": 3263,
+      "domain": "far_front"
+    },
+    {
+      "time": 636.733946,
+      "key": "3278:0",
+      "trackId": 3278,
+      "domain": "far_front"
+    },
+    {
+      "time": 639.767589,
+      "key": "3278:2",
+      "trackId": 3278,
+      "domain": "far_front"
+    },
+    {
+      "time": 647.354259,
+      "key": "3278:5",
+      "trackId": 3278,
+      "domain": "far_front"
+    },
+    {
+      "time": 653.59549,
+      "key": "3365:0",
+      "trackId": 3365,
+      "domain": "far_front"
+    },
+    {
+      "time": 656.589011,
+      "key": "3365:1",
+      "trackId": 3365,
+      "domain": "far_front"
+    },
+    {
+      "time": 658.329888,
+      "key": "3365:2",
+      "trackId": 3365,
+      "domain": "far_front"
+    },
+    {
+      "time": 660.705101,
+      "key": "3365:2",
+      "trackId": 3365,
+      "domain": "far_front"
+    },
+    {
+      "time": 667.174128,
+      "key": "3165:6",
+      "trackId": 3165,
+      "domain": "far_front"
+    },
+    {
+      "time": 669.162274,
+      "key": "3441:0",
+      "trackId": 3441,
+      "domain": "far_front"
+    },
+    {
+      "time": 677.057196,
+      "key": "3441:1",
+      "trackId": 3441,
+      "domain": "far_front"
+    },
+    {
+      "time": 685.087137,
+      "key": "3520:0",
+      "trackId": 3520,
+      "domain": "far_front"
+    },
+    {
+      "time": 692.837606,
+      "key": "3527:2",
+      "trackId": 3527,
+      "domain": "far_front"
+    },
+    {
+      "time": 695.506987,
+      "key": "3578:1",
+      "trackId": 3578,
+      "domain": "far_front"
+    },
+    {
+      "time": 705.546704,
+      "key": "3635:1",
+      "trackId": 3635,
+      "domain": "far_front"
+    },
+    {
+      "time": 706.654505,
+      "key": "3659:0",
+      "trackId": 3659,
+      "domain": "far_front"
+    },
+    {
+      "time": 709.225858,
+      "key": "3659:1",
+      "trackId": 3659,
+      "domain": "far_front"
+    },
+    {
+      "time": 712.74442,
+      "key": "3692:0",
+      "trackId": 3692,
+      "domain": "far_front"
+    },
+    {
+      "time": 717.131617,
+      "key": "3679:3",
+      "trackId": 3679,
+      "domain": "far_front"
+    },
+    {
+      "time": 719.124979,
+      "key": "3721:0",
+      "trackId": 3721,
+      "domain": "far_front"
+    },
+    {
+      "time": 720.993084,
+      "key": "3722:1",
+      "trackId": 3722,
+      "domain": "far_front"
+    },
+    {
+      "time": 729.508379,
+      "key": "3769:0",
+      "trackId": 3769,
+      "domain": "far_front"
+    },
+    {
+      "time": 740.059656,
+      "key": "3769:2",
+      "trackId": 3769,
+      "domain": "far_front"
+    },
+    {
+      "time": 743.960024,
+      "key": "3847:2",
+      "trackId": 3847,
+      "domain": "far_front"
+    },
+    {
+      "time": 750.485795,
+      "key": "3868:2",
+      "trackId": 3868,
+      "domain": "far_front"
+    },
+    {
+      "time": 752.498347,
+      "key": "3873:1",
+      "trackId": 3873,
+      "domain": "far_front"
+    },
+    {
+      "time": 757.247885,
+      "key": "3923:0",
+      "trackId": 3923,
+      "domain": "far_front"
+    },
+    {
+      "time": 758.57001,
+      "key": "3923:1",
+      "trackId": 3923,
+      "domain": "far_front"
+    },
+    {
+      "time": 759.780825,
+      "key": "3923:2",
+      "trackId": 3923,
+      "domain": "far_front"
+    },
+    {
+      "time": 764.04998,
+      "key": "3956:0",
+      "trackId": 3956,
+      "domain": "far_front"
+    },
+    {
+      "time": 769.028383,
+      "key": "3923:4",
+      "trackId": 3923,
+      "domain": "far_front"
+    },
+    {
+      "time": 775.761712,
+      "key": "3923:6",
+      "trackId": 3923,
+      "domain": "far_front"
+    },
+    {
+      "time": 787.594789,
+      "key": "4075:0",
+      "trackId": 4075,
+      "domain": "far_front"
+    },
+    {
+      "time": 789.17192,
+      "key": "4075:1",
+      "trackId": 4075,
+      "domain": "far_front"
+    },
+    {
+      "time": 772.9,
+      "key": "3982:0",
+      "trackId": 3982,
+      "domain": "far_front"
+    },
+    {
+      "time": 782.833148,
+      "key": "107056:3",
+      "trackId": 107056,
+      "domain": "far_front"
+    },
+    {
+      "time": 786.986376,
+      "key": "107056:4",
+      "trackId": 107056,
+      "domain": "far_front"
+    },
+    {
+      "time": 849.283672,
+      "key": "108149:1",
+      "trackId": 108149,
+      "domain": "far_front"
+    },
+    {
+      "time": 859.685736,
+      "key": "108236:0",
+      "trackId": 108236,
+      "domain": "far_front"
+    },
+    {
+      "time": 882.988566,
+      "key": "108447:1",
+      "trackId": 108447,
+      "domain": "near_back"
+    },
+    {
+      "time": 899.62852,
+      "key": "108447:1",
+      "trackId": 108447,
+      "domain": "far_front"
+    },
+    {
+      "time": 944.378115,
+      "key": "108992:0",
+      "trackId": 108992,
+      "domain": "near_back"
+    },
+    {
+      "time": 946.228453,
+      "key": "108872:3",
+      "trackId": 108872,
+      "domain": "far_front"
+    },
+    {
+      "time": 950.220986,
+      "key": "108872:3",
+      "trackId": 108872,
+      "domain": "far_front"
+    },
+    {
+      "time": 953.362997,
+      "key": "109078:0",
+      "trackId": 109078,
+      "domain": "far_front"
+    },
+    {
+      "time": 955.763689,
+      "key": "109078:1",
+      "trackId": 109078,
+      "domain": "far_front"
+    },
+    {
+      "time": 982.820295,
+      "key": "109303:0",
+      "trackId": 109303,
+      "domain": "far_front"
+    },
+    {
+      "time": 1049.381356,
+      "key": "110186:0",
+      "trackId": 110186,
+      "domain": "far_front"
+    },
+    {
+      "time": 1055.620191,
+      "key": "110186:1",
+      "trackId": 110186,
+      "domain": "far_front"
+    },
+    {
+      "time": 1093.464488,
+      "key": "110624:0",
+      "trackId": 110624,
+      "domain": "far_front"
+    },
+    {
+      "time": 1100.78398,
+      "key": "110685:0",
+      "trackId": 110685,
+      "domain": "far_front"
+    },
+    {
+      "time": 1105.280493,
+      "key": "110712:0",
+      "trackId": 110712,
+      "domain": "near_back"
+    },
+    {
+      "time": 1114.743392,
+      "key": "110683:2",
+      "trackId": 110683,
+      "domain": "far_front"
+    },
+    {
+      "time": 1129.685903,
+      "key": "110683:3",
+      "trackId": 110683,
+      "domain": "far_front"
+    },
+    {
+      "time": 1144.033498,
+      "key": "111042:0",
+      "trackId": 111042,
+      "domain": "near_back"
+    },
+    {
+      "time": 1171.328178,
+      "key": "111285:0",
+      "trackId": 111285,
+      "domain": "far_front"
+    },
+    {
+      "time": 1174.912627,
+      "key": "111354:0",
+      "trackId": 111354,
+      "domain": "far_front"
+    },
+    {
+      "time": 1177.25801,
+      "key": "111373:0",
+      "trackId": 111373,
+      "domain": "far_front"
+    },
+    {
+      "time": 1200.02894,
+      "key": "111545:0",
+      "trackId": 111545,
+      "domain": "far_front"
+    },
+    {
+      "time": 1202.278537,
+      "key": "111545:0",
+      "trackId": 111545,
+      "domain": "far_front"
+    },
+    {
+      "time": 1206.922191,
+      "key": "111596:1",
+      "trackId": 111596,
+      "domain": "far_front"
+    },
+    {
+      "time": 1210.02683,
+      "key": "111630:0",
+      "trackId": 111630,
+      "domain": "far_front"
+    },
+    {
+      "time": 1212.431827,
+      "key": "111630:1",
+      "trackId": 111630,
+      "domain": "far_front"
+    },
+    {
+      "time": 1224.239404,
+      "key": "111861:0",
+      "trackId": 111861,
+      "domain": "far_front"
+    },
+    {
+      "time": 1232.994818,
+      "key": "111861:1",
+      "trackId": 111861,
+      "domain": "far_front"
+    },
+    {
+      "time": 1236.408507,
+      "key": "111861:2",
+      "trackId": 111861,
+      "domain": "far_front"
+    },
+    {
+      "time": 1238.439083,
+      "key": "111861:3",
+      "trackId": 111861,
+      "domain": "far_front"
+    },
+    {
+      "time": 1240.610603,
+      "key": "111980:1",
+      "trackId": 111980,
+      "domain": "far_front"
+    },
+    {
+      "time": 1241.799009,
+      "key": "111861:4",
+      "trackId": 111861,
+      "domain": "far_front"
+    },
+    {
+      "time": 1243.246913,
+      "key": "112021:0",
+      "trackId": 112021,
+      "domain": "far_front"
+    },
+    {
+      "time": 1259.344068,
+      "key": "112146:0",
+      "trackId": 112146,
+      "domain": "far_front"
+    },
+    {
+      "time": 1260.626168,
+      "key": "112151:1",
+      "trackId": 112151,
+      "domain": "far_front"
+    },
+    {
+      "time": 1262.160211,
+      "key": "112151:2",
+      "trackId": 112151,
+      "domain": "far_front"
+    },
+    {
+      "time": 1267.000442,
+      "key": "112275:0",
+      "trackId": 112275,
+      "domain": "far_front"
+    },
+    {
+      "time": 1289.002474,
+      "key": "112419:0",
+      "trackId": 112419,
+      "domain": "far_front"
+    }
+  ],
+  "negatives": [
+    {
+      "time": 20.702692,
+      "key": "15:0",
+      "trackId": 15,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 62.792716,
+      "key": "188:1",
+      "trackId": 188,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 62.792716,
+      "key": "194:0",
+      "trackId": 194,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 62.792716,
+      "key": "185:1",
+      "trackId": 185,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 67.394522,
+      "key": "262:0",
+      "trackId": 262,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 67.394522,
+      "key": "237:2",
+      "trackId": 237,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 82.192995,
+      "key": "237:2",
+      "trackId": 237,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 82.192995,
+      "key": "325:1",
+      "trackId": 325,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 82.192995,
+      "key": "227:6",
+      "trackId": 227,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 83.462138,
+      "key": "322:1",
+      "trackId": 322,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 83.462138,
+      "key": "351:0",
+      "trackId": 351,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 87.234065,
+      "key": "227:8",
+      "trackId": 227,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 89.098023,
+      "key": "356:1",
+      "trackId": 356,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 98.15236,
+      "key": "384:1",
+      "trackId": 384,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 98.15236,
+      "key": "351:0",
+      "trackId": 351,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 101.87751,
+      "key": "368:3",
+      "trackId": 368,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 101.87751,
+      "key": "12:2",
+      "trackId": 12,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 105.057399,
+      "key": "12:2",
+      "trackId": 12,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 105.057399,
+      "key": "368:3",
+      "trackId": 368,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 105.057399,
+      "key": "441:1",
+      "trackId": 441,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 108.505296,
+      "key": "433:2",
+      "trackId": 433,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 109.739502,
+      "key": "384:2",
+      "trackId": 384,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 109.739502,
+      "key": "489:2",
+      "trackId": 489,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 111.825503,
+      "key": "227:9",
+      "trackId": 227,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 124.538049,
+      "key": "227:10",
+      "trackId": 227,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 127.18254,
+      "key": "407:4",
+      "trackId": 407,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 127.182827,
+      "key": "430:1",
+      "trackId": 430,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 129.405977,
+      "key": "587:0",
+      "trackId": 587,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 129.405977,
+      "key": "572:0",
+      "trackId": 572,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 129.405977,
+      "key": "488:0",
+      "trackId": 488,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 129.405977,
+      "key": "407:4",
+      "trackId": 407,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 135.08775,
+      "key": "606:0",
+      "trackId": 606,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 137.100721,
+      "key": "441:4",
+      "trackId": 441,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 149.280055,
+      "key": "598:3",
+      "trackId": 598,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 150.384007,
+      "key": "648:2",
+      "trackId": 648,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 150.384112,
+      "key": "708:2",
+      "trackId": 708,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 152.416156,
+      "key": "615:7",
+      "trackId": 615,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 152.416156,
+      "key": "728:1",
+      "trackId": 728,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 154.583778,
+      "key": "615:7",
+      "trackId": 615,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 154.583778,
+      "key": "698:0",
+      "trackId": 698,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 155.827017,
+      "key": "738:1",
+      "trackId": 738,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 170.883751,
+      "key": "776:0",
+      "trackId": 776,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 175.868666,
+      "key": "755:2",
+      "trackId": 755,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 175.868938,
+      "key": "868:0",
+      "trackId": 868,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 177.094188,
+      "key": "878:0",
+      "trackId": 878,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 177.094416,
+      "key": "762:6",
+      "trackId": 762,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 177.757334,
+      "key": "277:6",
+      "trackId": 277,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 182.475269,
+      "key": "844:3",
+      "trackId": 844,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 182.475269,
+      "key": "881:0",
+      "trackId": 881,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 182.475269,
+      "key": "458:2",
+      "trackId": 458,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 184.990936,
+      "key": "844:5",
+      "trackId": 844,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 186.296598,
+      "key": "878:1",
+      "trackId": 878,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 191.716243,
+      "key": "755:5",
+      "trackId": 755,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 199.6815,
+      "key": "878:4",
+      "trackId": 878,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 201.004743,
+      "key": "755:6",
+      "trackId": 755,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 204.613618,
+      "key": "983:2",
+      "trackId": 983,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 204.613811,
+      "key": "907:4",
+      "trackId": 907,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 206.117456,
+      "key": "878:5",
+      "trackId": 878,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 206.117549,
+      "key": "861:1",
+      "trackId": 861,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 206.117549,
+      "key": "458:3",
+      "trackId": 458,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 231.430952,
+      "key": "927:3",
+      "trackId": 927,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 231.430952,
+      "key": "755:9",
+      "trackId": 755,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 232.171163,
+      "key": "1181:0",
+      "trackId": 1181,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 233.224907,
+      "key": "1142:1",
+      "trackId": 1142,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 259.000181,
+      "key": "1312:1",
+      "trackId": 1312,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 259.000181,
+      "key": "1320:0",
+      "trackId": 1320,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 264.648948,
+      "key": "755:11",
+      "trackId": 755,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 264.649148,
+      "key": "1347:0",
+      "trackId": 1347,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 291.921332,
+      "key": "1420:1",
+      "trackId": 1420,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 291.921332,
+      "key": "1451:1",
+      "trackId": 1451,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 292.694911,
+      "key": "1290:4",
+      "trackId": 1290,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 294.267377,
+      "key": "1324:4",
+      "trackId": 1324,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 299.405122,
+      "key": "1448:2",
+      "trackId": 1448,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 299.405122,
+      "key": "1450:1",
+      "trackId": 1450,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 300.077253,
+      "key": "1518:1",
+      "trackId": 1518,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 301.311519,
+      "key": "1448:2",
+      "trackId": 1448,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 305.795729,
+      "key": "1299:5",
+      "trackId": 1299,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 317.862306,
+      "key": "1623:0",
+      "trackId": 1623,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 320.317294,
+      "key": "1580:4",
+      "trackId": 1580,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 321.625643,
+      "key": "1619:0",
+      "trackId": 1619,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 326.458134,
+      "key": "1591:1",
+      "trackId": 1591,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 330.059916,
+      "key": "1664:0",
+      "trackId": 1664,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 332.933174,
+      "key": "1580:5",
+      "trackId": 1580,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 334.797787,
+      "key": "1664:0",
+      "trackId": 1664,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 336.281539,
+      "key": "1658:3",
+      "trackId": 1658,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 339.036818,
+      "key": "1662:6",
+      "trackId": 1662,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 342.944825,
+      "key": "1744:0",
+      "trackId": 1744,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 342.944825,
+      "key": "1448:8",
+      "trackId": 1448,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 342.944825,
+      "key": "1725:1",
+      "trackId": 1725,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 342.944825,
+      "key": "1658:3",
+      "trackId": 1658,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 342.944825,
+      "key": "1707:0",
+      "trackId": 1707,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 342.944825,
+      "key": "1662:6",
+      "trackId": 1662,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 342.944825,
+      "key": "1580:5",
+      "trackId": 1580,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 342.944825,
+      "key": "1619:3",
+      "trackId": 1619,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 347.583837,
+      "key": "1711:3",
+      "trackId": 1711,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 352.026644,
+      "key": "1452:6",
+      "trackId": 1452,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 352.026644,
+      "key": "1654:1",
+      "trackId": 1654,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 352.026644,
+      "key": "1711:3",
+      "trackId": 1711,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 362.240499,
+      "key": "1452:6",
+      "trackId": 1452,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 369.665026,
+      "key": "1637:1",
+      "trackId": 1637,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 370.513339,
+      "key": "1851:2",
+      "trackId": 1851,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 375.102865,
+      "key": "1580:10",
+      "trackId": 1580,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 375.10323,
+      "key": "1927:0",
+      "trackId": 1927,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 375.10323,
+      "key": "1221:15",
+      "trackId": 1221,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 377.84082,
+      "key": "1840:8",
+      "trackId": 1840,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 382.534999,
+      "key": "1840:9",
+      "trackId": 1840,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 376.285708,
+      "key": "1840:8",
+      "trackId": 1840,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 377.263648,
+      "key": "1580:10",
+      "trackId": 1580,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 383.655451,
+      "key": "1580:10",
+      "trackId": 1580,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 387.017162,
+      "key": "1324:8",
+      "trackId": 1324,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 387.017162,
+      "key": "1221:16",
+      "trackId": 1221,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 387.017162,
+      "key": "1840:10",
+      "trackId": 1840,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 387.017162,
+      "key": "1637:2",
+      "trackId": 1637,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 387.017162,
+      "key": "1580:10",
+      "trackId": 1580,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 434.9643,
+      "key": "2114:7",
+      "trackId": 2114,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 436.23327,
+      "key": "2304:0",
+      "trackId": 2304,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 437.45321,
+      "key": "2191:3",
+      "trackId": 2191,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 443.520989,
+      "key": "2304:1",
+      "trackId": 2304,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 443.520989,
+      "key": "2030:7",
+      "trackId": 2030,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 443.520989,
+      "key": "2331:0",
+      "trackId": 2331,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 443.520989,
+      "key": "2288:0",
+      "trackId": 2288,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 443.520989,
+      "key": "2348:0",
+      "trackId": 2348,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 449.47275,
+      "key": "2331:1",
+      "trackId": 2331,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 449.473079,
+      "key": "2288:1",
+      "trackId": 2288,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 454.436941,
+      "key": "2399:0",
+      "trackId": 2399,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 456.06469,
+      "key": "2412:1",
+      "trackId": 2412,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 456.065012,
+      "key": "2395:0",
+      "trackId": 2395,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 456.065012,
+      "key": "2191:3",
+      "trackId": 2191,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 456.065012,
+      "key": "2406:0",
+      "trackId": 2406,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 456.065012,
+      "key": "2415:0",
+      "trackId": 2415,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 456.065012,
+      "key": "2424:0",
+      "trackId": 2424,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 456.065012,
+      "key": "2325:0",
+      "trackId": 2325,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 456.065012,
+      "key": "2288:2",
+      "trackId": 2288,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 456.065012,
+      "key": "2037:11",
+      "trackId": 2037,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 464.03371,
+      "key": "2412:3",
+      "trackId": 2412,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 464.03371,
+      "key": "2406:0",
+      "trackId": 2406,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 464.03371,
+      "key": "2455:0",
+      "trackId": 2455,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 464.03371,
+      "key": "2368:2",
+      "trackId": 2368,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 464.03371,
+      "key": "2191:4",
+      "trackId": 2191,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 464.03371,
+      "key": "2395:0",
+      "trackId": 2395,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 464.03371,
+      "key": "2472:0",
+      "trackId": 2472,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 464.03371,
+      "key": "2037:12",
+      "trackId": 2037,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 464.03371,
+      "key": "2470:0",
+      "trackId": 2470,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 464.03371,
+      "key": "2461:0",
+      "trackId": 2461,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 488.220028,
+      "key": "2395:0",
+      "trackId": 2395,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 490.104738,
+      "key": "2395:0",
+      "trackId": 2395,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 492.403465,
+      "key": "2591:1",
+      "trackId": 2591,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 492.403465,
+      "key": "2395:0",
+      "trackId": 2395,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 496.254127,
+      "key": "2540:1",
+      "trackId": 2540,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 498.149324,
+      "key": "2581:1",
+      "trackId": 2581,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 498.149324,
+      "key": "2620:1",
+      "trackId": 2620,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 499.191314,
+      "key": "2455:4",
+      "trackId": 2455,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 500.817533,
+      "key": "2641:0",
+      "trackId": 2641,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 507.846697,
+      "key": "2457:3",
+      "trackId": 2457,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 517.195335,
+      "key": "2406:5",
+      "trackId": 2406,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 519.534747,
+      "key": "2717:0",
+      "trackId": 2717,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 528.640648,
+      "key": "2673:4",
+      "trackId": 2673,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 532.718591,
+      "key": "2673:4",
+      "trackId": 2673,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 534.763729,
+      "key": "2793:1",
+      "trackId": 2793,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 554.817511,
+      "key": "2851:1",
+      "trackId": 2851,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 562.626332,
+      "key": "2813:2",
+      "trackId": 2813,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 564.033781,
+      "key": "2909:0",
+      "trackId": 2909,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 564.033781,
+      "key": "2734:0",
+      "trackId": 2734,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 564.033781,
+      "key": "2704:2",
+      "trackId": 2704,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 564.033781,
+      "key": "2912:0",
+      "trackId": 2912,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 564.033781,
+      "key": "2037:14",
+      "trackId": 2037,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 564.033781,
+      "key": "2915:0",
+      "trackId": 2915,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 568.542768,
+      "key": "2873:3",
+      "trackId": 2873,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 570.568016,
+      "key": "2933:1",
+      "trackId": 2933,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 584.199273,
+      "key": "2985:1",
+      "trackId": 2985,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 593.607701,
+      "key": "2828:6",
+      "trackId": 2828,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 594.754957,
+      "key": "3045:0",
+      "trackId": 3045,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 597.77972,
+      "key": "2933:5",
+      "trackId": 2933,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 599.602462,
+      "key": "2734:2",
+      "trackId": 2734,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 605.949393,
+      "key": "2734:2",
+      "trackId": 2734,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 611.183354,
+      "key": "2828:8",
+      "trackId": 2828,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 611.183354,
+      "key": "2734:3",
+      "trackId": 2734,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 611.183354,
+      "key": "2966:4",
+      "trackId": 2966,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 611.183354,
+      "key": "3115:1",
+      "trackId": 3115,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 611.183354,
+      "key": "3119:0",
+      "trackId": 3119,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 611.183354,
+      "key": "3031:5",
+      "trackId": 3031,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 611.183354,
+      "key": "2704:4",
+      "trackId": 2704,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 611.183354,
+      "key": "2736:6",
+      "trackId": 2736,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 612.071875,
+      "key": "3078:0",
+      "trackId": 3078,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 612.071875,
+      "key": "2909:3",
+      "trackId": 2909,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 612.071875,
+      "key": "2938:3",
+      "trackId": 2938,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 627.733113,
+      "key": "2734:5",
+      "trackId": 2734,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 633.982005,
+      "key": "3257:1",
+      "trackId": 3257,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 636.733946,
+      "key": "3257:2",
+      "trackId": 3257,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 637.697354,
+      "key": "3221:3",
+      "trackId": 3221,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 637.697354,
+      "key": "3211:1",
+      "trackId": 3211,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 637.697354,
+      "key": "3179:1",
+      "trackId": 3179,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 639.767589,
+      "key": "3292:0",
+      "trackId": 3292,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 647.354259,
+      "key": "3257:2",
+      "trackId": 3257,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 653.59549,
+      "key": "3257:5",
+      "trackId": 3257,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 656.589011,
+      "key": "3326:0",
+      "trackId": 3326,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 660.705101,
+      "key": "3398:0",
+      "trackId": 3398,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 667.174128,
+      "key": "3211:3",
+      "trackId": 3211,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 669.162274,
+      "key": "3257:7",
+      "trackId": 3257,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 677.057196,
+      "key": "3257:8",
+      "trackId": 3257,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 685.087137,
+      "key": "3443:2",
+      "trackId": 3443,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 692.837606,
+      "key": "3520:2",
+      "trackId": 3520,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 695.506987,
+      "key": "3520:2",
+      "trackId": 3520,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 705.546704,
+      "key": "3527:5",
+      "trackId": 3527,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 706.654505,
+      "key": "3520:2",
+      "trackId": 3520,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 709.225858,
+      "key": "3257:12",
+      "trackId": 3257,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 712.74442,
+      "key": "3653:0",
+      "trackId": 3653,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 717.131617,
+      "key": "3257:12",
+      "trackId": 3257,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 719.124979,
+      "key": "3679:5",
+      "trackId": 3679,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 720.993084,
+      "key": "3721:2",
+      "trackId": 3721,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 729.508379,
+      "key": "3257:12",
+      "trackId": 3257,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 740.059656,
+      "key": "3463:6",
+      "trackId": 3463,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 743.960024,
+      "key": "3463:6",
+      "trackId": 3463,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 750.485795,
+      "key": "3463:6",
+      "trackId": 3463,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 752.498347,
+      "key": "3604:10",
+      "trackId": 3604,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 757.247885,
+      "key": "3873:2",
+      "trackId": 3873,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 758.57001,
+      "key": "3879:4",
+      "trackId": 3879,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 759.780825,
+      "key": "3663:3",
+      "trackId": 3663,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 764.04998,
+      "key": "3215:6",
+      "trackId": 3215,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 769.028383,
+      "key": "3971:0",
+      "trackId": 3971,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 775.761712,
+      "key": "3847:5",
+      "trackId": 3847,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 787.594789,
+      "key": "3873:9",
+      "trackId": 3873,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 789.17192,
+      "key": "3887:3",
+      "trackId": 3887,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 795.351239,
+      "key": "3873:9",
+      "trackId": 3873,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 795.351656,
+      "key": "4021:2",
+      "trackId": 4021,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 795.351656,
+      "key": "3677:3",
+      "trackId": 3677,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 772.9,
+      "key": "3980:0",
+      "trackId": 3980,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 782.833148,
+      "key": "107205:0",
+      "trackId": 107205,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 786.01173,
+      "key": "3873:9",
+      "trackId": 3873,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 786.986376,
+      "key": "107302:0",
+      "trackId": 107302,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 859.685736,
+      "key": "107482:2",
+      "trackId": 107482,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 882.988566,
+      "key": "108236:2",
+      "trackId": 108236,
+      "reason": "manual",
+      "domain": "near_back"
+    },
+    {
+      "time": 899.62852,
+      "key": "108112:0",
+      "trackId": 108112,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 944.378115,
+      "key": "108935:1",
+      "trackId": 108935,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 946.228453,
+      "key": "108823:0",
+      "trackId": 108823,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 950.220986,
+      "key": "109047:0",
+      "trackId": 109047,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 953.362997,
+      "key": "108872:3",
+      "trackId": 108872,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 955.763689,
+      "key": "109000:2",
+      "trackId": 109000,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 982.820295,
+      "key": "109144:0",
+      "trackId": 109144,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 1055.620191,
+      "key": "110020:2",
+      "trackId": 110020,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 1100.78398,
+      "key": "110544:3",
+      "trackId": 110544,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 1105.280493,
+      "key": "110544:3",
+      "trackId": 110544,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 1114.743392,
+      "key": "110544:3",
+      "trackId": 110544,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 1129.685903,
+      "key": "110788:1",
+      "trackId": 110788,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1144.033498,
+      "key": "111033:0",
+      "trackId": 111033,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1171.328178,
+      "key": "111042:1",
+      "trackId": 111042,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1174.912627,
+      "key": "111301:0",
+      "trackId": 111301,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1177.25801,
+      "key": "111198:0",
+      "trackId": 111198,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1200.02894,
+      "key": "111512:0",
+      "trackId": 111512,
+      "reason": "corrected",
+      "domain": "near_back"
+    },
+    {
+      "time": 1202.278537,
+      "key": "111267:1",
+      "trackId": 111267,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1206.922191,
+      "key": "111554:0",
+      "trackId": 111554,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1210.02683,
+      "key": "111385:1",
+      "trackId": 111385,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1212.431827,
+      "key": "110616:0",
+      "trackId": 110616,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1224.239404,
+      "key": "111786:0",
+      "trackId": 111786,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1232.994818,
+      "key": "110616:0",
+      "trackId": 110616,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1236.408507,
+      "key": "110616:0",
+      "trackId": 110616,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1238.439083,
+      "key": "111481:1",
+      "trackId": 111481,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1240.610603,
+      "key": "111934:1",
+      "trackId": 111934,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1241.799009,
+      "key": "111369:2",
+      "trackId": 111369,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1243.246913,
+      "key": "111990:1",
+      "trackId": 111990,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1258.695901,
+      "key": "112021:0",
+      "trackId": 112021,
+      "reason": "manual",
+      "domain": "far_front"
+    },
+    {
+      "time": 1259.344068,
+      "key": "111369:2",
+      "trackId": 111369,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1260.626168,
+      "key": "111952:0",
+      "trackId": 111952,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1262.160211,
+      "key": "111952:1",
+      "trackId": 111952,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1267.000442,
+      "key": "112280:0",
+      "trackId": 112280,
+      "reason": "corrected",
+      "domain": "far_front"
+    },
+    {
+      "time": 1289.002474,
+      "key": "112469:0",
+      "trackId": 112469,
+      "reason": "corrected",
+      "domain": "far_front"
+    }
+  ],
+  "lostEvents": [
+    {
+      "time": 364.518288,
+      "reason": "not-visible"
+    },
+    {
+      "time": 364.518288,
+      "reason": "not-visible"
+    },
+    {
+      "time": 364.518288,
+      "reason": "not-visible"
+    },
+    {
+      "time": 364.518288,
+      "reason": "not-visible"
+    },
+    {
+      "time": 365.68465,
+      "reason": "not-visible"
+    },
+    {
+      "time": 365.684697,
+      "reason": "not-visible"
+    },
+    {
+      "time": 367.604448,
+      "reason": "not-visible"
+    }
+  ],
+  "manualBoxes": [
+    {
+      "time": 364.569345,
+      "frame": 18228,
+      "id": -1,
+      "key": "manual:364.569:0",
+      "x1": 857.7251655629138,
+      "y1": 137.0844370860927,
+      "x2": 909.1473509933775,
+      "y2": 316.75662251655626,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 367.290197,
+      "frame": 18365,
+      "id": -1,
+      "key": "manual:367.290:1",
+      "x1": 739.6721854304635,
+      "y1": 121.42384105960264,
+      "x2": 807.9370860927152,
+      "y2": 199.955298013245,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 379.077007,
+      "frame": 18954,
+      "id": -1,
+      "key": "manual:379.077:2",
+      "x1": 855.5347682119204,
+      "y1": 137.76986754966887,
+      "x2": 924.817880794702,
+      "y2": 310.00165562913907,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 389.658436,
+      "frame": 19483,
+      "id": -1,
+      "key": "manual:389.658:3",
+      "x1": 624.8278145695364,
+      "y1": 105.66390728476821,
+      "x2": 689.9536423841059,
+      "y2": 265.03145695364236,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 429.365494,
+      "frame": 21468,
+      "id": -1,
+      "key": "manual:429.365:4",
+      "x1": 754.4238410596026,
+      "y1": 79.37417218543047,
+      "x2": 791.75,
+      "y2": 177.98675496688742,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 436.23327,
+      "frame": 21812,
+      "id": -1,
+      "key": "manual:436.233:5",
+      "x1": 752.6208609271523,
+      "y1": 75.59437086092714,
+      "x2": 793.5182119205298,
+      "y2": 157.97019867549668,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 441.056342,
+      "frame": 22053,
+      "id": -1,
+      "key": "manual:441.056:6",
+      "x1": 751.1705298013245,
+      "y1": 84.33112582781456,
+      "x2": 798.6688741721854,
+      "y2": 160.42384105960264,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 451.73901,
+      "frame": 22587,
+      "id": -1,
+      "key": "manual:451.739:7",
+      "x1": 778.115894039735,
+      "y1": 87.25165562913907,
+      "x2": 827.978476821192,
+      "y2": 175.27483443708607,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 454.436941,
+      "frame": 22722,
+      "id": -1,
+      "key": "manual:454.437:8",
+      "x1": 760.5331125827814,
+      "y1": 80.10927152317879,
+      "x2": 807.6788079470198,
+      "y2": 159.83774834437085,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 464.03371,
+      "frame": 23202,
+      "id": -1,
+      "key": "manual:464.034:9",
+      "x1": 774.0579470198675,
+      "y1": 136.58774834437085,
+      "x2": 836.4917218543046,
+      "y2": 210.17218543046357,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 498.149324,
+      "frame": 24907,
+      "id": -1,
+      "key": "manual:498.149:10",
+      "x1": 848.9139072847681,
+      "y1": 146.1837748344371,
+      "x2": 901.4834437086092,
+      "y2": 225.61920529801324,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 505.298341,
+      "frame": 25265,
+      "id": -1,
+      "key": "manual:505.298:11",
+      "x1": 735.0331125827814,
+      "y1": 151.02152317880794,
+      "x2": 780.7185430463576,
+      "y2": 305.6258278145695,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 515.788057,
+      "frame": 25789,
+      "id": -1,
+      "key": "manual:515.788:12",
+      "x1": 788.9486754966887,
+      "y1": 140.40728476821192,
+      "x2": 848.7698675496688,
+      "y2": 333.817880794702,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 560.839271,
+      "frame": 28042,
+      "id": -1,
+      "key": "manual:560.839:13",
+      "x1": 827.4420529801324,
+      "y1": 143.5115894039735,
+      "x2": 910.865894039735,
+      "y2": 329.7847682119205,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 564.033781,
+      "frame": 28202,
+      "id": -1,
+      "key": "manual:564.034:14",
+      "x1": 820.5579470198675,
+      "y1": 141.21192052980132,
+      "x2": 872.3228476821191,
+      "y2": 300.8327814569536,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 611.183354,
+      "frame": 30559,
+      "id": -1,
+      "key": "manual:611.183:15",
+      "x1": 866.4867549668874,
+      "y1": 148.25993377483442,
+      "x2": 907.5480132450331,
+      "y2": 223.03145695364236,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 622.739193,
+      "frame": 31137,
+      "id": -1,
+      "key": "manual:622.739:16",
+      "x1": 931.5877483443708,
+      "y1": 185.22847682119203,
+      "x2": 978.0976821192053,
+      "y2": 318.6043046357616,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 742.858029,
+      "frame": 37143,
+      "id": -1,
+      "key": "manual:742.858:17",
+      "x1": 899.7102649006622,
+      "y1": 129.773178807947,
+      "x2": 956.546357615894,
+      "y2": 305.76986754966885,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 763.320999,
+      "frame": 38166,
+      "id": -1,
+      "key": "manual:763.321:18",
+      "x1": 1064.4619205298013,
+      "y1": 158.83940397350992,
+      "x2": 1125.1672185430464,
+      "y2": 332.1390728476821,
+      "confidence": 1,
+      "domain": "far_front"
+    },
+    {
+      "time": 785.636202,
+      "frame": 39282,
+      "id": -1,
+      "key": "manual:785.636:19",
+      "x1": 1109.362582781457,
+      "y1": 150.76821192052978,
+      "x2": 1164.9172185430464,
+      "y2": 274.4337748344371,
+      "confidence": 1,
+      "domain": "far_front"
+    }
+  ]
+}

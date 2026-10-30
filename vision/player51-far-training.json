@@ -1,0 +1,14 @@
+{
+  "training_clips": [
+    {
+      "name": "set2-far-front",
+      "type": "feedback",
+      "domain": "far_front",
+      "video": "vision/runs/training-set2/source.mp4",
+      "tracks": "vision/runs/training-set2/tracking/tracks.csv",
+      "feedback": "vision/runs/training-set2/player-51-training-data.json",
+      "offset_seconds": 0,
+      "roi": [40, 70, 1900, 1020]
+    }
+  ]
+}
