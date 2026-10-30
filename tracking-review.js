@@ -6,6 +6,7 @@ const canvas = $("#overlay");
 const context = canvas.getContext("2d");
 
 const state = {
+  mode: "training",
   videoName: "",
   tracksName: "",
   observations: [],
@@ -29,6 +30,7 @@ const state = {
   manualStart: null,
   manualDraft: null,
   suppressClick: false,
+  evaluation: VolleyTagEvaluation.emptyEvaluation(),
 };
 
 function parseCsv(text) {
@@ -334,6 +336,184 @@ function domainLabel(domain) {
   return domain === "near_back" ? "ближняя · спина" : "дальняя · лицо";
 }
 
+function evaluationDomain() { return $("#evaluationDomain").value; }
+function evaluationStorageKey() { return `volleytag-evaluation-v4:${state.videoName}:${state.tracksName}`; }
+function nextEvaluationId(prefix) {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+}
+
+function closeEvaluationInterval(collection, activeKey, time) {
+  const id = state.evaluation[activeKey];
+  const interval = state.evaluation[collection].find((entry) => entry.id === id);
+  if (interval) interval.end_s = Math.max(interval.start_s + .001, time);
+  if (collection === "presence_intervals" && interval?.state === "visible") {
+    const trajectory = state.evaluation.trajectory_intervals.find((entry) => entry.presence_id === interval.id);
+    if (trajectory) trajectory.end_s = interval.end_s;
+  }
+  state.evaluation[activeKey] = null;
+}
+
+function closeEvaluationActive(time) {
+  closeEvaluationInterval("presence_intervals", "activePresenceId", time);
+  closeEvaluationInterval("reviewed_ranges", "activeReviewedId", time);
+  closeEvaluationInterval("validated_gaps", "activeGapId", time);
+}
+
+function saveEvaluation() {
+  state.evaluation.review ||= { complete: false, annotator: "", notes: [] };
+  state.evaluation.review.annotator = $("#evalAnnotator")?.value.trim() || "";
+  state.evaluation.inputs = {};
+  [["video_sha256", "#evalVideoHash"], ["tracks_sha256", "#evalTracksHash"],
+    ["route_or_model_sha256", "#evalRouteHash"], ["code_commit", "#evalCommit"]].forEach(([key, selector]) => {
+    const value = $(selector)?.value.trim(); if (value) state.evaluation.inputs[key] = value;
+  });
+  if (state.videoName || state.tracksName) {
+    localStorage.setItem(evaluationStorageKey(), JSON.stringify(state.evaluation));
+  }
+  renderEvaluation();
+}
+
+function loadEvaluation() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(evaluationStorageKey()) || "null");
+    state.evaluation = saved && typeof saved === "object" ? saved : VolleyTagEvaluation.emptyEvaluation();
+  } catch { state.evaluation = VolleyTagEvaluation.emptyEvaluation(); }
+  ["reviewed_ranges", "presence_intervals", "trajectory_intervals", "validated_gaps", "corrections"].forEach((key) => {
+    if (!Array.isArray(state.evaluation[key])) state.evaluation[key] = [];
+  });
+  state.evaluation.review ||= { complete: false, annotator: "", notes: [] };
+  state.evaluation.inputs ||= {};
+  $("#reviewComplete").checked = state.evaluation.review.complete === true;
+  $("#evalAnnotator").value = state.evaluation.review.annotator || "";
+  $("#evalVideoHash").value = state.evaluation.inputs.video_sha256 || "";
+  $("#evalTracksHash").value = state.evaluation.inputs.tracks_sha256 || "";
+  $("#evalRouteHash").value = state.evaluation.inputs.route_or_model_sha256 || "";
+  $("#evalCommit").value = state.evaluation.inputs.code_commit || "";
+  renderEvaluation();
+}
+
+function startPresence(presenceState) {
+  const time = video.currentTime;
+  closeEvaluationInterval("presence_intervals", "activePresenceId", time);
+  const id = nextEvaluationId("presence"), domain = evaluationDomain();
+  state.evaluation.presence_intervals.push({ id, start_s: time, end_s: time + .001, state: presenceState, domain });
+  state.evaluation.activePresenceId = id;
+  if (presenceState === "visible") {
+    state.evaluation.trajectory_intervals.push({
+      id: nextEvaluationId("trajectory"), presence_id: id, start_s: time, end_s: time + .001,
+      domain, source: "human_ground_truth", keyframes: [],
+    });
+  }
+  saveEvaluation();
+  toast(`Начат интервал ${presenceState}: ${domainLabel(domain)}`);
+}
+
+function toggleSimpleEvaluationInterval(collection, activeKey, prefix) {
+  const active = state.evaluation[activeKey];
+  if (active) {
+    closeEvaluationInterval(collection, activeKey, video.currentTime);
+  } else {
+    const interval = { id: nextEvaluationId(prefix), start_s: video.currentTime, end_s: video.currentTime + .001 };
+    if (collection === "validated_gaps") Object.assign(interval, { domain: evaluationDomain(), validated: true, reason: "human-validated" });
+    state.evaluation[collection].push(interval);
+    state.evaluation[activeKey] = interval.id;
+  }
+  saveEvaluation();
+}
+
+function activeVisibleTrajectory() {
+  const presence = state.evaluation.presence_intervals.find((entry) => entry.id === state.evaluation.activePresenceId);
+  if (!presence || presence.state !== "visible") return null;
+  return state.evaluation.trajectory_intervals.find((entry) => entry.presence_id === presence.id) || null;
+}
+
+function addGroundTruthKeyframe(item) {
+  let trajectory = activeVisibleTrajectory();
+  if (!trajectory) {
+    startPresence("visible");
+    trajectory = activeVisibleTrajectory();
+  }
+  const keyframe = {
+    time_s: video.currentTime, box: [item.x1, item.y1, item.x2, item.y2],
+    identity: { key: item.key, track_id: item.id }, source: item.id === -1 ? "human-drawn" : "human-confirmed",
+  };
+  trajectory.keyframes = trajectory.keyframes.filter((entry) => Math.abs(entry.time_s - keyframe.time_s) > .001);
+  trajectory.keyframes.push(keyframe);
+  trajectory.keyframes.sort((left, right) => left.time_s - right.time_s);
+  trajectory.end_s = Math.max(trajectory.end_s, video.currentTime + .001);
+  saveEvaluation();
+}
+
+function evaluationPayload() {
+  const inputs = {};
+  const mappings = [["video_sha256", "#evalVideoHash"], ["tracks_sha256", "#evalTracksHash"],
+    ["route_or_model_sha256", "#evalRouteHash"], ["code_commit", "#evalCommit"]];
+  mappings.forEach(([key, selector]) => { const value = $(selector).value.trim(); if (value) inputs[key] = value; });
+  return {
+    schema: VolleyTagEvaluation.SCHEMA,
+    frozen_test: true,
+    created_at: new Date().toISOString(),
+    video: {
+      name: state.videoName, duration_s: video.duration, width: video.videoWidth,
+      height: video.videoHeight, roi: [Number($("#roiX").value), Number($("#roiY").value)],
+    },
+    tracks: { name: state.tracksName }, inputs,
+    review: { ...state.evaluation.review, annotator: $("#evalAnnotator").value.trim() },
+    reviewed_ranges: state.evaluation.reviewed_ranges,
+    presence_intervals: state.evaluation.presence_intervals,
+    trajectory_intervals: state.evaluation.trajectory_intervals,
+    validated_gaps: state.evaluation.validated_gaps,
+    corrections: state.evaluation.corrections,
+  };
+}
+
+function renderEvaluation() {
+  if (!$("#evaluationSummary")) return;
+  const duration = Number.isFinite(video.duration) ? video.duration : 0;
+  const coverage = VolleyTagEvaluation.reviewedCoverage(state.evaluation.reviewed_ranges, duration);
+  $("#evaluationSummary").textContent = `Reviewed: ${coverage.seconds.toFixed(1)} / ${duration.toFixed(1)} с (${(coverage.ratio * 100).toFixed(1)}%) · presence: ${state.evaluation.presence_intervals.length} · corrections: ${state.evaluation.corrections.length}`;
+  document.querySelectorAll("[data-presence]").forEach((button) => {
+    const active = state.evaluation.presence_intervals.find((entry) => entry.id === state.evaluation.activePresenceId);
+    button.classList.toggle("active", active?.state === button.dataset.presence);
+  });
+  $("#toggleReviewed").classList.toggle("active", Boolean(state.evaluation.activeReviewedId));
+  $("#toggleGap").classList.toggle("active", Boolean(state.evaluation.activeGapId));
+  const rows = [
+    ...state.evaluation.reviewed_ranges.map((entry) => ({ collection: "reviewed_ranges", label: "reviewed", entry })),
+    ...state.evaluation.presence_intervals.map((entry) => ({ collection: "presence_intervals", label: `${entry.state} · ${entry.domain}`, entry })),
+    ...state.evaluation.validated_gaps.map((entry) => ({ collection: "validated_gaps", label: `gap · ${entry.domain}`, entry })),
+  ].sort((left, right) => left.entry.start_s - right.entry.start_s);
+  const list = $("#evaluationList");
+  list.innerHTML = rows.map(({ collection, label, entry }) => `<div class="evaluation-row"><span>${label}</span><input type="number" step="0.001" value="${entry.start_s}" data-field="start_s" data-collection="${collection}" data-id="${entry.id}"><input type="number" step="0.001" value="${entry.end_s}" data-field="end_s" data-collection="${collection}" data-id="${entry.id}"><button data-eval-delete="${entry.id}" data-collection="${collection}">×</button></div>`).join("");
+  list.querySelectorAll("input").forEach((input) => input.addEventListener("change", () => {
+    const entry = state.evaluation[input.dataset.collection].find((candidate) => candidate.id === input.dataset.id);
+    if (entry) entry[input.dataset.field] = Number(input.value);
+    saveEvaluation();
+  }));
+  list.querySelectorAll("button").forEach((button) => button.addEventListener("click", () => {
+    state.evaluation[button.dataset.collection] = state.evaluation[button.dataset.collection].filter((entry) => entry.id !== button.dataset.evalDelete);
+    if (button.dataset.collection === "presence_intervals") {
+      state.evaluation.trajectory_intervals = state.evaluation.trajectory_intervals.filter((entry) => entry.presence_id !== button.dataset.evalDelete);
+    }
+    saveEvaluation();
+  }));
+}
+
+function setAnnotationMode(mode) {
+  state.mode = mode;
+  $("#annotationMode").value = mode;
+  const evaluation = mode === "evaluation";
+  $("#evaluationCard").hidden = !evaluation;
+  $(".dataset-card").hidden = evaluation;
+  $(".help").hidden = evaluation;
+  $(".anchors").hidden = evaluation;
+  $("#rejectCurrent").hidden = evaluation;
+  $("#markLost").hidden = evaluation;
+  $("#confirmBox").textContent = evaluation ? "Q · ✓ Добавить human GT keyframe" : "Q · ✓ Это я — начать интервал";
+  $("#manualBox").textContent = evaluation ? "R · ▱ Нарисовать human GT рамку" : "R · ▱ Нарисовать рамку вручную";
+  if (evaluation) loadEvaluation();
+}
+
 function closeActiveSegment(end, reason) {
   const index = state.activeSegmentIndex;
   if (index === null || !state.segments[index]) return;
@@ -355,10 +535,11 @@ function startPositiveSegment(item, time) {
 
 function seekTo(time) {
   closeActiveSegment(video.currentTime, "seek");
+  if (state.mode === "evaluation") closeEvaluationActive(video.currentTime);
   video.currentTime = Math.max(0, Math.min(video.duration || Infinity, time));
   state.lostSince = null; state.pausedForGap = false;
   state.preview = null; $("#confirmBox").disabled = true; $("#stageConfirm").hidden = true;
-  saveAnchors();
+  if (state.mode === "evaluation") saveEvaluation(); else saveAnchors();
 }
 
 function storageKey() { return `volleytag-tracking-v3:${state.videoName}:${state.tracksName}`; }
@@ -461,14 +642,25 @@ canvas.addEventListener("pointerup", (event) => {
   $("#stage").classList.remove("manual-draw"); $("#manualBox").classList.remove("active");
   setTimeout(() => { state.suppressClick = false; }, 0);
   if (box.x2 - box.x1 < 12 || box.y2 - box.y1 < 20) { toast("Рамка слишком маленькая — попробуй ещё раз"); return; }
-  box.domain = domainFor(box); state.manualBoxes.push(box); saveAnchors();
-  toast(`Ручная рамка сохранена: ${domainLabel(box.domain)}`);
+  if (state.mode === "evaluation") {
+    box.domain = evaluationDomain(); addGroundTruthKeyframe(box);
+    toast(`Human GT рамка сохранена: ${domainLabel(box.domain)}`);
+  } else {
+    box.domain = domainFor(box); state.manualBoxes.push(box); saveAnchors();
+    toast(`Ручная рамка сохранена: ${domainLabel(box.domain)}`);
+  }
 });
 
 function confirmPreview() {
   const selected = state.preview?.item || selectionAt(video.currentTime)?.item;
   if (!selected) { toast("Сначала кликни по своей рамке"); return; }
   const item = selected, time = video.currentTime;
+  if (state.mode === "evaluation") {
+    addGroundTruthKeyframe(item);
+    state.preview = null; $("#confirmBox").disabled = true; $("#stageConfirm").hidden = true;
+    toast(`Human GT keyframe: ${domainLabel(evaluationDomain())}`);
+    return;
+  }
   const previous = selectionAt(time);
   if (previous && previous.item.key !== item.key && !state.negatives.some((negative) =>
     negative.key === previous.item.key && Math.abs(negative.time - time) < .5)) {
@@ -486,12 +678,13 @@ $("#videoFile").addEventListener("change", (event) => {
   const file = event.target.files[0]; if (!file) return;
   state.videoName = `${file.name}:${file.size}:${file.lastModified}`;
   video.src = URL.createObjectURL(file); $("#empty").hidden = true;
-  if (state.tracksName) loadAnchors();
+  if (state.tracksName) { loadAnchors(); if (state.mode === "evaluation") loadEvaluation(); }
 });
 $("#tracksFile").addEventListener("change", async (event) => {
   const file = event.target.files[0]; if (!file) return;
   state.tracksName = `${file.name}:${file.size}:${file.lastModified}`;
   buildChunks(parseCsv(await file.text())); loadAnchors();
+  if (state.mode === "evaluation") loadEvaluation();
   setStatus("lost", "Рамки загружены", "Запусти видео и кликни по себе.");
 });
 $("#scoresFile").addEventListener("change", async (event) => {
@@ -500,6 +693,61 @@ $("#scoresFile").addEventListener("change", async (event) => {
   state.scores = new Map(rows.map((row) => [Number(row.track_id), Number(row.margin)]));
   state.chunkScores = new Map(rows.filter((row) => row.key).map((row) => [row.key, Number(row.margin)]));
   rebuildRoute(); toast("ReID-оценки загружены");
+});
+$("#annotationFile").addEventListener("change", async (event) => {
+  const file = event.target.files[0]; if (!file) return;
+  try {
+    const payload = JSON.parse(await file.text());
+    if (payload.schema === VolleyTagEvaluation.SCHEMA) {
+      $("#annotationMode").value = "evaluation"; setAnnotationMode("evaluation");
+      state.evaluation = {
+        reviewed_ranges: payload.reviewed_ranges || [], presence_intervals: payload.presence_intervals || [],
+        trajectory_intervals: payload.trajectory_intervals || [], validated_gaps: payload.validated_gaps || [],
+        corrections: payload.corrections || [], review: payload.review || { complete: false },
+        inputs: payload.inputs || {}, activePresenceId: null, activeReviewedId: null, activeGapId: null,
+      };
+      $("#evalVideoHash").value = payload.inputs?.video_sha256 || "";
+      $("#evalTracksHash").value = payload.inputs?.tracks_sha256 || "";
+      $("#evalRouteHash").value = payload.inputs?.route_or_model_sha256 || "";
+      $("#evalCommit").value = payload.inputs?.code_commit || "";
+      $("#reviewComplete").checked = state.evaluation.review.complete === true;
+      $("#evalAnnotator").value = state.evaluation.review.annotator || "";
+      saveEvaluation();
+      toast("Evaluation v4 импортирован");
+    } else if (payload.version === 3) {
+      state.anchors = payload.anchors || []; state.negatives = payload.negatives || [];
+      state.segments = payload.segments || []; state.lostEvents = payload.lostEvents || [];
+      state.manualBoxes = payload.manualBoxes || []; state.activeSegmentIndex = null;
+      $("#annotationMode").value = "training"; setAnnotationMode("training"); rebuildRoute(); saveAnchors();
+      toast("Training/review v3 импортирован");
+    } else throw new Error("Неизвестная версия JSON");
+  } catch (error) { toast(`Ошибка импорта: ${error.message}`); }
+  event.target.value = "";
+});
+$("#annotationMode").addEventListener("change", (event) => setAnnotationMode(event.target.value));
+document.querySelectorAll("[data-presence]").forEach((button) => button.addEventListener("click", () => startPresence(button.dataset.presence)));
+$("#toggleReviewed").addEventListener("click", () => toggleSimpleEvaluationInterval("reviewed_ranges", "activeReviewedId", "reviewed"));
+$("#toggleGap").addEventListener("click", () => toggleSimpleEvaluationInterval("validated_gaps", "activeGapId", "gap"));
+$("#reviewComplete").addEventListener("change", (event) => { state.evaluation.review.complete = event.target.checked; saveEvaluation(); });
+$("#evalAnnotator").addEventListener("change", (event) => { state.evaluation.review.annotator = event.target.value.trim(); saveEvaluation(); });
+$("#addCorrection").addEventListener("click", () => {
+  const after = state.preview?.item;
+  if (!after) { toast("Для correction сначала выбери правильную фиолетовую рамку"); return; }
+  const before = selectionAt(video.currentTime)?.item || null;
+  if (!before || before.key === after.key) { toast("Correction требует отличающуюся исходную рамку before"); return; }
+  const rawStart = prompt("error_start_s", String(video.currentTime));
+  if (rawStart === null) return;
+  const errorStart = Number(rawStart);
+  if (!Number.isFinite(errorStart) || errorStart < 0 || errorStart > video.currentTime) { toast("Некорректный error_start_s"); return; }
+  const reason = prompt("Причина correction", "identity-switch")?.trim();
+  if (!reason) { toast("Correction требует причину"); return; }
+  state.evaluation.corrections.push({
+    id: nextEvaluationId("correction"), error_start_s: errorStart, corrected_at_s: video.currentTime,
+    domain: evaluationDomain(), reason,
+    before: { identity: { key: before.key, track_id: before.id }, box: [before.x1, before.y1, before.x2, before.y2] },
+    after: { identity: { key: after.key, track_id: after.id }, box: [after.x1, after.y1, after.x2, after.y2] },
+  });
+  addGroundTruthKeyframe(after); toast("Correction сохранён");
 });
 $("#play").addEventListener("click", () => { if (video.paused) video.play(); else video.pause(); });
 $("#playbackRate").addEventListener("change", (event) => {
@@ -550,12 +798,21 @@ $("#export").addEventListener("click", () => {
       entry.item.time >= segment.start && entry.item.time <= end).map((entry) => entry.item.key))];
     return { ...segment, end, routeKeys };
   });
-  const payload = { version: 3, video: state.videoName, tracks: state.tracksName,
-    roi: [Number($("#roiX").value), Number($("#roiY").value)],
-    domains: { near_back: "ближняя сторона, спиной", far_front: "дальняя сторона, лицом" },
-    segments, anchors: state.anchors, negatives: state.negatives, lostEvents: state.lostEvents,
-    manualBoxes: state.manualBoxes };
+  const payload = VolleyTagEvaluation.trainingExport(state, {
+    video: state.videoName, tracks: state.tracksName,
+    roi: [Number($("#roiX").value), Number($("#roiY").value)], segments,
+  });
   const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })); link.download = "player-51-training-data.json"; link.click(); URL.revokeObjectURL(link.href);
+});
+$("#exportEvaluation").addEventListener("click", () => {
+  closeEvaluationActive(video.currentTime); saveEvaluation();
+  const payload = evaluationPayload();
+  const result = VolleyTagEvaluation.validateEvaluation(payload);
+  if (!result.valid) { alert(`Экспорт остановлен:\n${result.errors.join("\n")}`); return; }
+  if (result.warnings.length && !confirm(`Предупреждения:\n${result.warnings.join("\n")}\n\nЭкспортировать?`)) return;
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+  link.download = "player-51-evaluation.json"; link.click(); URL.revokeObjectURL(link.href);
 });
 document.addEventListener("keydown", (event) => {
   if (event.code === "Space" && !event.target.matches("input")) { event.preventDefault(); if (video.paused) video.play(); else video.pause(); }
@@ -563,8 +820,16 @@ document.addEventListener("keydown", (event) => {
   if (event.code === "ArrowRight") seekTo(video.currentTime + 5);
   if (event.code === "Enter" && state.preview) confirmPreview();
   if (event.code === "KeyQ" && !event.target.matches("input,select")) { event.preventDefault(); confirmPreview(); }
-  if (event.code === "KeyW" && !event.target.matches("input,select")) { event.preventDefault(); $("#rejectCurrent").click(); }
-  if (event.code === "KeyE" && !event.target.matches("input,select")) { event.preventDefault(); $("#markLost").click(); }
+  if (state.mode === "evaluation" && !event.target.matches("input,select")) {
+    if (["Digit1", "Digit2", "Digit3", "Digit4"].includes(event.code)) {
+      event.preventDefault(); startPresence({ Digit1: "visible", Digit2: "occluded", Digit3: "out_of_frame", Digit4: "uncertain" }[event.code]);
+    }
+    if (event.code === "KeyB") { event.preventDefault(); $("#toggleReviewed").click(); }
+    if (event.code === "KeyG") { event.preventDefault(); $("#toggleGap").click(); }
+    if (event.code === "KeyC") { event.preventDefault(); $("#addCorrection").click(); }
+  }
+  if (state.mode === "training" && event.code === "KeyW" && !event.target.matches("input,select")) { event.preventDefault(); $("#rejectCurrent").click(); }
+  if (state.mode === "training" && event.code === "KeyE" && !event.target.matches("input,select")) { event.preventDefault(); $("#markLost").click(); }
   if (event.code === "KeyR" && !event.target.matches("input,select")) { event.preventDefault(); $("#manualBox").click(); }
 });
 video.addEventListener("play", () => { $("#play").textContent = "❚❚ Пауза"; });
@@ -579,6 +844,7 @@ video.addEventListener("loadedmetadata", () => {
   $("#playbackRate").value = String(rate);
   localStorage.setItem("volleytag-playback-rate", String(rate));
   if (start > 0 && start < video.duration) video.currentTime = start;
+  renderEvaluation();
 });
 video.addEventListener("loadeddata", () => { state.renderedVideoTime = -1; });
 video.addEventListener("seeked", () => { state.renderedVideoTime = -1; });
@@ -614,4 +880,5 @@ async function loadQueryFiles() {
 loadQueryFiles().catch((error) => {
   setStatus("lost", "Ошибка загрузки", error.message);
 });
+setAnnotationMode(new URLSearchParams(location.search).get("mode") === "evaluation" ? "evaluation" : "training");
 requestAnimationFrame(render);
