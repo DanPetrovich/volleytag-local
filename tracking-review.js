@@ -21,6 +21,7 @@ const state = {
   activeSegmentIndex: null,
   route: [],
   pausedForGap: false,
+  lostSince: null,
   preview: null,
   renderedVideoTime: -1,
 };
@@ -110,7 +111,11 @@ function deduplicate(items) {
 function rebuildRoute() {
   const anchors = [...state.anchors].sort((a, b) => a.time - b.time);
   const confirmedIds = new Set(anchors.map((anchor) => anchor.trackId));
-  const negativeKeys = new Set(state.negatives.map((negative) => negative.key));
+  // A tracker ID/chunk can contain the right player before or after an ID switch.
+  // Human "not me" feedback therefore excludes only a short temporal neighbourhood,
+  // rather than blacklisting that key for the entire match.
+  const isNegativeHere = (candidate) => state.negatives.some((negative) =>
+    negative.key === candidate.key && Math.abs(negative.time - candidate.time) <= 1.25);
   const points = new Map();
   const putPoint = (item, source, anchorDistance) => {
     const current = points.get(item.frame);
@@ -141,7 +146,7 @@ function rebuildRoute() {
         }
         const predicted = [lastCenter[0] + vx * gap, lastCenter[1] + vy * gap];
         const maxDistance = .38 + gap * 1.35;
-        const ranked = frame.items.filter((candidate) => !negativeKeys.has(candidate.key)).map((candidate) => {
+        const ranked = frame.items.filter((candidate) => !isNegativeHere(candidate)).map((candidate) => {
           const normalizedDistance = distance(predicted, center(candidate)) / Math.max(height(last), height(candidate), 1);
           const sizePenalty = Math.abs(Math.log(Math.max(1, height(candidate)) / Math.max(1, height(last)))) * .28;
           const sameTrackBonus = candidate.id === last.id ? .32 : 0;
@@ -180,7 +185,7 @@ function rebuildRoute() {
       }
       const predicted = [lastCenter[0] + vx * gap, lastCenter[1] + vy * gap];
       const maxDistance = .38 + gap * 1.35;
-      const ranked = frame.items.filter((candidate) => !negativeKeys.has(candidate.key)).map((candidate) => {
+      const ranked = frame.items.filter((candidate) => !isNegativeHere(candidate)).map((candidate) => {
         const normalizedDistance = distance(predicted, center(candidate)) / Math.max(height(last), height(candidate), 1);
         const sizePenalty = Math.abs(Math.log(Math.max(1, height(candidate)) / Math.max(1, height(last)))) * .28;
         const sameTrackBonus = candidate.id === last.id ? .32 : 0;
@@ -280,9 +285,14 @@ function render() {
     drawBox(selected.item, color, 4, `Даня #51 · ${selected.source}`);
     setStatus(selected.source === "BRIDGE" ? "bridge" : "ok", selected.source === "BRIDGE" ? "Короткий разрыв" : "Игрок сопровождается", `${selected.source} · track ${selected.item.id}`);
     state.pausedForGap = false;
+    state.lostSince = null;
   } else if (state.observations.length) {
-    setStatus("lost", "Игрок потерян", "Кликни по своей рамке, чтобы продолжить.");
-    if (!video.paused && $("#pauseOnLost").checked && !state.pausedForGap) {
+    if (state.lostSince === null) state.lostSince = video.currentTime;
+    const lostFor = Math.max(0, video.currentTime - state.lostSince);
+    setStatus(lostFor < 1.0 ? "bridge" : "lost",
+      lostFor < 1.0 ? "Короткий разрыв" : "Игрок потерян",
+      lostFor < 1.0 ? "Жду следующую рамку, видео не останавливаю." : "Кликни по своей рамке, чтобы продолжить.");
+    if (!video.paused && $("#pauseOnLost").checked && !state.pausedForGap && lostFor >= 1.0) {
       state.pausedForGap = true; video.pause();
     }
   }
@@ -338,6 +348,7 @@ function startPositiveSegment(item, time) {
 function seekTo(time) {
   closeActiveSegment(video.currentTime, "seek");
   video.currentTime = Math.max(0, Math.min(video.duration || Infinity, time));
+  state.lostSince = null; state.pausedForGap = false;
   state.preview = null; $("#confirmBox").disabled = true; $("#stageConfirm").hidden = true;
   saveAnchors();
 }
