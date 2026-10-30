@@ -69,6 +69,8 @@ def main() -> None:
     parser.add_argument("tracks", type=Path)
     parser.add_argument("feedback", type=Path)
     parser.add_argument("similarity", type=Path)
+    parser.add_argument("--shoe-scores", type=Path,
+                        help="Optional shoe score CSV; orange is a positive-only cue")
     parser.add_argument("--output", type=Path, default=Path("vision/runs/feedback-route"))
     parser.add_argument("--roi", default="40,70,1900,1020")
     parser.add_argument("--anchor-chunks-only", action="store_true",
@@ -85,6 +87,12 @@ def main() -> None:
     with args.similarity.open(encoding="utf-8") as handle:
         for row in csv.DictReader(handle):
             scores[row["key"]] = float(row["margin"])
+    shoe_scores = {}
+    if args.shoe_scores:
+        with args.shoe_scores.open(encoding="utf-8") as handle:
+            for row in csv.DictReader(handle):
+                if int(row.get("reliable", "0")):
+                    shoe_scores[row["key"]] = float(row["orange_score"])
     negative_keys = {entry["key"] for entry in feedback.get("negatives", [])}
     anchors = {min(chunks[entry["key"]], key=lambda item: abs(item.time_s - float(entry["time"]))).frame: entry["key"]
                for entry in feedback.get("anchors", []) if entry["key"] in chunks}
@@ -114,7 +122,10 @@ def main() -> None:
         current_costs, current_back = {}, {}
         for index, item in enumerate(candidates):
             key = item_key[(item.frame, item.track_id)]
-            emission = -scores.get(key, -.25) * 5 - item.confidence * .08
+            # Orange shoes support a candidate when visible. A zero is neutral:
+            # shoes may be occluded, blurred or outside the frame.
+            shoe_bonus = min(.8, max(0.0, shoe_scores.get(key, 0.0) - .035) * 10)
+            emission = -scores.get(key, -.25) * 5 - item.confidence * .08 - shoe_bonus
             best = None
             if previous_frame is None:
                 best = (emission, None)
@@ -151,7 +162,8 @@ def main() -> None:
             # Restart only when no geometrically reachable state remains.
             for index, item in enumerate(candidates):
                 key = item_key[(item.frame, item.track_id)]
-                current_costs[index] = -scores.get(key, -.25) * 5
+                shoe_bonus = min(.8, max(0.0, shoe_scores.get(key, 0.0) - .035) * 10)
+                current_costs[index] = -scores.get(key, -.25) * 5 - shoe_bonus
                 current_back[index] = None
         costs, back[frame], previous_frame = current_costs, current_back, frame
 
@@ -231,6 +243,7 @@ def main() -> None:
               "coverage": len(route) / max(all_detection_frames, 1),
               "chunk_switches": switches, "anchors": len(anchors), "negative_chunks": len(negative_keys),
               "warm_uniform_limit": warm_limit, "warm_uniform_rejected": len(warm_rejected),
+              "shoe_score_chunks": len(shoe_scores),
               "anchor_chunks_only": args.anchor_chunks_only}
     (args.output / "report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(json.dumps(report))

@@ -324,6 +324,33 @@ curl https://api.groq.com/openai/v1/models \
 - пишет все рамки и таймкоды в `tracks.csv`;
 - собирает `tracks.jpg` с лучшим кадром каждого ID.
 
+На дальней стороне игрок занимает мало пикселей, поэтому для неё предусмотрен отдельный
+увеличенный проход. Он добавляется к исходным рамкам, не меняя старые ID и уже сделанную
+разметку:
+
+```bash
+.venv-vision/bin/python vision/track_players.py vision/runs/training-set2/source.mp4 \
+  --output vision/runs/training-set2/far-tracking \
+  --roi 40,70,1900,600 --stride 2 --imgsz 1536 --conf 0.05
+
+.venv-vision/bin/python vision/merge_multizone_tracks.py \
+  vision/runs/training-set2/tracking/tracks.csv \
+  vision/runs/training-set2/far-tracking/tracks.csv \
+  vision/runs/training-set2/tracking/tracks.csv --backup
+```
+
+Светло-оранжевые кроссовки №51 можно посчитать как дополнительный положительный признак:
+
+```bash
+.venv-vision/bin/python vision/score_shoe_color.py \
+  vision/runs/training-set2/source.mp4 \
+  vision/runs/training-set2/tracking/tracks.csv \
+  --output vision/runs/training-set2/shoe-scores.csv
+```
+
+Файл подключается к `optimize_feedback_route.py` через `--shoe-scores`. Нулевой результат
+нейтрален: если обувь закрыта или размыта, это не считается доказательством «не №51».
+
 Это пока не распознавание конкретного человека. В спортивном видео трек часто рвётся после
 перекрытия или поворота: один игрок может получить несколько ID. Следующий этап — объединить
 такие куски по визуальному сходству (ReID) и редким кадрам, на которых читается номер 51.
