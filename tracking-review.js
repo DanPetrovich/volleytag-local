@@ -236,13 +236,58 @@ function selectionAt(time) {
   return best ? { item: best.item, source: best.source } : null;
 }
 
+function framesNear(time, radius) {
+  let low = 0, high = state.frames.length;
+  while (low < high) {
+    const middle = (low + high) >> 1;
+    if (state.frames[middle].time < time - radius) low = middle + 1;
+    else high = middle;
+  }
+  const nearby = [];
+  for (let index = low; index < state.frames.length && state.frames[index].time <= time + radius; index += 1) {
+    nearby.push(state.frames[index]);
+  }
+  return nearby;
+}
+
 function observationsAt(time) {
   let best = null;
-  state.frames.forEach((frame) => {
+  framesNear(time, .055).forEach((frame) => {
     const delta = Math.abs(frame.time - time);
     if (delta <= .055 && (!best || delta < best.delta)) best = { items: frame.items, delta };
   });
   return best?.items || [];
+}
+
+// Some detector zones were sampled at 5 fps while the source video is 50 fps.
+// Fill only short gaps between two observations from the same track chunk so
+// boxes stay clickable without inventing identity across a real track break.
+function displayObservationsAt(time) {
+  const exact = observationsAt(time);
+  const byKey = new Map();
+  framesNear(time, .22).forEach((frame) => {
+    frame.items.forEach((item) => {
+      const key = item.key || `track:${item.id}`;
+      if (!byKey.has(key)) byKey.set(key, []);
+      byKey.get(key).push(item);
+    });
+  });
+  const present = new Set(exact.map((item) => item.key || `track:${item.id}`));
+  const filled = [...exact];
+  byKey.forEach((items, key) => {
+    if (present.has(key)) return;
+    const before = items.filter((item) => item.time <= time).sort((a, b) => b.time - a.time)[0];
+    const after = items.filter((item) => item.time >= time).sort((a, b) => a.time - b.time)[0];
+    if (!before || !after) return;
+    const gap = after.time - before.time;
+    if (gap <= .001 || gap > .26) return;
+    const alpha = (time - before.time) / gap;
+    const interpolate = (field) => before[field] + (after[field] - before[field]) * alpha;
+    filled.push({ ...before, time, frame: Math.round(time * 50), interpolated: true,
+      x1: interpolate("x1"), y1: interpolate("y1"), x2: interpolate("x2"), y2: interpolate("y2"),
+      confidence: Math.min(before.confidence, after.confidence) });
+  });
+  return deduplicate(filled);
 }
 
 function geometry() {
@@ -298,7 +343,7 @@ function render() {
     canvas.width = Math.round(rect.width * ratio); canvas.height = Math.round(rect.height * ratio);
   }
   context.setTransform(ratio, 0, 0, ratio, 0, 0); context.clearRect(0, 0, rect.width, rect.height);
-  observationsAt(video.currentTime).forEach((item) => drawBox(item, "rgba(200,210,235,.32)", 1, ""));
+  displayObservationsAt(video.currentTime).forEach((item) => drawBox(item, "rgba(200,210,235,.32)", 1, ""));
   const selected = selectionAt(video.currentTime);
   if (selected) {
     const color = selected.source === "BRIDGE" ? "#ffd84a" : "#b7ff36";
@@ -634,7 +679,7 @@ canvas.addEventListener("click", (event) => {
   if (!state.observations.length || !video.videoWidth) return;
   const g = geometry(), rx = Number($("#roiX").value) || 0, ry = Number($("#roiY").value) || 0;
   const x = (event.offsetX - g.left) / g.scale - rx, y = (event.offsetY - g.top) / g.scale - ry;
-  const candidates = observationsAt(video.currentTime).filter((item) => x >= item.x1 && x <= item.x2 && y >= item.y1 && y <= item.y2);
+  const candidates = displayObservationsAt(video.currentTime).filter((item) => x >= item.x1 && x <= item.x2 && y >= item.y1 && y <= item.y2);
   candidates.sort((a, b) => distance(center(a), [x, y]) - distance(center(b), [x, y]));
   if (!candidates.length) { toast("Здесь нет найденной рамки"); return; }
   const sameClick = state.preview && Math.abs(state.preview.time - video.currentTime) <= .15
