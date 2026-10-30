@@ -16,6 +16,7 @@ const state = {
   scores: new Map(),
   chunkScores: new Map(),
   anchors: [],
+  evaluationAssistAnchors: [],
   negatives: [],
   segments: [],
   lostEvents: [],
@@ -116,12 +117,13 @@ function deduplicate(items) {
 }
 
 function rebuildRoute() {
-  const anchors = [...state.anchors].sort((a, b) => a.time - b.time);
+  const anchors = [...(state.mode === "evaluation" ? state.evaluationAssistAnchors : state.anchors)]
+    .sort((a, b) => a.time - b.time);
   const confirmedIds = new Set(anchors.map((anchor) => anchor.trackId));
   // A tracker ID/chunk can contain the right player before or after an ID switch.
   // Human "not me" feedback therefore excludes only a short temporal neighbourhood,
   // rather than blacklisting that key for the entire match.
-  const isNegativeHere = (candidate) => state.negatives.some((negative) =>
+  const isNegativeHere = (candidate) => state.mode === "training" && state.negatives.some((negative) =>
     negative.key === candidate.key && Math.abs(negative.time - candidate.time) <= 1.25);
   const points = new Map();
   const putPoint = (item, source, anchorDistance) => {
@@ -450,6 +452,12 @@ function loadEvaluation() {
   });
   state.evaluation.review ||= { complete: false, annotator: "", notes: [] };
   state.evaluation.inputs ||= {};
+  state.evaluationAssistAnchors = state.evaluation.trajectory_intervals.flatMap((trajectory) =>
+    (trajectory.keyframes || []).filter((keyframe) => keyframe.identity?.key).map((keyframe) => ({
+      time: Number(keyframe.time_s), key: keyframe.identity.key,
+      trackId: Number(keyframe.identity.track_id), domain: trajectory.domain,
+    })));
+  rebuildRoute();
   $("#reviewComplete").checked = state.evaluation.review.complete === true;
   $("#evalAnnotator").value = state.evaluation.review.annotator || "";
   $("#evalVideoHash").value = state.evaluation.inputs.video_sha256 || "";
@@ -508,6 +516,12 @@ function addGroundTruthKeyframe(item) {
   trajectory.keyframes.push(keyframe);
   trajectory.keyframes.sort((left, right) => left.time_s - right.time_s);
   trajectory.end_s = Math.max(trajectory.end_s, video.currentTime + .001);
+  state.evaluationAssistAnchors = state.evaluationAssistAnchors
+    .filter((anchor) => Math.abs(anchor.time - video.currentTime) > .35);
+  state.evaluationAssistAnchors.push({
+    time: video.currentTime, key: item.key, trackId: item.id, domain: evaluationDomain(),
+  });
+  rebuildRoute();
   saveEvaluation();
 }
 
@@ -586,6 +600,7 @@ function setAnnotationMode(mode) {
     loadEvaluation();
   } else {
     $("#pauseOnLost").checked = true;
+    rebuildRoute();
     updateDatasetStats();
   }
 }
