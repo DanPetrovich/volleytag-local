@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VolleyTag — подтверждение игрока</title>
+  <link rel="stylesheet" href="tracking-review.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span>51</span><b>VolleyTag</b></a>
+    <div><a href="index.html">← Разметка событий</a><strong id="saveState">Якорей: 0</strong></div>
+  </header>
+
+  <main>
+    <section class="viewer">
+      <div class="stage" id="stage">
+        <video id="video" controls preload="metadata"></video>
+        <canvas id="overlay"></canvas>
+        <div class="empty" id="empty">Загрузи видео и tracks.csv</div>
+      </div>
+      <div class="transport">
+        <button data-seek="-5">−5 с</button>
+        <button id="play">▶ Смотреть</button>
+        <button data-seek="5">+5 с</button>
+        <b id="timecode">00:00.0</b>
+        <label><input id="pauseOnLost" type="checkbox" checked> Пауза, если потерян</label>
+      </div>
+      <div class="status lost" id="status"><i></i><div><b>Данные не загружены</b><span>Клик по рамке подтверждает, что внутри ты.</span></div></div>
+    </section>
+
+    <aside>
+      <section class="card">
+        <h1>Файлы пилота</h1>
+        <p>Видео остаётся на компьютере. Рамки загружаются из результата детектора.</p>
+        <label class="file">Видео<input id="videoFile" type="file" accept="video/*"></label>
+        <label class="file">tracks.csv<input id="tracksFile" type="file" accept=".csv,text/csv"></label>
+        <label class="file optional">similarity.csv <small>необязательно</small><input id="scoresFile" type="file" accept=".csv,text/csv"></label>
+        <div class="roi"><label>ROI X<input id="roiX" type="number" value="40"></label><label>ROI Y<input id="roiY" type="number" value="70"></label></div>
+      </section>
+
+      <section class="card help">
+        <h2>Как пользоваться</h2>
+        <ol>
+          <li>Запусти видео.</li>
+          <li>Кликни по своей рамке.</li>
+          <li>Если рамка потерялась или ушла на другого — кликни по себе снова.</li>
+        </ol>
+        <p><em>CONFIRMED</em> — выбранный тобой фрагмент. <em>TRACK</em> — автоматическое продолжение. <em>BRIDGE</em> — короткий разрыв между двумя фрагментами.</p>
+      </section>
+
+      <section class="card anchors">
+        <div class="title"><h2>Подтверждения</h2><button id="clear">Очистить</button></div>
+        <div id="anchorList" class="anchor-list"><p>Пока пусто.</p></div>
+        <button class="export" id="export">Скачать anchors.json</button>
+      </section>
+    </aside>
+  </main>
+
+  <div class="toast" id="toast"></div>
+  <script src="tracking-review.js"></script>
+</body>
+</html>
