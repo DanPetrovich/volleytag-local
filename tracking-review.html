@@ -15,7 +15,8 @@
   <main>
     <section class="viewer">
       <div class="stage" id="stage">
-        <video id="video" preload="metadata"></video>
+        <video id="video" preload="auto" playsinline></video>
+        <canvas id="videoFrame" aria-hidden="true"></canvas>
         <canvas id="overlay"></canvas>
         <button class="stage-confirm" id="stageConfirm" hidden>✓ Это я — подтвердить</button>
         <div class="empty" id="empty">Загрузи видео и tracks.csv</div>

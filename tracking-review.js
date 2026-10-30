@@ -1,5 +1,7 @@
 const $ = (selector) => document.querySelector(selector);
 const video = $("#video");
+const videoFrame = $("#videoFrame");
+const frameContext = videoFrame.getContext("2d", { alpha: false });
 const canvas = $("#overlay");
 const context = canvas.getContext("2d");
 
@@ -17,6 +19,7 @@ const state = {
   route: [],
   pausedForGap: false,
   preview: null,
+  renderedVideoTime: -1,
 };
 
 function parseCsv(text) {
@@ -251,6 +254,18 @@ function drawBox(item, color, width, label) {
 function render() {
   const rect = canvas.getBoundingClientRect();
   const ratio = window.devicePixelRatio || 1;
+  if (videoFrame.width !== Math.round(rect.width * ratio) || videoFrame.height !== Math.round(rect.height * ratio)) {
+    videoFrame.width = Math.round(rect.width * ratio); videoFrame.height = Math.round(rect.height * ratio);
+    state.renderedVideoTime = -1;
+  }
+  if (video.readyState >= 2 && (state.renderedVideoTime !== video.currentTime || !video.paused)) {
+    const vw = video.videoWidth || 1920, vh = video.videoHeight || 1080;
+    const scale = Math.min(videoFrame.width / vw, videoFrame.height / vh);
+    const width = vw * scale, height = vh * scale;
+    frameContext.fillStyle = "#050608"; frameContext.fillRect(0, 0, videoFrame.width, videoFrame.height);
+    frameContext.drawImage(video, (videoFrame.width - width) / 2, (videoFrame.height - height) / 2, width, height);
+    state.renderedVideoTime = video.currentTime;
+  }
   if (canvas.width !== Math.round(rect.width * ratio) || canvas.height !== Math.round(rect.height * ratio)) {
     canvas.width = Math.round(rect.width * ratio); canvas.height = Math.round(rect.height * ratio);
   }
@@ -404,6 +419,8 @@ video.addEventListener("loadedmetadata", () => {
   const start = Number(new URLSearchParams(location.search).get("start") || 0);
   if (start > 0 && start < video.duration) video.currentTime = start;
 });
+video.addEventListener("loadeddata", () => { state.renderedVideoTime = -1; });
+video.addEventListener("seeked", () => { state.renderedVideoTime = -1; });
 window.addEventListener("resize", () => { canvas.width = 0; });
 
 async function loadQueryFiles() {

@@ -1,4 +1,5 @@
 :root{--bg:#0d0f17;--panel:#151824;--panel2:#1b1f2d;--line:#2a3042;--ink:#eef2ff;--muted:#929ab2;--accent:#b7ff36;--red:#ff6678;--yellow:#ffd84a}
+.stage video{opacity:0;pointer-events:none}.stage #videoFrame{z-index:1}.stage #overlay{z-index:2}
 .transport .reject{order:4;width:100%;border-color:#6d3540;background:#28151b;color:#ff98a6;font-weight:750}
 .stage-confirm{position:absolute;z-index:3;left:50%;bottom:18px;transform:translateX(-50%);border:1px solid #c9a9ff;background:#7e4ec5;color:#fff;border-radius:10px;padding:10px 16px;font-weight:800;cursor:pointer;box-shadow:0 6px 24px #0009}.stage-confirm[hidden]{display:none}
 .empty[hidden]{display:none}.transport{flex-wrap:wrap}.transport #fullscreen{margin-left:auto}.transport>label{margin-left:0!important}.transport #timeline{order:2;flex:1 0 100%;accent-color:var(--accent)}.transport .confirm{order:3;width:100%;border-color:#57692e;background:#1b2513;color:var(--accent);font-weight:800}.transport .confirm:disabled{opacity:.35;cursor:default}.title>div{display:flex;gap:5px}.title #undoAnchor{color:var(--yellow)}
