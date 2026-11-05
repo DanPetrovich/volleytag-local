@@ -45,14 +45,19 @@ const uncertain = payload({
 });
 assert.equal(evaluation.validateEvaluation(uncertain).valid, true, "uncertain is neither positive nor negative and needs no GT");
 
-const trainingState = { anchors: [1], negatives: [2], lostEvents: [3], manualBoxes: [4] };
+const trainingState = {
+  anchors: [1], negatives: [2], lostEvents: [3], manualBoxes: [4],
+  excludedIntervals: [{ start_s: 6, end_s: 8, reason: "replay" }],
+};
 const exportedV3 = evaluation.trainingExport(trainingState, {
   video: "video", tracks: "tracks", roi: [40, 70], segments: [5],
 });
 assert.deepEqual(Object.keys(exportedV3), [
   "version", "video", "tracks", "roi", "domains", "segments", "anchors", "negatives", "lostEvents", "manualBoxes",
+  "excluded_intervals",
 ]);
 assert.equal(exportedV3.version, 3);
+assert.deepEqual(exportedV3.excluded_intervals, trainingState.excludedIntervals);
 
 const queryVideo = "vision/runs/example/source.mp4";
 const queryTracks = "vision/runs/example/tracking/tracks.csv";
@@ -63,4 +68,4 @@ assert.equal(evaluation.shouldRestoreQueryEvaluation("training", queryVideo, que
 assert.equal(evaluation.storageKey(queryVideo, queryTracks),
   `volleytag-evaluation-v4:${queryVideo}:${queryTracks}`, "query reload uses the populated storage key");
 
-console.log("evaluation-schema: 10 checks passed");
+console.log("evaluation-schema: 11 checks passed");
