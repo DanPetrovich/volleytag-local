@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "player": 51,
+  "rules": [
+    {
+      "video": "vision/runs/training-old-straight/source.mp4",
+      "start_s": 847.098,
+      "end_s": 1796.185,
+      "status": "player_benched",
+      "include_in_identity_training": false,
+      "include_in_action_training": false,
+      "note": "Матч 2, партия 2: Даня не играл. Уже отражено в excluded_intervals исходной training-разметки."
+    },
+    {
+      "video": "vision/runs/training-straight-far2/source.mp4",
+      "status": "duplicate",
+      "canonical_video": "vision/runs/training-straight-far2/far-source.mp4",
+      "canonical_time_offset_s": -100.0,
+      "include_in_identity_training": false,
+      "include_in_action_training": false,
+      "note": "Тот же матч X5 Tech — ГАЛС, партия 2, дальняя сторона; source.mp4 содержит дополнительные 100 секунд перед canonical-клипом."
+    }
+  ]
+}

@@ -1,3 +1,11 @@
 ultralytics>=8.4,<9
 boxmot>=26,<27
+numpy>=2,<3
+opencv-python>=4.10,<5
+Pillow>=10,<14
+joblib>=1.4,<2
+scikit-learn>=1.5,<2
+timm>=1,<2
+torch>=2.2
+torchvision>=0.17
 

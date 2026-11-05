@@ -1,11 +1,20 @@
 .venv-vision/
 vision/runs/
+/runs/
 vision/*.pt
 yolo*.pt
 models/
+*.npy
+*.joblib
 __pycache__/
 *.py[cod]
 .DS_Store
+
+# Generated inputs/outputs for remote experiments. Kernel source and metadata
+# stay versioned; caches and downloaded artifacts do not.
+vision/kaggle/**/candidates.json
+vision/kaggle/**/candidates.json.gz
+vision/kaggle/**/output/
 
 # Match video and user exports
 *.mp4
