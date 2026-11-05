@@ -34,3 +34,21 @@ When blocked, explain the exact blocker and ask one concrete question. Do not as
 - Define the sanity-check baseline and success criterion before running it. Continue to the full run only if the candidate method materially improves the intended metric and shows no obvious regression.
 - Reuse cached crops, embeddings, detections, and other intermediate artifacts whenever possible. Do not recompute expensive features merely to test a new lightweight head or routing rule.
 - Estimate the full run's sample count and duration from the sanity-check throughput. If it is unexpectedly expensive, reduce redundant candidates, move the job to Kaggle GPU, or redesign the experiment before committing hours of compute.
+
+## GitHub maintenance
+
+- Treat `main` as the current, working, documented state of the project. When a completed change is validated, commit it, push it, and fast-forward or merge it into `main` without waiting for a separate reminder.
+- Before every push, fetch and inspect the complete diff against `origin/main`, including filenames, tracked file sizes, URLs, secrets, local absolute paths, and generated artifacts.
+- Never push match videos, extracted frames or photographs, model weights, embeddings, caches, logs, API keys, credentials, private match links, private source registries, or other personal/private data.
+- Keep Kaggle datasets and kernels private. Version only reproducible source code, metadata without credentials, compact aggregate reports, and documentation that does not expose private source locations.
+- Use a GitHub noreply address for new commits. Do not rewrite already-public history merely to change old author metadata unless the user explicitly requests a coordinated history rewrite.
+- Do not force-push `main`. Prefer a fast-forward update; if the remote moved, fetch, rebase or merge safely, rerun validation, and then push.
+- Keep `.gitignore` and repository documentation aligned with the actual generated artifacts and current workflows.
+
+## Required validation
+
+- Run the lightweight automated suite before every push: Python compilation, Python unit tests, the evaluation-schema Node checks, and `git diff --check`.
+- Run focused tests for the code being changed and a representative browser/server smoke test when UI or HTTP behavior changes.
+- Keep GitHub Actions green. If a check fails, diagnose and fix it before updating `main`; never bypass tests merely to make the branch look current.
+- Update `README.md` and compact experiment-status documentation whenever commands, supported workflows, promoted models, limitations, or evaluation conclusions change.
+- Report failed acceptance criteria honestly. Do not describe a model or temporal route as promoted when its predeclared criterion failed.

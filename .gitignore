@@ -12,6 +12,19 @@ models/
 __pycache__/
 *.py[cod]
 .DS_Store
+.env
+.env.*
+*.pem
+*.key
+credentials*.json
+
+# Photos, screenshots, and extracted dataset frames stay local. Add a reviewed
+# non-private UI asset explicitly with `git add -f` only when it is intentional.
+*.jpg
+*.jpeg
+*.png
+*.webp
+*.heic
 
 # Generated inputs/outputs for remote experiments. Kernel source and metadata
 # stay versioned; caches and downloaded artifacts do not.
@@ -29,4 +42,7 @@ vision/kaggle/**/output/
 config.local.js
 .groq-key
 volleytag-voice*.log
+
+# Local source registries can identify private matches or storage locations.
+vision/match-registry*.json
 
