@@ -84,6 +84,10 @@ def main() -> None:
     parser.add_argument("--imgsz", type=int, default=960)
     parser.add_argument("--conf", type=float, default=0.18)
     parser.add_argument("--roi", help="Optional court crop: x1,y1,x2,y2")
+    parser.add_argument("--global-coordinates", action="store_true",
+                        help="Write ROI detections in full-frame coordinates")
+    parser.add_argument("--time-offset", type=float, default=0.0,
+                        help="Add seconds to exported timestamps")
     parser.add_argument("--max-seconds", type=float)
     args = parser.parse_args()
 
@@ -111,6 +115,7 @@ def main() -> None:
 
     best_crops: dict[int, BestCrop] = {}
     read_frames = processed_frames = detections = 0
+    first_pts = None
     started = time.perf_counter()
 
     try:
@@ -120,7 +125,12 @@ def main() -> None:
                 break
             source_frame = read_frames
             read_frames += 1
-            timestamp = source_frame / fps
+            # CAP_PROP_FPS can be an averaged/nominal value for concatenated or VFR media.
+            # Prefer the actual presentation timestamp so boxes stay aligned in the browser.
+            pts = cap.get(cv2.CAP_PROP_POS_MSEC) / 1000.0
+            if first_pts is None:
+                first_pts = pts
+            timestamp = max(0.0, pts - first_pts)
             if args.max_seconds and timestamp >= args.max_seconds:
                 break
             if source_frame % args.stride:
@@ -146,8 +156,10 @@ def main() -> None:
                 for box, track_id, confidence in zip(xyxy, ids, confidences):
                     bx1, by1, bx2, by2 = [int(v) for v in box]
                     detections += 1
-                    csv_writer.writerow((f"{timestamp:.3f}", source_frame, track_id,
-                                         f"{confidence:.4f}", bx1, by1, bx2, by2))
+                    out_box = (bx1 + x1, by1 + y1, bx2 + x1, by2 + y1) \
+                        if args.global_coordinates else (bx1, by1, bx2, by2)
+                    csv_writer.writerow((f"{timestamp + args.time_offset:.3f}", source_frame, track_id,
+                                         f"{confidence:.4f}", *out_box))
                     cv2.rectangle(annotated, (bx1, by1), (bx2, by2), (40, 220, 70), 3)
                     cv2.putText(annotated, f"ID {track_id}", (bx1, max(24, by1 - 8)),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.72, (40, 220, 70), 2, cv2.LINE_AA)
