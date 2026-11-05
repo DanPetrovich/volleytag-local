@@ -166,6 +166,7 @@
       negatives: state.negatives,
       lostEvents: state.lostEvents,
       manualBoxes: state.manualBoxes,
+      excluded_intervals: state.excludedIntervals,
     };
   }
 

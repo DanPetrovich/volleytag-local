@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VolleyTag — разметка игровых действий</title>
+  <link rel="stylesheet" href="action-review.css?v=1">
+</head>
+<body>
+  <header>
+    <a href="index.html" class="brand"><span>51</span> VolleyTag</a>
+    <div class="progress"><b id="eventCount">0 событий</b><span id="saveState">Готово</span></div>
+  </header>
+  <main>
+    <section class="viewer">
+      <div class="video-wrap" id="videoWrap">
+        <video id="video" preload="auto" playsinline></video>
+        <div class="flash" id="flash">✓ СОБЫТИЕ СОХРАНЕНО</div>
+        <div class="skip" id="skip">Повтор / заставка — пропускаю</div>
+      </div>
+      <div class="controls">
+        <button id="back">−5 с</button>
+        <button id="play">▶ Смотреть</button>
+        <button id="forward">+5 с</button>
+        <b id="timecode">00:00.0</b>
+        <label>Скорость
+          <select id="speed"><option>1</option><option selected>1.5</option><option>2</option></select>
+        </label>
+        <input id="timeline" type="range" min="0" max="1" value="0" step="0.02">
+      </div>
+      <button class="mark" id="mark"><kbd>0</kbd><strong>Другое полезное движение</strong><small>Если не подходит ни один из типов 1–5</small></button>
+      <div class="action-types" id="actionTypes">
+        <button data-action="attack"><kbd>1</kbd><b>Атака</b></button>
+        <button data-action="serve"><kbd>2</kbd><b>Подача</b></button>
+        <button data-action="reception"><kbd>3</kbd><b>Приём подачи</b></button>
+        <button data-action="block"><kbd>4</kbd><b>Блок</b></button>
+        <button data-action="defense"><kbd>5</kbd><b>Защита</b></button>
+        <button data-action="set"><kbd>6</kbd><b>Передача / пас</b></button>
+      </div>
+    </section>
+    <aside>
+      <h1>Разметка действий</h1>
+      <p>Смотри матч на 1.5×, пробелом ставь видео на паузу, а цифрами 1–6 отмечай действие.</p>
+      <label class="source">Матч
+        <select id="source"></select>
+      </label>
+      <div class="source-progress" id="sourceProgress">Метки: 0</div>
+      <button class="complete-source" id="completeSource">✓ Отметить партию размеченной</button>
+      <div class="keys">
+        <div><kbd>Space</kbd><span>пауза / продолжить видео</span></div>
+        <div><kbd>1–6</kbd><span>сразу указать тип действия</span></div>
+        <div><kbd>0</kbd><span>другое полезное движение</span></div>
+        <div><kbd>⌫</kbd><span>отменить последнюю</span></div>
+        <div><kbd>← / →</kbd><span>назад / вперёд 3 с</span></div>
+        <div><kbd>F</kbd><span>полный экран</span></div>
+      </div>
+      <p class="hint">Не нужно идеально ловить один кадр: ставь метку примерно в начале движения. Запас до и после уже сохраняется.</p>
+      <div class="list-head"><h2>Последние метки</h2><button id="undo">Отменить</button></div>
+      <ol id="events"><li class="empty">Пока меток нет</li></ol>
+    </aside>
+  </main>
+  <script src="action-review.js?v=2"></script>
+</body>
+</html>

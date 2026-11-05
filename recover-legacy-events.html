@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru">
+<head><meta charset="utf-8"><title>VolleyTag — восстановление разметки</title>
+<style>body{margin:0;background:#0d1119;color:#eef3ff;font:18px/1.5 system-ui;display:grid;min-height:100vh;place-items:center}.box{width:min(680px,90vw);padding:32px;border:1px solid #33405a;border-radius:18px;background:#171e2b}h1{margin-top:0;color:#adff2f}pre{white-space:pre-wrap;color:#bbc7dc}</style></head>
+<body><main class="box"><h1>Восстановление старой разметки</h1><p id="status">Читаю локальное хранилище этого адреса…</p><pre id="details"></pre></main>
+<script>
+(async () => {
+  const params = new URLSearchParams(location.search);
+  const output = params.get('output') || 'vision/runs/recovered/legacy-events.json';
+  const parse = (key, fallback) => { try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; } };
+  const events = parse('volleytag-51-events-v2', []);
+  const payload = {
+    auditPath: output,
+    schema_version: 1,
+    recovered_from: location.origin,
+    storage_key: 'volleytag-51-events-v2',
+    recovered_at: new Date().toISOString(),
+    match_id: localStorage.getItem('volleytag-current-match-id-v1'),
+    player_settings: parse('volleytag-51-settings-v2', {}),
+    events,
+  };
+  try {
+    const response = await fetch('/api/save-dataset-audit', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload) });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || 'save failed');
+    document.querySelector('#status').textContent = events.length ? `Найдено и сохранено событий: ${events.length}` : 'Событий на этом адресе не найдено.';
+    document.querySelector('#details').textContent = `${result.path}\nИсточник: ${location.origin}`;
+  } catch (error) {
+    document.querySelector('#status').textContent = 'Не удалось сохранить восстановленные данные';
+    document.querySelector('#details').textContent = error.message;
+  }
+})();
+</script></body></html>

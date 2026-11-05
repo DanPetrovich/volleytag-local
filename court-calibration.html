@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VolleyTag — калибровка площадки</title>
+  <link rel="stylesheet" href="court-calibration.css?v=1">
+</head>
+<body>
+  <header>
+    <a class="brand" href="index.html"><span>51</span> VolleyTag</a>
+    <div><b id="saveState">Калибровка не сохранена</b></div>
+  </header>
+  <main>
+    <section class="viewer">
+      <div class="stage" id="stage">
+        <video id="video" preload="auto" playsinline></video>
+        <canvas id="overlay"></canvas>
+      </div>
+      <div class="controls">
+        <button id="back">−2 с</button>
+        <button id="play">▶ Смотреть</button>
+        <button id="forward">+2 с</button>
+        <b id="timecode">00:00.0</b>
+        <input id="timeline" type="range" min="2.048" max="852.048" value="380" step="0.02">
+      </div>
+    </section>
+    <aside>
+      <h1>Где находится наша половина площадки?</h1>
+      <p>Четыре точки уже поставлены приблизительно. Перетащи их точно на пересечения линий площадки:</p>
+      <ol>
+        <li><i class="dot a"></i> слева у сетки</li>
+        <li><i class="dot b"></i> справа у сетки</li>
+        <li><i class="dot c"></i> справа на задней линии</li>
+        <li><i class="dot d"></i> слева на задней линии</li>
+      </ol>
+      <p class="hint">Цветные области — будущие зоны 1–6. Это только мягкая подсказка для выбора кандидата, не жёсткое ограничение.</p>
+      <button class="save" id="save">Сохранить калибровку</button>
+      <button id="reset">Вернуть примерные точки</button>
+      <div class="status" id="status">Перетащи точки и проверь границы.</div>
+    </aside>
+  </main>
+  <script src="court-calibration.js?v=2"></script>
+</body>
+</html>

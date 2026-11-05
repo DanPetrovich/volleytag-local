@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VolleyTag — разметка ротаций 5–1</title>
+  <link rel="stylesheet" href="rotation-review.css?v=1">
+</head>
+<body>
+  <header>
+    <a class="brand" href="index.html"><span>51</span> VolleyTag</a>
+    <div class="header-status"><b id="eventCount">0 смен подачи</b><span id="saveState">Готово</span></div>
+  </header>
+  <main>
+    <section class="viewer">
+      <div class="video-wrap" id="videoWrap">
+        <video id="video" preload="auto" playsinline></video>
+        <div class="flash" id="flash">✓ СОСТОЯНИЕ СОХРАНЕНО</div>
+        <div class="skip" id="skip">Повтор / перерыв — пропускаю</div>
+      </div>
+      <div class="controls">
+        <button id="back">−5 с</button><button id="play">▶ Смотреть</button><button id="forward">+5 с</button>
+        <b id="timecode">00:00.0</b>
+        <label>Скорость <select id="speed"><option>1</option><option selected>1.5</option><option>2</option></select></label>
+        <input id="timeline" type="range" min="2.048" max="852.048" value="2.048" step="0.02">
+      </div>
+      <div class="sideout-buttons">
+        <button class="ours" id="toOurs"><kbd>1</kbd><b>Подача перешла к нам</b><small>Автоматически делаем переход</small></button>
+        <button class="theirs" id="toTheirs"><kbd>2</kbd><b>Подача перешла сопернику</b><small>Ротация остаётся прежней</small></button>
+      </div>
+    </section>
+    <aside>
+      <h1>Ротации 5–1</h1>
+      <p class="lead">Отмечай только смену подающей команды. Если одна команда подаёт несколько очков подряд — ничего нажимать не нужно.</p>
+      <section class="setup" id="setup">
+        <h2>Начало отрезка</h2>
+        <label>Твоя ротационная позиция
+          <select id="initialRotation"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option></select>
+        </label>
+        <label>Кто подаёт
+          <select id="initialOwner"><option value="ours">Мы</option><option value="theirs" selected>Соперник</option></select>
+        </label>
+        <label>Вариант в позиции 2 при подаче соперника
+          <select id="outsideVariant">
+            <option value="front">приём в 1 → игра в 2</option>
+            <option value="back">приём в 5 → игра в 4</option>
+          </select>
+        </label>
+        <button class="start" id="start">Зафиксировать начало</button>
+      </section>
+      <section class="current" id="current">
+        <span>Текущее состояние</span>
+        <strong id="stateTitle">ещё не начато</strong>
+        <p id="stateRule">Выбери стартовые параметры.</p>
+      </section>
+      <div class="soft-note"><b>Это мягкая подсказка.</b> Основная зона получит бонус, соседняя — меньший бонус. Кандидат в другой зоне никогда не удаляется.</div>
+      <div class="actions"><button id="undo">Отменить последнюю смену</button><button id="complete">Завершить полный круг</button></div>
+      <div class="keys"><span><kbd>Space</kbd> пауза</span><span><kbd>1</kbd> подача к нам</span><span><kbd>2</kbd> подача сопернику</span><span><kbd>⌫</kbd> отменить</span></div>
+      <h2>История</h2>
+      <ol id="history"><li class="empty">Пока событий нет</li></ol>
+    </aside>
+  </main>
+  <script src="rotation-review.js?v=2"></script>
+</body>
+</html>

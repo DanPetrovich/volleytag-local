@@ -32,7 +32,11 @@ const state = {
   manualDraft: null,
   suppressClick: false,
   evaluation: VolleyTagEvaluation.emptyEvaluation(),
+  uniform: { step_s: 2, samples: [], index: 0 },
+  excludedIntervals: [],
 };
+
+const UNIFORM_SCHEMA = "volleytag.player51-uniform-evaluation.v1";
 
 function parseCsv(text) {
   const lines = text.trim().split(/\r?\n/);
@@ -154,7 +158,10 @@ function rebuildRoute() {
     const stopAt = anchors[anchorIndex + 1]?.time ?? Infinity;
     const previousAnchorTime = anchors[anchorIndex - 1]?.time ?? -Infinity;
     let last = seed, previous = null, lastSeenTime = anchor.time;
-    putPoint(seed, "CONFIRMED", 0);
+    // Keep the human confirmation at the exact video timestamp. Detector rows
+    // can be up to 0.2 s away, which previously made Q save correctly while the
+    // green confirmation vanished immediately on the paused frame.
+    putPoint({ ...seed, time: anchor.time }, "CONFIRMED", 0);
     {
       const earlierFrames = state.frames.filter((frame) => frame.time < anchor.time - .02 && frame.time > previousAnchorTime + .02).reverse();
       for (const frame of earlierFrames) {
@@ -246,12 +253,28 @@ function nearest(items, time, maxDelta = .09) {
 }
 
 function selectionAt(time) {
+  if (state.mode === "training" && lostIntervalAt(time)) return null;
   let best = null;
   state.route.forEach((entry) => {
     const delta = Math.abs(entry.item.time - time);
     if (delta <= .07 && (!best || delta < best.delta)) best = { ...entry, delta };
   });
   return best ? { item: best.item, source: best.source } : null;
+}
+
+function lostIntervalAt(time) {
+  return state.lostEvents.some((event) => {
+    const start = Number(event.start ?? event.time);
+    let end = Number(event.end);
+    if (!Number.isFinite(end)) {
+      const nextPositive = state.segments
+        .map((segment) => Number(segment.start))
+        .filter((value) => Number.isFinite(value) && value > start)
+        .sort((a, b) => a - b)[0];
+      end = Number.isFinite(nextPositive) ? nextPositive : Infinity;
+    }
+    return time >= start - .05 && time < end;
+  });
 }
 
 function framesNear(time, radius) {
@@ -363,11 +386,16 @@ function render() {
   context.setTransform(ratio, 0, 0, ratio, 0, 0); context.clearRect(0, 0, rect.width, rect.height);
   displayObservationsAt(video.currentTime).forEach((item) => drawBox(item, "rgba(200,210,235,.32)", 1, ""));
   const groundTruth = state.mode === "evaluation" ? evaluationKeyframeAt(video.currentTime) : null;
-  const selected = selectionAt(video.currentTime);
+  const selected = state.mode === "uniform" ? null : selectionAt(video.currentTime);
+  const explicitlyLost = state.mode === "training" ? lostIntervalAt(video.currentTime) : null;
   if (selected && !groundTruth) {
     const color = selected.source === "BRIDGE" ? "#ffd84a" : "#b7ff36";
     drawBox(selected.item, color, 4, `Даня #51 · ${selected.source}`);
     setStatus(selected.source === "BRIDGE" ? "bridge" : "ok", selected.source === "BRIDGE" ? "Короткий разрыв" : "Игрок сопровождается", `${selected.source} · track ${selected.item.id}`);
+    state.pausedForGap = false;
+    state.lostSince = null;
+  } else if (explicitlyLost) {
+    setStatus("lost", "Отмечено: тебя нет на поле / в кадре", "Когда снова появишься, выбери свою рамку и нажми Q.");
     state.pausedForGap = false;
     state.lostSince = null;
   } else if (state.observations.length) {
@@ -387,6 +415,10 @@ function render() {
     const active = state.evaluation.presence_intervals.find((entry) => entry.id === state.evaluation.activePresenceId);
     setStatus("bridge", active ? `Размечается: ${active.state}` : "Жду разметку presence",
       active?.state === "visible" ? "Кликни по своей рамке и нажми Q либо нарисуй её через R." : "Выбери состояние клавишами 1–4.");
+  } else if (state.mode === "uniform" && !state.preview) {
+    const sample = currentUniformSample();
+    setStatus("bridge", sample?.state ? `Сохранено: ${sample.state}` : "Равномерный контрольный кадр",
+      "Если ты виден — кликни по рамке и нажми Q или нарисуй через R. Иначе нажми 2–4.");
   }
   if (state.preview && Math.abs(state.preview.time - video.currentTime) <= .15) {
     drawBox(state.preview.item, "#b584ff", 5,
@@ -423,6 +455,144 @@ function domainLabel(domain) {
 
 function evaluationDomain() { return $("#evaluationDomain").value; }
 function evaluationStorageKey() { return VolleyTagEvaluation.storageKey(state.videoName, state.tracksName); }
+
+function uniformStorageKey() {
+  return `volleytag-uniform-v1:${state.videoName}:${state.tracksName}`;
+}
+
+function uniformShoePolicy() {
+  return new URLSearchParams(location.search).get("shoe") || "unknown";
+}
+
+function currentUniformSample() { return state.uniform.samples[state.uniform.index] || null; }
+
+function isExcludedTime(time) {
+  return state.excludedIntervals.some((interval) => time >= interval.start_s && time <= interval.end_s);
+}
+
+function excludedIntervalAt(time) {
+  return state.excludedIntervals.find((interval) => time >= interval.start_s && time <= interval.end_s) || null;
+}
+
+function skipExcludedTime() {
+  if (state.mode !== "training") return false;
+  const interval = excludedIntervalAt(video.currentTime);
+  if (!interval) return false;
+  const destination = Math.min(video.duration || interval.end_s + .05, interval.end_s + .05);
+  if (destination <= video.currentTime + .01) return false;
+  video.currentTime = destination;
+  state.renderedVideoTime = -1;
+  toast(interval.reason === "player_benched"
+    ? "Второй сет пропущен: ты на замене"
+    : "Невалидный фрагмент пропущен");
+  return true;
+}
+
+function buildUniformSamples(step = 2) {
+  const duration = Number(video.duration);
+  if (!Number.isFinite(duration) || duration <= 0) return;
+  const safeStep = Math.max(.5, Math.min(30, Number(step) || 2));
+  const previous = new Map(state.uniform.samples.map((sample) => [sample.time_s.toFixed(3), sample]));
+  const samples = [];
+  for (let time = safeStep / 2; time < duration; time += safeStep) {
+    const rounded = Number(time.toFixed(3));
+    if (isExcludedTime(rounded)) continue;
+    samples.push(previous.get(rounded.toFixed(3)) || { time_s: rounded, state: null, domain: null });
+  }
+  state.uniform.step_s = safeStep;
+  state.uniform.samples = samples;
+  state.uniform.index = Math.max(0, Math.min(state.uniform.index, samples.length - 1));
+  $("#uniformStep").value = String(safeStep);
+  saveUniform();
+}
+
+function loadUniform() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(uniformStorageKey()) || "null");
+    if (saved?.schema === UNIFORM_SCHEMA && Array.isArray(saved.samples)) {
+      state.uniform = { step_s: Number(saved.step_s) || 2, samples: saved.samples, index: Number(saved.index) || 0 };
+    } else state.uniform = { step_s: Number(new URLSearchParams(location.search).get("step")) || 2, samples: [], index: 0 };
+  } catch { state.uniform = { step_s: 2, samples: [], index: 0 }; }
+  if (Number.isFinite(video.duration)) buildUniformSamples(state.uniform.step_s);
+  renderUniform();
+}
+
+function uniformPayload() {
+  return {
+    schema: UNIFORM_SCHEMA, frozen_test: true, created_at: new Date().toISOString(),
+    video: { name: state.videoName, duration_s: video.duration, width: video.videoWidth, height: video.videoHeight,
+      roi: [Number($("#roiX").value), Number($("#roiY").value)] },
+    tracks: { name: state.tracksName }, appearance_cues: { shoe: uniformShoePolicy() },
+    excluded_intervals: state.excludedIntervals,
+    step_s: state.uniform.step_s, samples: state.uniform.samples,
+  };
+}
+
+function saveUniform() {
+  if (state.videoName || state.tracksName) {
+    localStorage.setItem(uniformStorageKey(), JSON.stringify({ ...uniformPayload(), index: state.uniform.index }));
+  }
+  renderUniform();
+}
+
+function renderUniform() {
+  if (!$("#uniformSummary")) return;
+  $("#uniformStep").value = String(state.uniform.step_s);
+  const total = state.uniform.samples.length;
+  const done = state.uniform.samples.filter((sample) => sample.state).length;
+  const sample = currentUniformSample();
+  $("#uniformSummary").textContent = total
+    ? `Кадр ${state.uniform.index + 1} / ${total} · размечено ${done} (${(done / total * 100).toFixed(1)}%) · ${sample ? formatTime(sample.time_s) : "—"}`
+    : "Подготовка выборки…";
+  const policy = uniformShoePolicy();
+  $("#uniformCue").textContent = policy === "black_expected"
+    ? "Обувь: ожидаются чёрные кроссовки; оранжевый цвет не является положительным сигналом."
+    : policy === "orange_positive"
+      ? "Обувь: оранжевый цвет используется только как дополнительный положительный сигнал."
+      : "Обувь: цветовой сигнал для этого матча не задан.";
+  $("#saveState").textContent = `Uniform GT: ${done}/${total}`;
+}
+
+function goToUniform(index) {
+  if (!state.uniform.samples.length) return;
+  state.uniform.index = Math.max(0, Math.min(index, state.uniform.samples.length - 1));
+  const sample = currentUniformSample();
+  video.pause();
+  video.currentTime = sample.time_s;
+  state.preview = null; state.manualMode = false; state.manualStart = null; state.manualDraft = null;
+  $("#confirmBox").disabled = true; $("#stageConfirm").hidden = true;
+  $("#stage").classList.remove("manual-draw"); $("#manualBox").classList.remove("active");
+  saveUniform();
+  toast(`Кадр ${state.uniform.index + 1}/${state.uniform.samples.length} · ${formatTime(sample.time_s)}`);
+}
+
+function advanceUniform() { goToUniform(state.uniform.index + 1); }
+
+function markUniformState(sampleState) {
+  const sample = currentUniformSample();
+  if (!sample) return;
+  if (Math.abs(video.currentTime - sample.time_s) > .15) {
+    goToUniform(state.uniform.index); toast("Возвращаю на фиксированный контрольный кадр"); return;
+  }
+  Object.assign(sample, { state: sampleState, domain: $("#uniformDomain").value });
+  delete sample.box; delete sample.identity; delete sample.source;
+  saveUniform(); advanceUniform();
+}
+
+function addUniformGroundTruth(item) {
+  const sample = currentUniformSample();
+  if (!sample) return;
+  if (Math.abs(video.currentTime - sample.time_s) > .15) {
+    goToUniform(state.uniform.index); toast("Рамка должна быть поставлена на фиксированном контрольном кадре"); return;
+  }
+  Object.assign(sample, {
+    state: "visible", domain: $("#uniformDomain").value,
+    box: [item.x1, item.y1, item.x2, item.y2],
+    identity: { key: item.key, track_id: item.id },
+    source: item.id === -1 ? "human-drawn" : "human-confirmed",
+  });
+  saveUniform(); advanceUniform();
+}
 function nextEvaluationId(prefix) {
   return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
@@ -570,7 +740,9 @@ function renderEvaluation() {
   const coverage = VolleyTagEvaluation.reviewedCoverage(state.evaluation.reviewed_ranges, duration);
   $("#evaluationSummary").textContent = `Reviewed: ${coverage.seconds.toFixed(1)} / ${duration.toFixed(1)} с (${(coverage.ratio * 100).toFixed(1)}%) · presence: ${state.evaluation.presence_intervals.length} · corrections: ${state.evaluation.corrections.length}`;
   const keyframeCount = state.evaluation.trajectory_intervals.reduce((total, entry) => total + (entry.keyframes || []).length, 0);
-  $("#saveState").textContent = `GT: ${keyframeCount} · presence: ${state.evaluation.presence_intervals.length}`;
+  if (state.mode === "evaluation") {
+    $("#saveState").textContent = `GT: ${keyframeCount} · presence: ${state.evaluation.presence_intervals.length}`;
+  }
   document.querySelectorAll("[data-presence]").forEach((button) => {
     const active = state.evaluation.presence_intervals.find((entry) => entry.id === state.evaluation.activePresenceId);
     button.classList.toggle("active", active?.state === button.dataset.presence);
@@ -602,22 +774,30 @@ function setAnnotationMode(mode) {
   state.mode = mode;
   $("#annotationMode").value = mode;
   const evaluation = mode === "evaluation";
+  const uniform = mode === "uniform";
   $("#evaluationCard").hidden = !evaluation;
-  $(".dataset-card").hidden = evaluation;
-  $(".help").hidden = evaluation;
-  $(".anchors").hidden = evaluation;
-  $("#rejectCurrent").hidden = evaluation;
-  $("#markLost").hidden = evaluation;
-  $("#pauseOnLost").closest("label").hidden = evaluation;
-  $("#confirmBox").textContent = evaluation ? "Q · ✓ Добавить human GT keyframe" : "Q · ✓ Это я — начать интервал";
-  $("#manualBox").textContent = evaluation ? "R · ▱ Нарисовать human GT рамку" : "R · ▱ Нарисовать рамку вручную";
+  $("#uniformCard").hidden = !uniform;
+  $(".dataset-card").hidden = evaluation || uniform;
+  $(".help").hidden = evaluation || uniform;
+  $(".anchors").hidden = evaluation || uniform;
+  $("#rejectCurrent").hidden = evaluation || uniform;
+  $("#markLost").hidden = evaluation || uniform;
+  $("#pauseOnLost").closest("label").hidden = evaluation || uniform;
+  $("#confirmBox").textContent = evaluation ? "Q · ✓ Добавить human GT keyframe"
+    : uniform ? "Q · ✓ Сохранить visible GT" : "Q · ✓ Это я — начать интервал";
+  $("#manualBox").textContent = evaluation || uniform ? "R · ▱ Нарисовать human GT рамку" : "R · ▱ Нарисовать рамку вручную";
+  document.querySelectorAll("[data-seek], #play, #timeline").forEach((control) => { control.disabled = uniform; });
   if (evaluation) {
     $("#pauseOnLost").checked = false;
     loadEvaluation();
+  } else if (uniform) {
+    $("#pauseOnLost").checked = false;
+    state.route = [];
+    loadUniform();
   } else {
     $("#pauseOnLost").checked = true;
     rebuildRoute();
-    updateDatasetStats();
+    renderAnchors();
   }
 }
 
@@ -631,6 +811,12 @@ function closeActiveSegment(end, reason) {
 
 function startPositiveSegment(item, time) {
   closeActiveSegment(time, "new-positive");
+  state.lostEvents.forEach((event) => {
+    const start = Number(event.start ?? event.time);
+    // Only the new interval-shaped E marks have an explicit start. Legacy E
+    // marks are points and are normalized independently during dataset export.
+    if (Object.hasOwn(event, "start") && !Number.isFinite(Number(event.end)) && start <= time) event.end = time;
+  });
   const domain = domainFor(item);
   state.segments.push({
     label: "positive", start: time, end: null, key: item.key,
@@ -646,10 +832,36 @@ function seekTo(time) {
   video.currentTime = Math.max(0, Math.min(video.duration || Infinity, time));
   state.lostSince = null; state.pausedForGap = false;
   state.preview = null; $("#confirmBox").disabled = true; $("#stageConfirm").hidden = true;
-  if (state.mode === "evaluation") saveEvaluation(); else saveAnchors();
+  if (state.mode === "evaluation") saveEvaluation();
+  else if (state.mode === "uniform") saveUniform();
+  else saveAnchors();
 }
 
 function storageKey() { return `volleytag-tracking-v3:${state.videoName}:${state.tracksName}`; }
+function playbackPositionKey() { return `volleytag-playback-position-v1:${state.videoName}:${state.tracksName}`; }
+function savePlaybackPosition() {
+  if (!state.videoName || !state.tracksName || !Number.isFinite(video.currentTime)) return;
+  localStorage.setItem(playbackPositionKey(), String(video.currentTime));
+}
+function latestAnnotationTime() {
+  return Math.max(0,
+    ...state.anchors.map((item) => Number(item.time) || 0),
+    ...state.negatives.map((item) => Number(item.time) || 0),
+    ...state.manualBoxes.map((item) => Number(item.time) || 0),
+    ...state.segments.map((item) => Number(item.end ?? item.start) || 0),
+    ...state.lostEvents.map((item) => Number(item.end ?? item.start ?? item.time) || 0));
+}
+function restorePlaybackPosition() {
+  if (!Number.isFinite(video.duration) || video.duration <= 0 || !state.videoName || !state.tracksName) return;
+  const requested = Number(new URLSearchParams(location.search).get("start") || 0);
+  const saved = Number(localStorage.getItem(playbackPositionKey()));
+  const fallback = latestAnnotationTime();
+  const target = requested > 0 ? requested : saved > 0 ? saved : fallback;
+  if (target > .05 && target < video.duration && Math.abs(video.currentTime - target) > .05) {
+    video.currentTime = target;
+    state.renderedVideoTime = -1;
+  }
+}
 function saveAnchors() {
   if (state.videoName && state.tracksName) localStorage.setItem(storageKey(), JSON.stringify({
     version: 3, anchors: state.anchors, negatives: state.negatives,
@@ -752,6 +964,9 @@ canvas.addEventListener("pointerup", (event) => {
   if (state.mode === "evaluation") {
     box.domain = evaluationDomain(); addGroundTruthKeyframe(box);
     toast(`Human GT рамка сохранена: ${domainLabel(box.domain)}`);
+  } else if (state.mode === "uniform") {
+    box.domain = $("#uniformDomain").value; addUniformGroundTruth(box);
+    toast(`Uniform GT сохранён: ${domainLabel(box.domain)}`);
   } else {
     box.domain = domainFor(box); state.manualBoxes.push(box); saveAnchors();
     toast(`Ручная рамка сохранена: ${domainLabel(box.domain)}`);
@@ -766,6 +981,11 @@ function confirmPreview() {
     addGroundTruthKeyframe(item);
     state.preview = null; $("#confirmBox").disabled = true; $("#stageConfirm").hidden = true;
     toast(`Human GT keyframe: ${domainLabel(evaluationDomain())}`);
+    return;
+  } else if (state.mode === "uniform") {
+    addUniformGroundTruth(item);
+    state.preview = null; $("#confirmBox").disabled = true; $("#stageConfirm").hidden = true;
+    toast(`Uniform GT: ${domainLabel($("#uniformDomain").value)}`);
     return;
   }
   const previous = selectionAt(time);
@@ -786,12 +1006,14 @@ $("#videoFile").addEventListener("change", (event) => {
   state.videoName = `${file.name}:${file.size}:${file.lastModified}`;
   video.src = URL.createObjectURL(file); $("#empty").hidden = true;
   if (state.tracksName) { loadAnchors(); if (state.mode === "evaluation") loadEvaluation(); }
+  if (state.mode === "uniform") loadUniform();
 });
 $("#tracksFile").addEventListener("change", async (event) => {
   const file = event.target.files[0]; if (!file) return;
   state.tracksName = `${file.name}:${file.size}:${file.lastModified}`;
   buildChunks(parseCsv(await file.text())); loadAnchors();
   if (state.mode === "evaluation") loadEvaluation();
+  if (state.mode === "uniform") loadUniform();
   setStatus("lost", "Рамки загружены", "Запусти видео и кликни по себе.");
 });
 $("#scoresFile").addEventListener("change", async (event) => {
@@ -805,7 +1027,13 @@ $("#annotationFile").addEventListener("change", async (event) => {
   const file = event.target.files[0]; if (!file) return;
   try {
     const payload = JSON.parse(await file.text());
-    if (payload.schema === VolleyTagEvaluation.SCHEMA) {
+    if (payload.schema === UNIFORM_SCHEMA) {
+      $("#annotationMode").value = "uniform"; setAnnotationMode("uniform");
+      state.uniform = { step_s: Number(payload.step_s) || 2, samples: payload.samples || [], index: 0 };
+      const pending = state.uniform.samples.findIndex((sample) => !sample.state);
+      state.uniform.index = pending >= 0 ? pending : Math.max(0, state.uniform.samples.length - 1);
+      saveUniform(); goToUniform(state.uniform.index); toast("Uniform test импортирован");
+    } else if (payload.schema === VolleyTagEvaluation.SCHEMA) {
       $("#annotationMode").value = "evaluation"; setAnnotationMode("evaluation");
       state.evaluation = {
         reviewed_ranges: payload.reviewed_ranges || [], presence_intervals: payload.presence_intervals || [],
@@ -832,6 +1060,25 @@ $("#annotationFile").addEventListener("change", async (event) => {
   event.target.value = "";
 });
 $("#annotationMode").addEventListener("change", (event) => setAnnotationMode(event.target.value));
+$("#uniformStep").addEventListener("change", (event) => {
+  if (state.uniform.samples.some((sample) => sample.state)
+      && !confirm("Смена шага перестроит очередь. Совпадающие временные точки сохранятся. Продолжить?")) {
+    event.target.value = String(state.uniform.step_s); return;
+  }
+  buildUniformSamples(Number(event.target.value)); goToUniform(0);
+});
+$("#uniformVisible").addEventListener("click", () => {
+  toast("Кликни по своей рамке и нажми Q либо нарисуй её через R");
+});
+document.querySelectorAll("[data-uniform-state]").forEach((button) => button.addEventListener("click", () => markUniformState(button.dataset.uniformState)));
+$("#uniformPrevious").addEventListener("click", () => goToUniform(state.uniform.index - 1));
+$("#uniformNext").addEventListener("click", () => goToUniform(state.uniform.index + 1));
+$("#exportUniform").addEventListener("click", () => {
+  saveUniform();
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(new Blob([JSON.stringify(uniformPayload(), null, 2)], { type: "application/json" }));
+  link.download = "player-51-uniform-test.json"; link.click(); URL.revokeObjectURL(link.href);
+});
 document.querySelectorAll("[data-presence]").forEach((button) => button.addEventListener("click", () => startPresence(button.dataset.presence)));
 $("#toggleReviewed").addEventListener("click", () => toggleSimpleEvaluationInterval("reviewed_ranges", "activeReviewedId", "reviewed"));
 $("#toggleGap").addEventListener("click", () => toggleSimpleEvaluationInterval("validated_gaps", "activeGapId", "gap"));
@@ -881,9 +1128,13 @@ $("#rejectCurrent").addEventListener("click", () => {
 });
 $("#markLost").addEventListener("click", () => {
   closeActiveSegment(video.currentTime, "lost");
-  state.lostEvents.push({ time: video.currentTime, reason: "not-visible" });
-  state.preview = null; video.pause(); saveAnchors();
-  setStatus("lost", "Отмечено: тебя не видно", "Продолжай видео и нажми Q, когда снова найдёшь себя.");
+  state.lostEvents.forEach((event) => {
+    if (!Number.isFinite(Number(event.end))) event.end = video.currentTime;
+  });
+  state.lostEvents.push({ time: video.currentTime, start: video.currentTime, end: null,
+    reason: "not-visible" });
+  state.preview = null; video.pause(); rebuildRoute(); saveAnchors();
+  setStatus("lost", "Отмечено: тебя нет на поле / в кадре", "Продолжай видео и нажми Q, когда снова найдёшь себя.");
 });
 $("#manualBox").addEventListener("click", () => {
   state.manualMode = !state.manualMode; state.manualStart = null; state.manualDraft = null;
@@ -898,17 +1149,31 @@ $("#undoAnchor").addEventListener("click", () => {
   state.activeSegmentIndex = null; rebuildRoute(); saveAnchors();
 });
 $("#clear").addEventListener("click", () => { state.anchors = []; state.negatives = []; state.segments = []; state.lostEvents = []; state.manualBoxes = []; state.activeSegmentIndex = null; rebuildRoute(); saveAnchors(); });
-$("#export").addEventListener("click", () => {
+$("#export").addEventListener("click", async () => {
   const segments = state.segments.map((segment, index) => {
     const end = segment.end ?? (index === state.activeSegmentIndex ? video.currentTime : segment.start);
     const routeKeys = [...new Set(state.route.filter((entry) =>
       entry.item.time >= segment.start && entry.item.time <= end).map((entry) => entry.item.key))];
     return { ...segment, end, routeKeys };
   });
-  const payload = VolleyTagEvaluation.trainingExport(state, {
+  const exportState = { ...state, lostEvents: state.lostEvents.map((event) => ({
+    ...event, start: Number(event.start ?? event.time),
+    end: Number.isFinite(Number(event.end)) ? Number(event.end) : video.currentTime,
+  })) };
+  const payload = VolleyTagEvaluation.trainingExport(exportState, {
     video: state.videoName, tracks: state.tracksName,
     roi: [Number($("#roiX").value), Number($("#roiY").value)], segments,
   });
+  try {
+    const response = await fetch("/api/save-training-data", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+    });
+    const result = await response.json();
+    if (!response.ok || !result.ok) throw new Error(result.error || ("HTTP " + response.status));
+    toast("Разметка сохранена: " + result.path);
+  } catch (error) {
+    toast("Не удалось сохранить разметку в проект: " + error.message);
+  }
   const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" })); link.download = "player-51-training-data.json"; link.click(); URL.revokeObjectURL(link.href);
 });
 $("#exportEvaluation").addEventListener("click", () => {
@@ -923,8 +1188,16 @@ $("#exportEvaluation").addEventListener("click", () => {
 });
 document.addEventListener("keydown", (event) => {
   if (event.code === "Space" && !event.target.matches("input")) { event.preventDefault(); if (video.paused) video.play(); else video.pause(); }
-  if (event.code === "ArrowLeft") seekTo(video.currentTime - 5);
-  if (event.code === "ArrowRight") seekTo(video.currentTime + 5);
+  if (state.mode === "uniform" && event.code === "ArrowLeft" && !event.target.matches("input,select")) {
+    event.preventDefault(); goToUniform(state.uniform.index - 1);
+  } else if (event.code === "ArrowLeft" && !event.target.matches("input,select,textarea,[contenteditable=true]")) {
+    event.preventDefault(); seekTo(video.currentTime - 5);
+  }
+  if (state.mode === "uniform" && event.code === "ArrowRight" && !event.target.matches("input,select")) {
+    event.preventDefault(); goToUniform(state.uniform.index + 1);
+  } else if (event.code === "ArrowRight" && !event.target.matches("input,select,textarea,[contenteditable=true]")) {
+    event.preventDefault(); seekTo(video.currentTime + 5);
+  }
   if (event.code === "Enter" && state.preview) confirmPreview();
   if (event.code === "KeyQ" && !event.target.matches("input,select")) { event.preventDefault(); confirmPreview(); }
   if (state.mode === "evaluation" && !event.target.matches("input,select")) {
@@ -934,6 +1207,12 @@ document.addEventListener("keydown", (event) => {
     if (event.code === "KeyB") { event.preventDefault(); $("#toggleReviewed").click(); }
     if (event.code === "KeyG") { event.preventDefault(); $("#toggleGap").click(); }
     if (event.code === "KeyW") { event.preventDefault(); $("#addCorrection").click(); }
+  }
+  if (state.mode === "uniform" && !event.target.matches("input,select")) {
+    if (event.code === "Digit1") { event.preventDefault(); $("#uniformVisible").click(); }
+    if (event.code === "Digit2") { event.preventDefault(); markUniformState("occluded"); }
+    if (event.code === "Digit3") { event.preventDefault(); markUniformState("out_of_frame"); }
+    if (event.code === "Digit4") { event.preventDefault(); markUniformState("uncertain"); }
   }
   if (state.mode === "training" && event.code === "KeyW" && !event.target.matches("input,select")) { event.preventDefault(); $("#rejectCurrent").click(); }
   if (state.mode === "training" && event.code === "KeyE" && !event.target.matches("input,select")) { event.preventDefault(); $("#markLost").click(); }
@@ -951,15 +1230,53 @@ video.addEventListener("loadedmetadata", () => {
   $("#playbackRate").value = String(rate);
   localStorage.setItem("volleytag-playback-rate", String(rate));
   if (start > 0 && start < video.duration) video.currentTime = start;
+  else restorePlaybackPosition();
+  skipExcludedTime();
+  if (state.mode === "uniform") {
+    // Rebuild after metadata is available so exclusion manifests are applied
+    // even when an older saved queue already exists in localStorage.
+    buildUniformSamples(state.uniform.step_s);
+    goToUniform(state.uniform.index);
+  }
   renderEvaluation();
 });
-video.addEventListener("loadeddata", () => { state.renderedVideoTime = -1; });
+video.addEventListener("timeupdate", () => {
+  skipExcludedTime();
+  savePlaybackPosition();
+});
+video.addEventListener("loadeddata", () => {
+  state.renderedVideoTime = -1;
+  // Re-apply the requested start after the first decodable frame is ready.
+  // Safari/Chromium can ignore a currentTime assignment made at
+  // loadedmetadata when the same local video URL has just been reopened.
+  const start = Number(new URLSearchParams(location.search).get("start") || 0);
+  if (start > 0 && start < video.duration && video.currentTime + .05 < start) {
+    video.currentTime = start;
+  }
+  skipExcludedTime();
+});
 video.addEventListener("seeked", () => { state.renderedVideoTime = -1; });
+window.addEventListener("pagehide", savePlaybackPosition);
 window.addEventListener("resize", () => { canvas.width = 0; });
 
 async function loadQueryFiles() {
   const params = new URLSearchParams(location.search);
   const videoUrl = params.get("video"), tracksUrl = params.get("tracks"), scoresUrl = params.get("scores");
+  const excludeUrl = params.get("exclude");
+  // Some detector exports contain full-frame coordinates, while the original
+  // tracking pipeline exported coordinates relative to a cropped ROI.  Allow
+  // each review URL to declare the appropriate offset instead of silently
+  // applying the historical 40×70 default to every dataset.
+  if (params.has("roiX")) $("#roiX").value = String(Number(params.get("roiX")) || 0);
+  if (params.has("roiY")) $("#roiY").value = String(Number(params.get("roiY")) || 0);
+  if (excludeUrl) {
+    const response = await fetch(excludeUrl);
+    if (!response.ok) throw new Error(`Не удалось загрузить ${excludeUrl}`);
+    const payload = await response.json();
+    state.excludedIntervals = (payload.excluded_intervals || []).map((interval) => ({
+      start_s: Number(interval.start_s), end_s: Number(interval.end_s), reason: interval.reason || "non_match",
+    })).filter((interval) => Number.isFinite(interval.start_s) && Number.isFinite(interval.end_s));
+  }
   if (videoUrl) {
     state.videoName = videoUrl;
     video.src = videoUrl;
@@ -980,7 +1297,9 @@ async function loadQueryFiles() {
   }
   if (tracksUrl) {
     loadAnchors();
+    restorePlaybackPosition();
     if (VolleyTagEvaluation.shouldRestoreQueryEvaluation(state.mode, videoUrl, tracksUrl)) loadEvaluation();
+    if (state.mode === "uniform") loadUniform();
     setStatus("lost", "Рамки загружены", "Запусти видео и кликни по себе.");
   }
 }
@@ -988,5 +1307,8 @@ async function loadQueryFiles() {
 loadQueryFiles().catch((error) => {
   setStatus("lost", "Ошибка загрузки", error.message);
 });
-setAnnotationMode(new URLSearchParams(location.search).get("mode") === "evaluation" ? "evaluation" : "training");
+{
+  const requestedMode = new URLSearchParams(location.search).get("mode");
+  setAnnotationMode(["evaluation", "uniform"].includes(requestedMode) ? requestedMode : "training");
+}
 requestAnimationFrame(render);

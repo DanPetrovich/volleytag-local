@@ -35,6 +35,38 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         super().end_headers()
 
     def do_POST(self):
+        if self.path == "/api/save-dataset-audit":
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                payload = json.loads(self.rfile.read(length) or b"{}")
+                audit_path = str(payload.pop("auditPath", ""))
+                root = Path(__file__).resolve().parent
+                destination = (root / audit_path).resolve()
+                if root not in destination.parents or destination.suffix != ".json":
+                    raise ValueError("Недопустимый путь аудита")
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_text(
+                    json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8",
+                )
+                self.send_json(200, {"ok": True, "path": str(destination.relative_to(root))})
+            except Exception as error:
+                self.send_json(400, {"ok": False, "error": str(error)})
+            return
+        if self.path == "/api/save-training-data":
+            try:
+                length = int(self.headers.get("Content-Length", "0"))
+                payload = json.loads(self.rfile.read(length) or b"{}")
+                video_path = str(payload.get("video", ""))
+                root = Path(__file__).resolve().parent
+                destination = (root / video_path).resolve().parent / "player-51-training-data.json"
+                if root not in destination.parents:
+                    raise ValueError("Недопустимый путь видео")
+                destination.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                self.send_json(200, {"ok": True, "path": str(destination.relative_to(root))})
+            except Exception as error:
+                self.send_json(400, {"ok": False, "error": str(error)})
+            return
         if self.path not in ("/api/parse-voice", "/api/transcribe-voice"):
             self.send_error(404)
             return

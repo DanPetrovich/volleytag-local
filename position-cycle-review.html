@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VolleyTag — цикл расстановки 5–1</title>
+  <link rel="stylesheet" href="position-cycle-review.css?v=2">
+</head>
+<body>
+  <header>
+    <a class="brand" href="index.html"><span>51</span> VolleyTag</a>
+    <div><b id="counter">0 отметок</b><span id="saveState">Готово</span></div>
+  </header>
+  <main>
+    <section class="viewer">
+      <div class="video-wrap" id="videoWrap">
+        <video id="video" preload="auto" playsinline></video>
+        <div class="flash" id="flash">✓ ПОЗИЦИЯ СОХРАНЕНА</div>
+        <div class="skip" id="skip">Повтор / перерыв — пропускаю</div>
+      </div>
+      <div class="controls">
+        <button id="back">−5 с</button><button id="play">▶ Смотреть</button><button id="forward">+5 с</button>
+        <b id="timecode">00:00.0</b>
+        <label>Скорость <select id="speed"><option>1</option><option selected>1.5</option><option>2</option></select></label>
+        <input id="timeline" type="range" min="2.048" max="852.048" value="2.048" step="0.02">
+      </div>
+      <div class="cycle-controls">
+        <button class="primary" id="startCycle">Начать с ротационной позиции 3</button>
+        <button id="nextRotation">Мы вернули подачу — переход <b id="rotationArrow">3 → 2</b></button>
+        <button id="finishCycle">Полный круг завершён</button>
+      </div>
+    </section>
+    <aside>
+      <h1>Расстановка 5–1</h1>
+      <p class="lead">Ротационная позиция действует только в момент подачи. Где ты реально играешь после неё, определим по рамке на отмеченном кадре.</p>
+      <div class="status">
+        <span>Твоя ротационная позиция</span><strong id="rotation">ещё не начато</strong>
+      </div>
+      <h2>Отметь характерный кадр</h2>
+      <p class="lead">Поставь видео на паузу в подходящий момент и нажми кнопку. Саму координату возьмём из найденной рамки.</p>
+      <div class="moments" id="moments">
+        <button data-moment="serve_start"><kbd>1</kbd><b>Старт до подачи</b><small>Обязательная ротационная расстановка</small></button>
+        <button data-moment="serve_receive"><kbd>2</kbd><b>Стою на приёме</b><small>До подачи соперника</small></button>
+        <button data-moment="playing_base"><kbd>3</kbd><b>Перешёл в игровую базу</b><small>Например, из 3 в 4</small></button>
+        <button data-moment="attack"><kbd>4</kbd><b>Разбег / атака</b><small>Реальная атакующая позиция</small></button>
+        <button data-moment="defense"><kbd>5</kbd><b>Защита</b><small>Устойчивая защитная позиция</small></button>
+        <button data-moment="serve"><kbd>6</kbd><b>Моя подача</b><small>За лицевой линией</small></button>
+      </div>
+      <div class="keys">
+        <span><kbd>Space</kbd> пауза</span><span><kbd>1–6</kbd> тип момента</span>
+        <span><kbd>N</kbd> следующий переход</span><span><kbd>⌫</kbd> отменить</span>
+      </div>
+      <div class="list-head"><h2>Последние отметки</h2><button id="undo">Отменить</button></div>
+      <ol id="markers"><li class="empty">Пока отметок нет</li></ol>
+    </aside>
+  </main>
+  <script src="position-cycle-review.js?v=2"></script>
+</body>
+</html>

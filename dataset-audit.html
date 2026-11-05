@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VolleyTag — аудит датасета</title>
+  <link rel="stylesheet" href="dataset-audit.css?v=2">
+</head>
+<body>
+  <header><a href="index.html"><b>51</b> VolleyTag</a><span id="progress">Загрузка…</span></header>
+  <main>
+    <section class="viewer">
+      <div class="stage"><img id="frame" alt="Кадр датасета"><canvas id="overlay"></canvas></div>
+      <div class="meta" id="meta"></div>
+      <div class="reasons" id="reasons"></div>
+    </section>
+    <aside>
+      <h1>Проверка датасета</h1>
+      <p id="instructions">Проверяй только то, что реально лежит в обучающем архиве. Зелёная рамка — текущая YOLO-разметка.</p>
+      <div class="actions">
+        <button id="redraw" class="redraw" hidden><kbd>R</kbd> Нарисовать правильную рамку</button>
+        <button data-verdict="in_box" class="good"><kbd>1</kbd> Я в рамке</button>
+        <button data-verdict="not_in_box"><kbd>2</kbd> Меня в рамке нет</button>
+        <button data-verdict="missing_box"><kbd>3</kbd> Я есть, но рамки нет</button>
+        <button data-verdict="bad_box"><kbd>4</kbd> Я в рамке, но рамка плохая</button>
+        <button data-verdict="not_visible"><kbd>5</kbd> Меня нет в кадре / на поле</button>
+        <button data-verdict="occluded"><kbd>6</kbd> Меня закрывают</button>
+        <button data-verdict="unusable"><kbd>7</kbd> Повтор / кадр непригоден</button>
+        <button data-verdict="uncertain"><kbd>8</kbd> Не уверен</button>
+      </div>
+      <div class="nav"><button id="previous">← Назад</button><button id="next">Пропустить →</button></div>
+      <label>Перейти к кадру <input id="jump" type="number" min="1"></label>
+      <p class="saved" id="saved">Прогресс сохраняется автоматически.</p>
+    </aside>
+  </main>
+<script src="dataset-audit.js?v=22"></script>
+</body>
+</html>

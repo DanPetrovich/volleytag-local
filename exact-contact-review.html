@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>VolleyTag — точный момент касания</title>
+  <link rel="stylesheet" href="exact-contact-review.css?v=1">
+</head>
+<body>
+  <header><a href="index.html"><span>51</span> VolleyTag</a><b id="progress">0 / 0</b></header>
+  <main>
+    <section class="viewer">
+      <div class="video-wrap">
+        <video id="video" preload="auto" playsinline></video>
+        <div id="flash">✓ СОХРАНЕНО</div>
+      </div>
+      <input id="timeline" type="range" min="0" max="1" step="0.001" value="0">
+      <div class="controls">
+        <button id="prevFrame">← кадр</button>
+        <button id="play">▶</button>
+        <button id="nextFrame">кадр →</button>
+        <button id="replay">↻ повторить</button>
+        <b id="time">00:00.000</b>
+      </div>
+      <p id="meta"></p>
+    </section>
+    <aside>
+      <h1>Точный момент контакта</h1>
+      <p>Поставь видео ровно на кадр, где мяч касается тебя, и нажми первую кнопку. Можно двигаться покадрово стрелками.</p>
+      <button class="primary" id="contact"><kbd>C</kbd><b>Контакт сейчас</b></button>
+      <button id="nongame"><kbd>G</kbd><b>Контакт сейчас, но вне розыгрыша</b></button>
+      <button id="none"><kbd>N</kbd><b>Контакта в отрывке нет</b></button>
+      <button id="offscreen"><kbd>O</kbd><b>Касание за кадром / подача</b></button>
+      <button id="uncertain"><kbd>U</kbd><b>Не уверен / не видно</b></button>
+      <div class="keys">
+        <span><kbd>Space</kbd> пауза / играть</span>
+        <span><kbd>← →</kbd> предыдущий / следующий кадр</span>
+        <span><kbd>R</kbd> повторить отрывок</span>
+        <span><kbd>Backspace</kbd> вернуться</span>
+      </div>
+      <p id="saved">Загрузка…</p>
+    </aside>
+  </main>
+  <script src="exact-contact-review.js?v=3"></script>
+</body>
+</html>

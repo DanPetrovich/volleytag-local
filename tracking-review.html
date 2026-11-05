@@ -41,7 +41,7 @@
         <input id="timeline" type="range" min="0" max="1" step="0.02" value="0" aria-label="Позиция видео">
         <button class="confirm" id="confirmBox" disabled>Q · ✓ Это я — начать интервал</button>
         <button class="reject" id="rejectCurrent">W · ✕ Текущая рамка — не я</button>
-        <button class="lost-button" id="markLost">E · ◌ Потерян / рамки нет</button>
+        <button class="lost-button" id="markLost">E · ◌ Меня нет на поле / в кадре</button>
         <button class="manual-button" id="manualBox">R · ▱ Нарисовать рамку вручную</button>
       </div>
       <div class="status lost" id="status"><i></i><div><b>Данные не загружены</b><span>Клик по рамке подтверждает, что внутри ты.</span></div></div>
@@ -54,7 +54,7 @@
         <label class="file">Видео<input id="videoFile" type="file" accept="video/*"></label>
         <label class="file">tracks.csv<input id="tracksFile" type="file" accept=".csv,text/csv"></label>
         <label class="file optional">similarity.csv <small>необязательно</small><input id="scoresFile" type="file" accept=".csv,text/csv"></label>
-        <label class="file optional">Импорт JSON <small>v3 / v4</small><input id="annotationFile" type="file" accept=".json,application/json"></label>
+        <label class="file optional">Импорт JSON <small>v3 / v4 / uniform</small><input id="annotationFile" type="file" accept=".json,application/json"></label>
         <div class="roi"><label>ROI X<input id="roiX" type="number" value="40"></label><label>ROI Y<input id="roiY" type="number" value="70"></label></div>
       </section>
 
@@ -63,7 +63,34 @@
         <select id="annotationMode">
           <option value="training">Training / review v3</option>
           <option value="evaluation">Evaluation v4 (замороженный тест)</option>
+          <option value="uniform">Uniform test v1 (равномерная выборка)</option>
         </select>
+      </section>
+
+      <section class="card uniform-card" id="uniformCard" hidden>
+        <h2>Uniform test v1</h2>
+        <p>Фиксированные кадры выбираются заранее и не зависят от ошибок модели. Зелёного автоматического маршрута здесь нет.</p>
+        <div class="uniform-summary" id="uniformSummary">Подготовка выборки…</div>
+        <p class="uniform-cue" id="uniformCue"></p>
+        <label>Шаг между кадрами, секунд
+          <input id="uniformStep" type="number" min="0.5" max="30" step="0.5" value="2">
+        </label>
+        <label>Ракурс
+          <select id="uniformDomain">
+            <option value="near_back">near/back · ближняя, спиной</option>
+            <option value="far_front">far/front · дальняя, лицом</option>
+          </select>
+        </label>
+        <div class="uniform-actions">
+          <button id="uniformVisible">1 · виден — выбрать рамку</button>
+          <button data-uniform-state="occluded">2 · закрыт</button>
+          <button data-uniform-state="out_of_frame">3 · вне кадра</button>
+          <button data-uniform-state="uncertain">4 · не уверен</button>
+          <button id="uniformPrevious">← Предыдущий</button>
+          <button id="uniformNext">Следующий →</button>
+        </div>
+        <p class="uniform-hint" id="uniformHint">Для visible кликни по своей рамке и нажми Q либо нарисуй рамку через R.</p>
+        <button class="export" id="exportUniform">Скачать uniform-test.json</button>
       </section>
 
       <section class="card dataset-card">
@@ -87,7 +114,7 @@
           <li>Кликни по себе: выбранная рамка станет фиолетовой.</li>
           <li>Если рамки наложились, кликай там же, чтобы перебрать их.</li>
           <li>Нажми <b>Q</b>: начнётся подтверждённый интервал «это я».</li>
-          <li>Если рамка ушла на другого — <b>W</b>. Если тебя не видно — <b>E</b>.</li>
+          <li>Если рамка ушла на другого — <b>W</b>. Если тебя нет на поле или в кадре — <b>E</b>.</li>
         </ol>
         <p><em>CONFIRMED</em> — выбранный тобой фрагмент. <em>TRACK</em> — автоматическое продолжение. <em>BRIDGE</em> — короткий разрыв между двумя фрагментами.</p>
       </section>
@@ -145,6 +172,6 @@
 
   <div class="toast" id="toast"></div>
   <script src="evaluation-schema.js"></script>
-  <script src="tracking-review.js"></script>
+  <script src="tracking-review.js?v=39"></script>
 </body>
 </html>
