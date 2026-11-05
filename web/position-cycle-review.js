@@ -1,4 +1,5 @@
 const $=s=>document.querySelector(s),video=$("#video");
+const repoUrl=path=>/^(?:[a-z]+:|\/)/i.test(path)?path:`/${path}`;
 const params=new URLSearchParams(location.search);
 const source={id:"training-keaz-set1",name:"КЭАЗ — X5 Tech · партия 1",video:"vision/runs/training-keaz/source.mp4",exclude:"vision/runs/training-keaz/non-match-intervals.json",start_s:2.048,end_s:852.048};
 const resultPath=params.get("result")||"vision/runs/training-keaz/position-cycle-v2.json";
@@ -41,8 +42,8 @@ video.onplay=()=>$("#play").textContent="⏸ Пауза";video.onpause=()=>$("#p
 video.ontimeupdate=()=>{const t=video.currentTime;$("#timecode").textContent=clock(t);$("#timeline").value=t;localStorage.setItem("position-cycle-keaz-v2-time",String(t));const interval=state.excluded.find(x=>t>=Number(x.start_s??x.start)&&t<Number(x.end_s??x.end));if(interval){video.currentTime=Number(interval.end_s??interval.end)+.05;flash("#skip")}};
 document.addEventListener("keydown",event=>{if(["INPUT","SELECT","TEXTAREA"].includes(event.target.tagName))return;if(event.code==="Space"){event.preventDefault();toggle()}else if(/^Digit[1-6]$/.test(event.code)){event.preventDefault();document.querySelectorAll("[data-moment]")[Number(event.code.at(-1))-1]?.click()}else if(event.key.toLowerCase()==="n")nextRotation();else if(event.code==="Backspace"){event.preventDefault();undo()}else if(event.code==="ArrowLeft")seek(-3);else if(event.code==="ArrowRight")seek(3)});
 async function init(){
-  try{const response=await fetch(`${resultPath}?v=${Date.now()}`);if(response.ok){const old=await response.json();state.markers=old.markers||[];state.cycleStart=old.cycle_start_s??null;state.cycleEnd=old.cycle_end_s??null;state.started=state.cycleStart!==null;state.complete=Boolean(old.complete);const last=state.markers.at(-1);if(last)state.rotationIndex=Math.max(0,rotationOrder.indexOf(Number(last.rotation_zone)))}}catch(_){}
-  try{const response=await fetch(`${source.exclude}?v=${Date.now()}`);if(response.ok)state.excluded=(await response.json()).excluded_intervals||[]}catch(_){}
+  try{const response=await fetch(repoUrl(`${resultPath}?v=${Date.now()}`));if(response.ok){const old=await response.json();state.markers=old.markers||[];state.cycleStart=old.cycle_start_s??null;state.cycleEnd=old.cycle_end_s??null;state.started=state.cycleStart!==null;state.complete=Boolean(old.complete);const last=state.markers.at(-1);if(last)state.rotationIndex=Math.max(0,rotationOrder.indexOf(Number(last.rotation_zone)))}}catch(_){}
+  try{const response=await fetch(repoUrl(`${source.exclude}?v=${Date.now()}`));if(response.ok)state.excluded=(await response.json()).excluded_intervals||[]}catch(_){}
   video.src=new URL(`/${source.video}`,location.origin).href;video.load();video.onloadedmetadata=()=>{video.playbackRate=1.5;$("#timeline").min=source.start_s;$("#timeline").max=source.end_s;const resume=Number(localStorage.getItem("position-cycle-keaz-v2-time")||source.start_s);video.currentTime=Math.max(source.start_s,Math.min(source.end_s-.2,resume));$("#saveState").textContent="Видео готово"};update();
 }
 init();

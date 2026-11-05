@@ -35,6 +35,12 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         super().end_headers()
 
     def do_GET(self):
+        if self.path.split("?", 1)[0] == "/":
+            self.send_response(302)
+            self.send_header("Location", "/web/index.html")
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
         # config.local.js is intentionally ignored so secrets never enter Git.
         # A fresh clone should still load without a noisy, misleading 404.
         if self.path.split("?", 1)[0] == "/config.local.js":

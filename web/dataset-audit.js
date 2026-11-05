@@ -1,4 +1,5 @@
 const params=new URLSearchParams(location.search);
+const repoUrl=path=>/^(?:[a-z]+:|\/)/i.test(path)?path:`/${path}`;
 const queuePath=params.get('queue')||'vision/runs/danya-detector-v5/audit/manual-sample.json';
 const resultPath=params.get('result')||'vision/runs/danya-detector-v5/audit/manual-sample-results.json';
 const editBoxes=params.get('editBoxes')==='1';
@@ -32,14 +33,14 @@ function persistLocal(){
 function rememberIndex(){try{localStorage.setItem(`${storageKey}:index`,String(index))}catch(_ignored){}}
 
 async function load(){
-  queue=await fetch(queuePath).then(r=>{if(!r.ok)throw new Error(`Queue ${r.status}`);return r.json()});
+  queue=await fetch(repoUrl(queuePath)).then(r=>{if(!r.ok)throw new Error(`Queue ${r.status}`);return r.json()});
   if(excludePath){
-    const exclusionData=await fetch(excludePath,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(`Exclude ${r.status}`);return r.json()});
+    const exclusionData=await fetch(repoUrl(excludePath),{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error(`Exclude ${r.status}`);return r.json()});
     const intervals=Array.isArray(exclusionData)?exclusionData:(exclusionData.intervals||[]);
     queue={...queue,items:queue.items.filter(item=>!intervals.some(interval=>item.time_s>=Number(interval.start_s??interval.start)&&item.time_s<=Number(interval.end_s??interval.end)))};
     queue.total=queue.items.length;
   }
-  const disk=await fetch(resultPath,{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
+  const disk=await fetch(repoUrl(resultPath),{cache:'no-store'}).then(r=>r.ok?r.json():null).catch(()=>null);
   if(disk)results=disk;
   const cached=localStorage.getItem(storageKey);
   if(cached){
@@ -78,7 +79,7 @@ function render(){
   candidateRects=[];imageGeometry=null;els.overlay.width=1;els.overlay.height=1;
   const requestedImage=item.image;
   const drawCurrent=()=>{if(queue.items[index].image===requestedImage)draw()};
-  els.frame.onload=drawCurrent;els.frame.src=requestedImage;
+  els.frame.onload=drawCurrent;els.frame.src=repoUrl(requestedImage);
   if(els.frame.complete)els.frame.decode().then(drawCurrent).catch(()=>{});
   els.meta.textContent=ballMode?`Источник ${item.source+1} · ${fmt(item.time_s)} · ${item.action||'касание'} · смещение ${(Number(item.sample_offset_s)||0).toFixed(2)} с`:`Источник ${item.source+1} · ${fmt(item.time_s)} · ${item.domain} · ${item.kind} · ${item.split}`;
   const kindHelp={hard_negative:'Это отрицательный кроп. Если тебя в нём нет — нажми 2. Если ты здесь есть, но зелёной рамки нет — нажми 3.',background_negative:'Это отрицательный полный кадр без рамки. Если тебя здесь нет — нажми 2. Если ты есть — нажми 3.',positive:'Это положительный кадр: зелёная рамка должна охватывать именно тебя.',manual_positive:'Это кадр с рамкой, которую ты нарисовал вручную.'};

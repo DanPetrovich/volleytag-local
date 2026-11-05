@@ -1,4 +1,5 @@
 const $ = (selector) => document.querySelector(selector);
+const repoUrl = (path) => /^(?:[a-z]+:|\/)/i.test(path) ? path : `/${path}`;
 const video = $("#video");
 const playlist = [
   { id:"training-set1", name:"Cloud · партия 1", video:"vision/runs/training-set1/source.mp4", training:"vision/runs/training-set1/player-51-training-data.json", split:"train", completed:true },
@@ -90,7 +91,7 @@ function refreshSourceOptions() {
 
 async function loadExisting() {
   try {
-    const response = await fetch(`${resultPath}?v=${Date.now()}`);
+    const response = await fetch(repoUrl(`${resultPath}?v=${Date.now()}`));
     if (response.ok) {
       const payload = await response.json();
       state.events = payload.events || [];
@@ -109,7 +110,7 @@ async function selectSource(index) {
   state.excluded = [];
   try {
     const metadata = item.training || item.exclude;
-    const response = metadata ? await fetch(`${metadata}?v=${Date.now()}`) : null;
+    const response = metadata ? await fetch(repoUrl(`${metadata}?v=${Date.now()}`)) : null;
     if (response?.ok) {
       const offset = Number(item.metadata_offset_s || 0);
       state.excluded = ((await response.json()).excluded_intervals || []).map((interval) => ({

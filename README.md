@@ -88,14 +88,14 @@ chmod +x start.command
 
 После запуска главная страница открывает сохранённый ручной fallback. Ссылка
 **«Трекинг игрока»** ведёт в основной review-интерфейс идентификации. Остальные
-специализированные экраны находятся рядом в репозитории:
+специализированные экраны собраны в каталоге `web/`:
 
-- `tracking-review.html` — training/evaluation/uniform GT для игрока;
-- `dataset-audit.html` — аудит персонального датасета;
-- `action-review.html` — разметка игровых действий;
-- `exact-contact-review.html` — покадровая разметка момента касания;
-- `court-calibration.html` — геометрия площадки и зон;
-- `rotation-review.html` и `position-cycle-review.html` — ротации и цикл 5–1.
+- `web/tracking-review.html` — training/evaluation/uniform GT для игрока;
+- `web/dataset-audit.html` — аудит персонального датасета;
+- `web/action-review.html` — разметка игровых действий;
+- `web/exact-contact-review.html` — покадровая разметка момента касания;
+- `web/court-calibration.html` — геометрия площадки и зон;
+- `web/rotation-review.html` и `web/position-cycle-review.html` — ротации и цикл 5–1.
 
 В ручном fallback:
 
@@ -114,7 +114,7 @@ python3 range_server.py 8765
 
 ## Ручная и голосовая разметка
 
-Первоначальный интерфейс ручной статистики остаётся доступен на `index.html`.
+Первоначальный интерфейс ручной статистики остаётся доступен на `web/index.html`.
 Он размечает приём, атаку, подачу, блок и защиту, считает базовые показатели,
 экспортирует CSV/JSON и умеет отправлять результат в Google Sheets. Голосовой
 режим использует Groq Whisper и текстовую модель только как опциональный ввод;
@@ -389,7 +389,7 @@ Ultralytics распространяется отдельно и имеет со
 
 ## Evaluation mode для замороженного теста
 
-`tracking-review.html` сохраняет прежний режим `Training / review v3` и его экспорт
+`web/tracking-review.html` сохраняет прежний режим `Training / review v3` и его экспорт
 `player-51-training-data.json`. Для независимой разметки тестового видео выбери
 `Evaluation v4 (замороженный тест)`. Этот режим экспортирует схему
 `volleytag.player51-evaluation.v4` и не превращает `uncertain` в положительный или
@@ -429,7 +429,7 @@ JSON v3 и v4 можно импортировать для продолжени�
 Пример локального URL:
 
 ```text
-tracking-review.html?video=VIDEO&tracks=TRACKS&mode=uniform&step=2
+web/tracking-review.html?video=VIDEO&tracks=TRACKS&mode=uniform&step=2
 ```
 
 Такой набор используется только как замороженный тест. Клики, сделанные во время

@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const evaluation = require("../../evaluation-schema.js");
+const evaluation = require("../../web/evaluation-schema.js");
 
 function payload(overrides = {}) {
   return {

@@ -1263,6 +1263,7 @@ async function loadQueryFiles() {
   const params = new URLSearchParams(location.search);
   const videoUrl = params.get("video"), tracksUrl = params.get("tracks"), scoresUrl = params.get("scores");
   const excludeUrl = params.get("exclude");
+  const repoUrl = (path) => /^(?:[a-z]+:|\/)/i.test(path) ? path : `/${path}`;
   // Some detector exports contain full-frame coordinates, while the original
   // tracking pipeline exported coordinates relative to a cropped ROI.  Allow
   // each review URL to declare the appropriate offset instead of silently
@@ -1270,7 +1271,7 @@ async function loadQueryFiles() {
   if (params.has("roiX")) $("#roiX").value = String(Number(params.get("roiX")) || 0);
   if (params.has("roiY")) $("#roiY").value = String(Number(params.get("roiY")) || 0);
   if (excludeUrl) {
-    const response = await fetch(excludeUrl);
+    const response = await fetch(repoUrl(excludeUrl));
     if (!response.ok) throw new Error(`Не удалось загрузить ${excludeUrl}`);
     const payload = await response.json();
     state.excludedIntervals = (payload.excluded_intervals || []).map((interval) => ({
@@ -1279,17 +1280,17 @@ async function loadQueryFiles() {
   }
   if (videoUrl) {
     state.videoName = videoUrl;
-    video.src = videoUrl;
+    video.src = repoUrl(videoUrl);
     $("#empty").hidden = true;
   }
   if (tracksUrl) {
     state.tracksName = tracksUrl;
-    const response = await fetch(tracksUrl);
+    const response = await fetch(repoUrl(tracksUrl));
     if (!response.ok) throw new Error(`Не удалось загрузить ${tracksUrl}`);
     buildChunks(parseCsv(await response.text()));
   }
   if (scoresUrl) {
-    const response = await fetch(scoresUrl);
+    const response = await fetch(repoUrl(scoresUrl));
     if (!response.ok) throw new Error(`Не удалось загрузить ${scoresUrl}`);
     const rows = parseCsv(await response.text());
     state.scores = new Map(rows.map((row) => [Number(row.track_id), Number(row.margin)]));

@@ -1,4 +1,5 @@
 const $=s=>document.querySelector(s),video=$("#video");
+const repoUrl=path=>/^(?:[a-z]+:|\/)/i.test(path)?path:`/${path}`;
 const params=new URLSearchParams(location.search);
 const source={
   id:params.get("sourceId")||"training-keaz-set1",
@@ -49,8 +50,8 @@ video.onplay=()=>$("#play").textContent="⏸ Пауза";video.onpause=()=>$("#p
 video.ontimeupdate=()=>{const t=video.currentTime;$("#timecode").textContent=clock(t);$("#timeline").value=t;localStorage.setItem(`rotation-review-${source.id}-time`,String(t));const interval=state.excluded.find(x=>t>=Number(x.start_s??x.start)&&t<Number(x.end_s??x.end));if(interval){video.currentTime=Number(interval.end_s??interval.end)+.05;flash("#skip")}};
 document.addEventListener("keydown",event=>{if(["INPUT","SELECT","TEXTAREA"].includes(event.target.tagName))return;if(event.code==="Space"){event.preventDefault();toggle()}else if(event.code==="Digit1")changeOwner("ours");else if(event.code==="Digit2")changeOwner("theirs");else if(event.code==="Backspace"){event.preventDefault();undo()}else if(event.code==="ArrowLeft")seek(-3);else if(event.code==="ArrowRight")seek(3)});
 async function init(){
-  try{const response=await fetch(`${resultPath}?v=${Date.now()}`);if(response.ok){const old=await response.json();state.events=old.events||[];state.variant=old.outside_variant||"front";state.started=state.events.length>0;state.complete=Boolean(old.complete);if(state.events.length){const last=state.events.at(-1);state.rotation=last.rotation;state.owner=last.serve_owner}}}catch(_){}
-  try{const response=await fetch(`${source.exclude}?v=${Date.now()}`);if(response.ok)state.excluded=(await response.json()).excluded_intervals||[]}catch(_){}
+  try{const response=await fetch(repoUrl(`${resultPath}?v=${Date.now()}`));if(response.ok){const old=await response.json();state.events=old.events||[];state.variant=old.outside_variant||"front";state.started=state.events.length>0;state.complete=Boolean(old.complete);if(state.events.length){const last=state.events.at(-1);state.rotation=last.rotation;state.owner=last.serve_owner}}}catch(_){}
+  try{const response=await fetch(repoUrl(`${source.exclude}?v=${Date.now()}`));if(response.ok)state.excluded=(await response.json()).excluded_intervals||[]}catch(_){}
   video.src=new URL(`/${source.video}`,location.origin).href;video.load();video.onloadedmetadata=()=>{video.playbackRate=1.5;$("#timeline").min=source.start_s;$("#timeline").max=source.end_s;const resume=Number(localStorage.getItem(`rotation-review-${source.id}-time`)||source.start_s);video.currentTime=Math.max(source.start_s,Math.min(source.end_s-.2,resume));$("#saveState").textContent="Видео готово"};render();
 }
 init();

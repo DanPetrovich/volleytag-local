@@ -32,7 +32,7 @@ pbpaste > .groq-key
 1. Скопируй `google-apps-script/Code.gs` в Apps Script нужной таблицы.
 2. Добавь свойство сценария `VOLLEYTAG_TOKEN`.
 3. Разверни сценарий как веб-приложение.
-4. Укажи URL и токен в интерфейсе либо скопируй `config.example.js` в
+4. Укажи URL и токен в интерфейсе либо скопируй `web/config.example.js` в
    `config.local.js` и заполни локальные значения.
 
 `config.local.js`, `.groq-key`, видео, экспорты и голосовые логи не должны
