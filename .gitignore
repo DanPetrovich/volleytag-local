@@ -1,6 +1,9 @@
 .venv-vision/
 vision/runs/
 /runs/
+
+# Local source registries can contain direct match URLs and stay private.
+vision/match-registry-*.json
 vision/*.pt
 yolo*.pt
 models/
