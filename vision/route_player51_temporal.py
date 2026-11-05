@@ -9,18 +9,23 @@ import json
 import math
 from pathlib import Path
 
-import cv2
-import numpy as np
-import torch
-from ultralytics import YOLO
-
-from evaluate_fused_detectors import iou, load_tracks, merge_candidates
-
-
 def choose_device(requested: str) -> str:
     if requested != "auto":
         return requested
+    import torch
+
     return "mps" if torch.backends.mps.is_available() else "cpu"
+
+
+def iou(first: list[float], second: list[float]) -> float:
+    """Return box IoU without importing the heavyweight inference stack."""
+    x1, y1 = max(first[0], second[0]), max(first[1], second[1])
+    x2, y2 = min(first[2], second[2]), min(first[3], second[3])
+    intersection = max(0.0, x2 - x1) * max(0.0, y2 - y1)
+    first_area = max(0.0, first[2] - first[0]) * max(0.0, first[3] - first[1])
+    second_area = max(0.0, second[2] - second[0]) * max(0.0, second[3] - second[1])
+    union = first_area + second_area - intersection
+    return intersection / union if union > 0.0 else 0.0
 
 
 def center(box: list[float]) -> tuple[float, float]:
@@ -219,6 +224,12 @@ def decode_reranker(candidate_sets: list[list[dict | None]], times: list[float],
 
 
 def main() -> None:
+    import cv2
+    import numpy as np
+    from ultralytics import YOLO
+
+    from evaluate_fused_detectors import load_tracks, merge_candidates
+
     parser = argparse.ArgumentParser()
     parser.add_argument("model", type=Path)
     parser.add_argument("video", type=Path)

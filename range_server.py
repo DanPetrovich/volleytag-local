@@ -34,6 +34,21 @@ class RangeRequestHandler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-cache")
         super().end_headers()
 
+    def do_GET(self):
+        # config.local.js is intentionally ignored so secrets never enter Git.
+        # A fresh clone should still load without a noisy, misleading 404.
+        if self.path.split("?", 1)[0] == "/config.local.js":
+            config_path = Path(__file__).resolve().parent / "config.local.js"
+            if not config_path.exists():
+                body = b"window.VOLLEYTAG_CONFIG ||= {};\n"
+                self.send_response(200)
+                self.send_header("Content-Type", "text/javascript; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
+        super().do_GET()
+
     def do_POST(self):
         if self.path == "/api/save-dataset-audit":
             try:
