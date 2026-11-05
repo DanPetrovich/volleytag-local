@@ -1,0 +1,18 @@
+{
+  "id": "daniilpet/volleytag-danya-detector-v9-keaz-training",
+  "title": "VolleyTag Danya Detector v9 KEAZ Training",
+  "code_file": "danya_detector_v9_keaz.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "daniilpet/volleytag-danya-detector-v7-clean",
+    "daniilpet/volleytag-danya-detector-v8-action",
+    "daniilpet/volleytag-danya-detector-v9-keaz"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}

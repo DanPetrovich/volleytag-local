@@ -1,0 +1,16 @@
+{
+  "id": "daniilpet/volleytag-candidate-reranker-v2-training",
+  "title": "VolleyTag Candidate Reranker v2 Training",
+  "code_file": "candidate_reranker_v2.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "daniilpet/volleytag-danya-detector-v7-clean"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}

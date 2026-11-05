@@ -1,0 +1,17 @@
+{
+  "id": "daniilpet/volleytag-danya-detector-v8-action-training",
+  "title": "VolleyTag Danya Detector v8 Action Training",
+  "code_file": "danya_detector_v8_action.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "daniilpet/volleytag-danya-detector-v7-clean",
+    "daniilpet/volleytag-danya-detector-v8-action"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}

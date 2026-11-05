@@ -1,0 +1,15 @@
+{
+  "id": "daniilpet/volleytag-temporal-v12-keaz-evaluation-final",
+  "title": "VolleyTag temporal v12 KEAZ evaluation final",
+  "code_file": "temporal_v12_keaz.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "daniilpet/volleytag-temporal-v12-keaz-evaluation-data"
+  ],
+  "competition_sources": [],
+  "kernel_sources": []
+}

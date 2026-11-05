@@ -1,0 +1,16 @@
+{
+  "id": "daniilpet/volleytag-danya-detector-v3-training",
+  "title": "VolleyTag Danya Detector v3 Training",
+  "code_file": "danya_detector_v3.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "daniilpet/volleytag-danya-detector-v3"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}

@@ -1,0 +1,16 @@
+{
+  "id": "daniilpet/volleytag-temporal-v11-frozen-evaluation",
+  "title": "VolleyTag Temporal v11 Frozen Evaluation",
+  "code_file": "temporal_v11_frozen.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "daniilpet/volleytag-temporal-v11-frozen-input"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}

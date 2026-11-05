@@ -1,0 +1,16 @@
+{
+  "id": "daniilpet/volleytag-ball-detector-v1-training",
+  "title": "VolleyTag Ball Detector v1 Training",
+  "code_file": "ball_detector_v1.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "daniilpet/volleytag-ball-detector-v1"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}
