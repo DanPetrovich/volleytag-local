@@ -74,14 +74,23 @@ def merge_intervals(intervals: list[dict]) -> list[dict]:
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("roi_queue", type=Path)
+    parser.add_argument("roi_queue", type=Path, nargs="?")
+    parser.add_argument("--video")
+    parser.add_argument("--source", type=int)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--max-replay-s", type=float, default=30)
     parser.add_argument("--padding-s", type=float, default=2)
     args = parser.parse_args()
-    queue = json.loads(args.roi_queue.read_text())
+    if args.video is not None:
+        if args.source is None:
+            parser.error("--source is required with --video")
+        items = [{"source": args.source, "video": args.video}]
+    elif args.roi_queue is not None:
+        items = json.loads(args.roi_queue.read_text())["items"]
+    else:
+        parser.error("provide roi_queue or --video with --source")
     sources = {}
-    for item in queue["items"]:
+    for item in items:
         source, video = int(item["source"]), item["video"]
         runs, duration = purple_runs(video)
         pairs = replay_pairs(runs, args.max_replay_s)
