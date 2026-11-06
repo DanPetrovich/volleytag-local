@@ -27,6 +27,16 @@ class RefereeGestureOperatingPointTest(unittest.TestCase):
         self.assertEqual(result["false_positive"], 1)
         self.assertAlmostEqual(result["threshold"], .6)
 
+    def test_binary_summary_reports_worst_source_recall(self):
+        labels = np.asarray(["serve_authorization", "other",
+                             "rally_end_team_to_serve", "other"])
+        predicted = np.asarray([True, False, False, False])
+        sources = np.asarray([1, 1, 2, 2])
+        result = MODULE.binary_boundary_summary(labels, predicted, sources)
+        self.assertEqual(result["recall"], .5)
+        self.assertEqual(result["specificity"], 1)
+        self.assertEqual(result["minimum_source_recall"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()

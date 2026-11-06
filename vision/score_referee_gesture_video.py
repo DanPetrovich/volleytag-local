@@ -56,10 +56,12 @@ def main() -> None:
     if args.replay_intervals:
         if args.replay_source is None:
             parser.error("--replay-source is required with --replay-intervals")
-        replay = json.loads(args.replay_intervals.read_text())["sources"][str(args.replay_source)]
+        replay_payload = json.loads(args.replay_intervals.read_text())
+        replay = (replay_payload["sources"][str(args.replay_source)]
+                  if "sources" in replay_payload else replay_payload)
         if replay["video"] != args.video:
             raise ValueError("replay metadata belongs to another video")
-        excluded = replay["exclude_intervals"]
+        excluded = replay.get("exclude_intervals", replay.get("excluded_intervals", []))
 
     if args.candidate_queue:
         candidate_payload = json.loads(args.candidate_queue.read_text())

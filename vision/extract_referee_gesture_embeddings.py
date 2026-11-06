@@ -25,14 +25,23 @@ def expanded_box(box: list[float]) -> tuple[float, float, float, float]:
             min(1, x2 + 1.25 * width), min(1, y2 + .6 * height))
 
 
-def read_clip(item: dict) -> torch.Tensor | None:
+def clip_times(item: dict, answer: dict | None = None) -> np.ndarray:
+    if answer and all(isinstance(answer.get(key), (int, float))
+                      for key in ("gesture_start_s", "gesture_end_s")):
+        start = float(answer["gesture_start_s"]) - .5
+        end = float(answer["gesture_end_s"]) + .5
+        timestamps = np.linspace(start, end, len(OFFSETS))
+    else:
+        timestamps = float(item["time_s"]) + OFFSETS
+    return np.clip(timestamps, float(item["window_start_s"]),
+                   float(item["window_end_s"]))
+
+
+def read_clip(item: dict, answer: dict | None = None) -> torch.Tensor | None:
     capture, frames = cv2.VideoCapture(item["video"]), []
     x1, y1, x2, y2 = expanded_box(item["roi_box_norm"])
-    for offset in OFFSETS:
-        capture.set(cv2.CAP_PROP_POS_MSEC,
-                    max(float(item["window_start_s"]),
-                        min(float(item["window_end_s"]),
-                            float(item["time_s"]) + float(offset))) * 1000)
+    for timestamp in clip_times(item, answer):
+        capture.set(cv2.CAP_PROP_POS_MSEC, float(timestamp) * 1000)
         ok, frame = capture.read()
         if not ok:
             capture.release()
@@ -67,7 +76,7 @@ def main() -> None:
         batch = items[start:start + args.batch_size]
         tensors, retained = [], []
         for item in batch:
-            tensor = read_clip(item)
+            tensor = read_clip(item, answers[item["id"]])
             if tensor is not None:
                 tensors.append(tensor)
                 retained.append(item)

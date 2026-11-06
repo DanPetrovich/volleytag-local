@@ -73,6 +73,31 @@ def recall_first_operating_point(labels: np.ndarray, scores: np.ndarray) -> dict
     }
 
 
+def binary_boundary_summary(labels: np.ndarray, predicted: np.ndarray,
+                            sources: np.ndarray) -> dict:
+    truth = labels != "other"
+    output = {}
+    for source in sorted(set(sources)):
+        selected = sources == source
+        tp = int(np.sum(predicted[selected] & truth[selected]))
+        fp = int(np.sum(predicted[selected] & ~truth[selected]))
+        fn = int(np.sum(~predicted[selected] & truth[selected]))
+        tn = int(np.sum(~predicted[selected] & ~truth[selected]))
+        output[str(source)] = {
+            "recall": tp / max(tp + fn, 1),
+            "precision": tp / max(tp + fp, 1),
+            "specificity": tn / max(tn + fp, 1),
+            "samples": int(np.sum(selected)),
+        }
+    return {
+        "recall": float(np.sum(predicted & truth) / max(np.sum(truth), 1)),
+        "precision": float(np.sum(predicted & truth) / max(np.sum(predicted), 1)),
+        "specificity": float(np.sum(~predicted & ~truth) / max(np.sum(~truth), 1)),
+        "minimum_source_recall": min(row["recall"] for row in output.values()),
+        "per_source": output,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("features", type=Path, nargs="+")
@@ -107,6 +132,19 @@ def main() -> None:
     reports.sort(key=lambda row: (row["boundary_min_recall"], row["macro_recall"]),
                  reverse=True)
     best = reports[0]
+    binary_reports = []
+    binary_labels = np.where(labels == "other", "other", "boundary")
+    for name, model in candidates().items():
+        binary_predicted = np.zeros(len(labels), dtype=bool)
+        for source in sorted(set(sources)):
+            train, test = sources != source, sources == source
+            fold_model = clone(model)
+            fold_model.fit(x[train], binary_labels[train])
+            binary_predicted[test] = fold_model.predict(x[test]) == "boundary"
+        binary_reports.append({"model": name,
+                               **binary_boundary_summary(labels, binary_predicted, sources)})
+    binary_reports.sort(key=lambda row: (row["minimum_source_recall"], row["recall"],
+                                         row["precision"], row["specificity"]), reverse=True)
     boundary_scores = np.zeros(len(labels), dtype=np.float32)
     probability_model = candidates()[best["model"]]
     if not hasattr(probability_model, "predict_proba"):
@@ -131,6 +169,8 @@ def main() -> None:
         "class_counts": {label: int(np.sum(labels == label)) for label in CLASSES},
         "acceptance": "serve recall >= 0.70; end recall >= 0.70; macro recall >= 0.70",
         "candidates": reports, "best": best, "passed": passed,
+        "binary_boundary_candidates": binary_reports,
+        "best_binary_boundary": binary_reports[0],
         "boundary_candidate_operating_point": boundary_candidate,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
