@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VolleyTag — проверка свистков</title>
+  <link rel="stylesheet" href="whistle-review.css">
+</head>
+<body>
+  <header><a href="index.html">51 VolleyTag</a><strong id="progress">0 / 0</strong></header>
+  <main>
+    <section class="viewer">
+      <video id="video" controls playsinline></video>
+      <div class="timeline"><span>−5 с</span><input id="seek" type="range" step="0.01"><span>+5 с</span></div>
+      <div class="controls"><button id="replay">↻ Повторить</button><button id="center">◎ К пику</button><span id="clock">00:00.000</span></div>
+      <p id="meta">Загрузка…</p>
+    </section>
+    <aside>
+      <h1>Что это за звук?</h1>
+      <p>Послушай момент около центра отрывка. Смотри на контекст игроков, но оценивай именно звук.</p>
+      <button id="serve" class="primary"><b>S</b> Разрешение на подачу</button>
+      <button id="end"><b>E</b> Свисток конца розыгрыша</button>
+      <button id="other"><b>W</b> Другой свисток</button>
+      <button id="none"><b>N</b> Это не свисток</button>
+      <button id="uncertain"><b>U</b> Не уверен</button>
+      <p class="hint"><kbd>Space</kbd> пауза · <kbd>R</kbd> повтор · <kbd>Backspace</kbd> назад</p>
+      <p id="saved">✓ сохранено</p>
+    </aside>
+  </main>
+  <script src="whistle-review.js"></script>
+</body>
+</html>

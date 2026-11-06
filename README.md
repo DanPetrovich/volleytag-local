@@ -94,6 +94,7 @@ chmod +x start.command
 - `web/dataset-audit.html` — аудит персонального датасета;
 - `web/action-review.html` — разметка игровых действий;
 - `web/exact-contact-review.html` — покадровая разметка момента касания;
+- `web/whistle-review.html` — проверка аудиокандидатов начала и конца розыгрыша;
 - `web/court-calibration.html` — геометрия площадки и зон;
 - `web/rotation-review.html` и `web/position-cycle-review.html` — ротации и цикл 5–1.
 
