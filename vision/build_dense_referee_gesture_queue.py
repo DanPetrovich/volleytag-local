@@ -43,12 +43,17 @@ def make_item(source: dict, rally: dict, kind: str, ordinal: int,
     elif kind == "end_search":
         target, window_start, window_end = end + 2, end - 1, end + 8
     elif kind == "active_negative":
+        if end - start < 6.0:
+            return None
         target = (start + end) / 2
         window_start, window_end = target - 1.5, target + 1.5
     else:
         raise ValueError(f"unknown kind: {kind}")
-    clipped = clamp_to_replays(max(0.0, window_start), window_end, target, replays)
+    original_window = (max(0.0, window_start), window_end)
+    clipped = clamp_to_replays(*original_window, target, replays)
     if clipped is None:
+        return None
+    if kind == "active_negative" and clipped != original_window:
         return None
     window_start, window_end = clipped
     return {

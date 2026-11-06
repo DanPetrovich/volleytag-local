@@ -27,6 +27,16 @@ class DenseRefereeGestureQueueTest(unittest.TestCase):
         self.assertIsNone(clamp_to_replays(
             12.0, 21.0, 17.0, [{"start_s": 16.0, "end_s": 18.0}]))
 
+    def test_short_rally_is_not_used_as_active_negative(self):
+        short = {"id": "r2", "start_s": 20.0, "end_s": 24.0}
+        self.assertIsNone(make_item(self.source, short, "active_negative", 2, []))
+
+    def test_replay_clipped_negative_is_rejected(self):
+        self.assertIsNone(make_item(
+            self.source, self.rally, "active_negative", 1,
+            [{"start_s": 25.5, "end_s": 28.0}],
+        ))
+
 
 if __name__ == "__main__":
     unittest.main()
