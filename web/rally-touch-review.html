@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VolleyTag — касание в розыгрыше</title>
+  <link rel="stylesheet" href="rally-touch-review.css">
+</head>
+<body>
+  <header><a href="index.html">51 VolleyTag</a><strong id="progress">0 / 0</strong></header>
+  <main>
+    <section class="viewer">
+      <video id="video" controls playsinline></video>
+      <input id="timeline" type="range" step="0.01">
+      <div class="controls"><button id="replay">↻ Весь розыгрыш</button><b id="clock">00:00.0</b></div>
+      <p id="meta">Загрузка…</p>
+    </section>
+    <aside>
+      <h1>№51 касался мяча?</h1>
+      <p>Считай любое игровое касание внутри показанного розыгрыша: приём, пас, атака, блок или подача.</p>
+      <button id="touch" class="primary"><b>T</b> Да, касался</button>
+      <button id="none"><b>N</b> Нет касания</button>
+      <button id="uncertain"><b>U</b> Не уверен</button>
+      <p class="hint"><kbd>Space</kbd> пауза/продолжить · <kbd>R</kbd> сначала · <kbd>Backspace</kbd> назад</p>
+      <p id="saved">✓ сохранено</p>
+    </aside>
+  </main>
+  <script src="rally-touch-review.js"></script>
+</body>
+</html>
