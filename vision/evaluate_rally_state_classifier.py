@@ -80,6 +80,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("features", type=Path)
     parser.add_argument("--motion-features", type=Path)
+    parser.add_argument("--formation-features", type=Path)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--min-recall", type=float, default=.90)
     parser.add_argument("--min-precision", type=float, default=.60)
@@ -89,6 +90,7 @@ def main() -> None:
     labels = payload["labels"].astype(str)
     y = (labels == "pre_serve").astype(np.int8)
     groups = payload["sources"].astype(int)
+    item_ids = payload["item_ids"].astype(str)
     feature_set = "r3d18"
     if args.motion_features:
         motion = np.load(args.motion_features)
@@ -96,6 +98,17 @@ def main() -> None:
             raise ValueError("motion and R3D item order differs")
         x = np.concatenate((x, motion["features"]), axis=1)
         feature_set = "r3d18+motion"
+    if args.formation_features:
+        formation = np.load(args.formation_features)
+        formation_ids = formation["item_ids"].astype(str)
+        lookup = {item_id: index for index, item_id in enumerate(formation_ids)}
+        retained = np.asarray([index for index, item_id in enumerate(item_ids)
+                               if item_id in lookup])
+        formation_rows = np.asarray([lookup[item_ids[index]] for index in retained])
+        x = np.concatenate((x[retained], formation["features"][formation_rows]), axis=1)
+        labels, y, groups, item_ids = (labels[retained], y[retained],
+                                       groups[retained], item_ids[retained])
+        feature_set += "+formation"
     baseline = {"recall": 1.0, "precision": float(y.mean())}
     reports = []
     for name, model in candidates().items():

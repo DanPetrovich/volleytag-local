@@ -42,20 +42,20 @@ def motion_features(video: str, timestamp: float) -> np.ndarray | None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("queue", type=Path)
-    parser.add_argument("results", type=Path)
+    parser.add_argument("results", type=Path, nargs="?")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     items = json.loads(args.queue.read_text())["items"]
-    answers = json.loads(args.results.read_text())["answers"]
+    answers = json.loads(args.results.read_text())["answers"] if args.results else None
     vectors, labels, sources, item_ids = [], [], [], []
     for index, item in enumerate(items, 1):
-        if item["id"] not in answers:
+        if answers and item["id"] not in answers:
             raise ValueError(f"missing answer for {item['id']}")
         vector = motion_features(item["video"], float(item["time_s"]))
         if vector is None:
             raise RuntimeError(f"could not decode {item['id']}")
         vectors.append(vector)
-        labels.append(answers[item["id"]]["decision"])
+        labels.append(answers[item["id"]]["decision"] if answers else "")
         sources.append(int(item["source"]))
         item_ids.append(item["id"])
         print(f"processed={index}/{len(items)}", flush=True)

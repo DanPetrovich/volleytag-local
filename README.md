@@ -21,7 +21,7 @@ human review. Старый интерфейс кнопочной и голосо
 | Temporal route | На untouched матче top-1 вырос с 73,72% до 79,20%, ошибок стало меньше на 20,83% |
 | Детектор мяча | Untouched test: 90,00% recall положительных кадров и 92,31% specificity отрицательных |
 | Точный контакт и действие | Активный R&D: признаки уже полезны, но полностью автоматическая статистика пока не заявляется готовой |
-| Визуальное состояние розыгрыша | Training sanity: recall-first pre-serve 100% recall / 60,29% precision на leave-one-source-out; untouched-проверка ещё не выполнена |
+| Границы розыгрыша | Audio 8/мин + grouping 2 с: 32/34 training serve-anchor при ≈5,46 кандидата/мин; sparse visual head не прошёл непрерывный критерий |
 | Human review и evaluation | Рабочие интерфейсы, независимый GT, uniform sampling, validated gaps и frozen-протоколы |
 
 Temporal route v12 улучшил все основные метрики, но формально не достиг
