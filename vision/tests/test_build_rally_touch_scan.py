@@ -17,6 +17,10 @@ class RallyTouchScanTest(unittest.TestCase):
                                       "window_end_s": 13}], 1, .8)
         self.assertEqual([row["time_s"] for row in rows], [10.8, 11.8])
 
+    def test_rejects_nonpositive_step(self):
+        with self.assertRaisesRegex(ValueError, "step_s must be positive"):
+            MODULE.build_samples([], 0, .8)
+
 
 if __name__ == "__main__":
     unittest.main()

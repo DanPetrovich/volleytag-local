@@ -7,15 +7,17 @@ import argparse
 import json
 from pathlib import Path
 
-import numpy as np
-
 
 def build_samples(items: list[dict], step_s: float, margin_s: float) -> list[dict]:
+    if step_s <= 0:
+        raise ValueError("step_s must be positive")
+
     rows = []
     for item in items:
         start = float(item["window_start_s"]) + margin_s
         end = float(item["window_end_s"]) - margin_s
-        for timestamp in np.arange(start, end + 1e-6, step_s):
+        timestamp = start
+        while timestamp <= end + 1e-6:
             rows.append({
                 "id": f"{item['id']}-t{timestamp:.3f}",
                 "item_id": item["id"],
@@ -24,6 +26,7 @@ def build_samples(items: list[dict], step_s: float, margin_s: float) -> list[dic
                 "video": item["video"],
                 "time_s": round(float(timestamp), 3),
             })
+            timestamp += step_s
     return rows
 
 
