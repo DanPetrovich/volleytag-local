@@ -10,6 +10,17 @@ SCRIPT = Path(__file__).parents[1] / "build_rally_touch_review_queue.py"
 
 
 class RallyTouchReviewQueueTest(unittest.TestCase):
+    def test_trims_start_after_last_replay_but_keeps_safe_start(self):
+        start, removed = __import__("vision.build_rally_touch_review_queue",
+                                    fromlist=["trim_past_replays"]).trim_past_replays(
+            10, 40, [
+                {"start_s": 15, "end_s": 20,
+                 "reasons": ["purple_bumper", "replay_between_bumpers"]},
+                {"start_s": 22, "end_s": 24, "reasons": ["purple_bumper"]},
+            ])
+        self.assertEqual(start, 20)
+        self.assertEqual(len(removed), 1)
+
     def test_preserves_frozen_flag_and_safe_windows(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
