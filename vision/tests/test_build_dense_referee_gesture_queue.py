@@ -37,6 +37,12 @@ class DenseRefereeGestureQueueTest(unittest.TestCase):
             [{"start_s": 25.5, "end_s": 28.0}],
         ))
 
+    def test_search_without_full_temporal_context_is_rejected(self):
+        self.assertIsNone(make_item(
+            self.source, self.rally, "end_search", 1,
+            [{"start_s": 32.5, "end_s": 38.0}],
+        ))
+
 
 if __name__ == "__main__":
     unittest.main()

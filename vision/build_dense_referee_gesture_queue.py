@@ -56,6 +56,10 @@ def make_item(source: dict, rally: dict, kind: str, ordinal: int,
     if kind == "active_negative" and clipped != original_window:
         return None
     window_start, window_end = clipped
+    if kind in {"serve_search", "end_search"} and (
+        window_start > target - 3.0 or window_end < target + 3.0
+    ):
+        return None
     return {
         "id": f"referee-dense-{source['name']}-{kind}-{ordinal:03d}",
         "source": int(source["source"]),
