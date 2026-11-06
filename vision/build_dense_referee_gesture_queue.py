@@ -7,7 +7,17 @@ import argparse
 import json
 from pathlib import Path
 
-from train_rally_boundary_fusion import load_replays
+
+def load_replays(path: Path, video: str) -> list[dict]:
+    payload = json.loads(path.read_text())
+    if "sources" in payload:
+        matches = [row for row in payload["sources"].values() if row["video"] == video]
+        if len(matches) != 1:
+            raise ValueError("could not resolve replay source")
+        return matches[0]["exclude_intervals"]
+    if payload["video"] != video:
+        raise ValueError("replay metadata belongs to another video")
+    return payload.get("excluded_intervals", [])
 
 
 def clamp_to_replays(start_s: float, end_s: float, target_s: float,
