@@ -60,7 +60,8 @@ def main() -> None:
         "frozen_tests_used": bool(payload["frozen_tests_used"]),
         "labels": ["player51_touch", "no_player51_touch", "uncertain"],
         "instructions": ("Did player 51 touch the ball during the live rally ending at the "
-                         "end of this interval? Ignore broadcast replays of earlier rallies."),
+                         "end of this interval? Count a contextually certain off-screen touch "
+                         "such as player 51 serving; ignore broadcast replays and dead-ball handoffs."),
         "excluded_left_censored": sum(bool(row.get("left_censored"))
                                         for row in payload["intervals"]),
         "replay_trim_enabled": bool(args.replay_intervals),
