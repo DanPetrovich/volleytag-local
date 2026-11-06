@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VolleyTag — границы розыгрышей</title>
+  <link rel="stylesheet" href="rally-end-timeline-review.css">
+  <link rel="stylesheet" href="rally-interval-timeline-review.css">
+</head>
+<body>
+  <header><a href="index.html">51 VolleyTag</a><strong id="count">0 розыгрышей</strong></header>
+  <main>
+    <section class="viewer">
+      <video id="video" controls playsinline></video>
+      <input id="timeline" type="range" step="0.01">
+      <div class="transport">
+        <button id="back">−2 с</button><button id="backFine">−0,1 с</button>
+        <button id="forwardFine">+0,1 с</button><button id="forward">+2 с</button>
+        <b id="clock">00:00.0</b>
+      </div>
+    </section>
+    <aside>
+      <h1>Точные границы живых розыгрышей</h1>
+      <p><b>Начало</b> — момент удара подающего по мячу. <b>Конец</b> — первый момент, когда мяч стал мёртвым.</p>
+      <div id="pending" class="pending">Жду начало следующего розыгрыша</div>
+      <button id="start" class="primary start"><b>S</b> Видимое начало подачи</button>
+      <button id="startInferred"><b>I</b> Начало скрыто — лучшая оценка</button>
+      <button id="end" class="primary end" disabled><b>E</b> Видимый конец розыгрыша</button>
+      <button id="endInferred" disabled><b>U</b> Конец скрыт — лучшая оценка</button>
+      <p class="warning">Не отмечай повторы, хайлайты, передачи мяча подающему и разминочные касания. Подача в сетку или аут — тоже полноценный розыгрыш.</p>
+      <button id="undo">↶ Отменить последнюю операцию</button>
+      <ol id="rallies"></ol>
+      <p class="hint"><kbd>Space</kbd> пауза · <kbd>←/→</kbd> ±2 с · <kbd>Shift+←/→</kbd> ±0,1 с · <kbd>S/I</kbd> начало · <kbd>E/U</kbd> конец</p>
+      <p id="saved">Загрузка…</p>
+    </aside>
+  </main>
+  <script src="rally-interval-timeline-review.js"></script>
+</body>
+</html>
