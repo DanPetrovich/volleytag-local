@@ -96,7 +96,7 @@ chmod +x start.command
 - `web/exact-contact-review.html` — покадровая разметка момента касания;
 - `web/whistle-review.html` — проверка аудиокандидатов начала и конца розыгрыша;
 - `web/rally-state-review.html` — визуальная разметка подготовки к подаче,
-  активного розыгрыша и мёртвого мяча без подсказки аудиодорожки;
+  активного розыгрыша и паузы между розыгрышами без подсказки аудиодорожки;
 - `web/court-calibration.html` — геометрия площадки и зон;
 - `web/rotation-review.html` и `web/position-cycle-review.html` — ротации и цикл 5–1.
 
