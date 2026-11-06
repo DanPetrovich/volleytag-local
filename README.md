@@ -100,6 +100,8 @@ chmod +x start.command
   активного розыгрыша и паузы между розыгрышами без подсказки аудиодорожки;
 - `web/referee-calibration.html` — одноразовое выделение первого судьи для
   последующей разметки разрешения подачи и жеста окончания очка;
+- `web/referee-gesture-review.html` — увеличенная source-balanced проверка
+  разрешения подачи, окончания очка и других жестов первого судьи;
 - `web/court-calibration.html` — геометрия площадки и зон;
 - `web/rotation-review.html` и `web/position-cycle-review.html` — ротации и цикл 5–1.
 
