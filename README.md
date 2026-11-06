@@ -98,6 +98,8 @@ chmod +x start.command
 - `web/whistle-review.html` — проверка аудиокандидатов начала и конца розыгрыша;
 - `web/rally-state-review.html` — визуальная разметка подготовки к подаче,
   активного розыгрыша и паузы между розыгрышами без подсказки аудиодорожки;
+- `web/referee-calibration.html` — одноразовое выделение первого судьи для
+  последующей разметки разрешения подачи и жеста окончания очка;
 - `web/court-calibration.html` — геометрия площадки и зон;
 - `web/rotation-review.html` и `web/position-cycle-review.html` — ротации и цикл 5–1.
 

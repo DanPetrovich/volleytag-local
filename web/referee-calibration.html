@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VolleyTag — судья</title>
+  <link rel="stylesheet" href="referee-calibration.css">
+</head>
+<body>
+  <header><a href="index.html">51 VolleyTag</a><strong id="progress">0 / 0</strong></header>
+  <main>
+    <section class="viewer">
+      <div class="stage"><video id="video" playsinline></video><canvas id="overlay"></canvas></div>
+      <div class="controls"><button id="backTime">−2 с</button><button id="play">▶ Смотреть</button><button id="forwardTime">+2 с</button><b id="clock">00:00.0</b></div>
+      <input id="timeline" type="range" step="0.02">
+      <p id="meta">Загрузка…</p>
+    </section>
+    <aside>
+      <h1>Выдели первого судью</h1>
+      <p>Зажми мышь и обведи судью на высокой стойке у сетки. Захвати всё тело и руки, но не соседних людей.</p>
+      <p>Можно перемотать на пару секунд, если в текущем кадре жест виден лучше.</p>
+      <button id="save" class="primary">Сохранить и дальше</button>
+      <button id="notVisible">Судью не видно</button>
+      <button id="previous">← Предыдущий источник</button>
+      <p class="hint">Нужно всего семь прямоугольников. Рамку можно нарисовать заново.</p>
+      <p id="saved">Выдели судью</p>
+    </aside>
+  </main>
+  <script src="referee-calibration.js"></script>
+</body>
+</html>
