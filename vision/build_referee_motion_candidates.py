@@ -13,6 +13,19 @@ import numpy as np
 from build_referee_gesture_queue import roi_motion
 
 
+def load_excluded_intervals(path: Path, source: int, video: str) -> list[dict]:
+    payload = json.loads(path.read_text())
+    if "sources" in payload:
+        row = payload["sources"][str(source)]
+        intervals = row["exclude_intervals"]
+    else:
+        row = payload
+        intervals = row.get("excluded_intervals", [])
+    if row["video"] != video:
+        raise ValueError("replay metadata belongs to another video")
+    return intervals
+
+
 def select_motion_peaks(scores: np.ndarray, fps: int, start_s: float, end_s: float,
                         count: int, separation_s: float,
                         excluded: list[dict]) -> list[tuple[float, float]]:
@@ -48,10 +61,8 @@ def main() -> None:
     if args.replay_intervals:
         if args.replay_source is None:
             parser.error("--replay-source is required with --replay-intervals")
-        replay = json.loads(args.replay_intervals.read_text())["sources"][str(args.replay_source)]
-        if replay["video"] != args.video:
-            raise ValueError("replay metadata belongs to another video")
-        excluded = replay["exclude_intervals"]
+        excluded = load_excluded_intervals(
+            args.replay_intervals, args.replay_source, args.video)
     scores, duration = roi_motion(args.video, args.roi)
     if args.end_s > duration + .5:
         raise ValueError(f"end {args.end_s}s exceeds video duration {duration:.3f}s")

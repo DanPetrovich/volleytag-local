@@ -12,6 +12,19 @@ import cv2
 import numpy as np
 
 
+def load_excluded_intervals(path: Path, source: int, video: str) -> list[dict]:
+    payload = json.loads(path.read_text())
+    if "sources" in payload:
+        row = payload["sources"][str(source)]
+        intervals = row["exclude_intervals"]
+    else:
+        row = payload
+        intervals = row.get("excluded_intervals", [])
+    if row["video"] != video:
+        raise ValueError("replay metadata belongs to another video")
+    return intervals
+
+
 def separated_changes(scores: list[tuple[float, float]], threshold: float,
                       separation_s: float, excluded: list[dict]) -> list[tuple[float, float]]:
     selected = []
@@ -44,10 +57,8 @@ def main() -> None:
     if args.replay_intervals:
         if args.replay_source is None:
             parser.error("--replay-source is required with --replay-intervals")
-        replay = json.loads(args.replay_intervals.read_text())["sources"][str(args.replay_source)]
-        if replay["video"] != args.video:
-            raise ValueError("replay metadata belongs to another video")
-        excluded = replay["exclude_intervals"]
+        excluded = load_excluded_intervals(
+            args.replay_intervals, args.replay_source, args.video)
     x, y, width, height = args.score_roi
     command = [
         "ffmpeg", "-v", "error", "-ss", str(args.start_s), "-i", args.video,

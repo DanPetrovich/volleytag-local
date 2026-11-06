@@ -1,5 +1,7 @@
 import importlib.util
+import json
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -27,6 +29,15 @@ class RefereeMotionCandidatesTest(unittest.TestCase):
             excluded=[{"start_s": 6, "end_s": 7}],
         )
         self.assertEqual([row[0] for row in peaks], [2, 5])
+
+    def test_loads_direct_non_match_schema(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "replays.json"
+            path.write_text(json.dumps({"video": "v.mp4", "excluded_intervals": [
+                {"start_s": 10, "end_s": 20},
+            ]}))
+            self.assertEqual(MODULE.load_excluded_intervals(path, 3, "v.mp4"),
+                             [{"start_s": 10, "end_s": 20}])
 
 
 if __name__ == "__main__":
