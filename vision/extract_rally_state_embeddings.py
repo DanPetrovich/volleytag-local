@@ -40,17 +40,24 @@ def prepare_frame(frame: np.ndarray, spatial_mode: str) -> np.ndarray:
     return canvas
 
 
-def read_clip(video: str, timestamp: float, spatial_mode: str) -> torch.Tensor | None:
-    capture, frames = cv2.VideoCapture(video), []
+def read_clip(video: str, timestamp: float, spatial_mode: str,
+              frame_cache: dict[tuple[str, float, str], np.ndarray] | None = None,
+              capture_cache: dict[str, cv2.VideoCapture] | None = None) -> torch.Tensor | None:
+    frame_cache = frame_cache if frame_cache is not None else {}
+    capture_cache = capture_cache if capture_cache is not None else {}
+    capture = capture_cache.setdefault(video, cv2.VideoCapture(video))
+    frames = []
     for offset in OFFSETS:
-        capture.set(cv2.CAP_PROP_POS_MSEC, max(0, timestamp + float(offset)) * 1000)
-        ok, frame = capture.read()
-        if not ok:
-            capture.release()
-            return None
-        prepared = prepare_frame(frame, spatial_mode)
-        frames.append(cv2.cvtColor(prepared, cv2.COLOR_BGR2RGB))
-    capture.release()
+        frame_time = round(max(0, timestamp + float(offset)), 3)
+        key = (video, frame_time, spatial_mode)
+        if key not in frame_cache:
+            capture.set(cv2.CAP_PROP_POS_MSEC, frame_time * 1000)
+            ok, frame = capture.read()
+            if not ok:
+                return None
+            prepared = prepare_frame(frame, spatial_mode)
+            frame_cache[key] = cv2.cvtColor(prepared, cv2.COLOR_BGR2RGB)
+        frames.append(frame_cache[key])
     tensor = torch.from_numpy(np.stack(frames)).permute(3, 0, 1, 2).float() / 255
     return (tensor - MEAN) / STD
 
@@ -61,10 +68,13 @@ def main() -> None:
     parser.add_argument("results", type=Path, nargs="?")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--batch-size", type=int, default=4)
+    parser.add_argument("--limit", type=int)
     parser.add_argument("--spatial-mode", choices=("letterbox", "center_crop", "stretch"),
                         default="letterbox")
     args = parser.parse_args()
     items = json.loads(args.queue.read_text())["items"]
+    if args.limit is not None:
+        items = items[:args.limit]
     answers = json.loads(args.results.read_text())["answers"] if args.results else None
     if answers:
         missing = [row["id"] for row in items if row["id"] not in answers]
@@ -75,11 +85,14 @@ def main() -> None:
     model.fc = torch.nn.Identity()
     model.eval()
     vectors, labels, sources, item_ids = [], [], [], []
+    frame_cache: dict[tuple[str, float, str], np.ndarray] = {}
+    capture_cache: dict[str, cv2.VideoCapture] = {}
     for start in range(0, len(items), args.batch_size):
         batch = items[start:start + args.batch_size]
         tensors, retained = [], []
         for item in batch:
-            tensor = read_clip(item["video"], float(item["time_s"]), args.spatial_mode)
+            tensor = read_clip(item["video"], float(item["time_s"]), args.spatial_mode,
+                               frame_cache, capture_cache)
             if tensor is not None:
                 tensors.append(tensor)
                 retained.append(item)
@@ -92,6 +105,8 @@ def main() -> None:
             sources.extend(int(item["source"]) for item in retained)
             item_ids.extend(item["id"] for item in retained)
         print(f"processed={min(start + args.batch_size, len(items))}/{len(items)}", flush=True)
+    for capture in capture_cache.values():
+        capture.release()
     if len(vectors) != len(items):
         raise RuntimeError(f"decoded {len(vectors)} of {len(items)} clips")
     args.output.parent.mkdir(parents=True, exist_ok=True)
