@@ -96,7 +96,8 @@ def main() -> None:
                    "no_signal", "uncertain"],
         "selection": {
             "method": "reviewed-rally temporal windows; no motion preselection",
-            "exact_event_time_required": True,
+            "gesture_interval_required_for_positive_labels": True,
+            "representative_time": "midpoint of reviewed gesture interval",
             "negative_sampling": "middle of every other live rally",
         },
         "counts": {kind: sum(row["selection_reason"] == kind for row in items)
