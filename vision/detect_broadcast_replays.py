@@ -80,6 +80,7 @@ def main() -> None:
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--max-replay-s", type=float, default=30)
     parser.add_argument("--padding-s", type=float, default=2)
+    parser.add_argument("--frozen-evaluation", action="store_true")
     args = parser.parse_args()
     if args.video is not None:
         if args.source is None:
@@ -105,7 +106,7 @@ def main() -> None:
                                 "exclude_intervals": merge_intervals(exclusions)}
         print(f"source={source} purple={len(runs)} replay_pairs={len(pairs)}", flush=True)
     result = {"schema_version": 1, "kind": "volleytag.broadcast-replay-intervals",
-              "frozen_tests_used": False, "sources": sources}
+              "frozen_tests_used": args.frozen_evaluation, "sources": sources}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
 
