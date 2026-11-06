@@ -9,6 +9,7 @@
   "boundary_logistic_c": [0.0003, 0.001, 0.003],
   "boundary_thresholds": [0.2, 0.3, 0.4, 0.5, 0.6],
   "boundary_padding_s": [1.0, 1.5, 2.0, 2.5],
+  "ball_fusion_weights": [0.0, 0.1, 0.2, 0.3, 0.5],
   "maximum_padding_s": 3.0,
   "baseline": {
     "kind": "safe-state-fusion-loso-v1",
@@ -20,6 +21,10 @@
     "minimum_fold_recall": 0.3,
     "minimum_macro_precision": 0.3
   },
+  "ball_sanity_criterion": {
+    "minimum_macro_recall": 0.3269,
+    "minimum_macro_precision": 0.25
+  },
   "product_criterion": {
     "minimum_macro_recall": 1.0,
     "minimum_macro_precision": 0.7
@@ -28,20 +33,44 @@
     {
       "name": "training-keaz",
       "queue": "vision/runs/rally-boundary-training-v1/dense-state-1s-queue.json",
-      "r3d_features": "vision/runs/rally-boundary-training-v1/dense-state-1s-r3d.npz",
-      "motion_features": "vision/runs/rally-boundary-training-v1/dense-state-1s-motion.npz"
+      "feature_files": [
+        "vision/runs/rally-boundary-training-v1/dense-state-1s-r3d.npz",
+        "vision/runs/rally-boundary-training-v1/dense-state-1s-motion.npz",
+        "vision/runs/rally-boundary-training-v1/dense-state-1s-ball.npz"
+      ],
+      "base_feature_files": [
+        "vision/runs/rally-boundary-training-v1/dense-state-1s-r3d.npz",
+        "vision/runs/rally-boundary-training-v1/dense-state-1s-motion.npz"
+      ],
+      "ball_feature_file": "vision/runs/rally-boundary-training-v1/dense-state-1s-ball.npz"
     },
     {
       "name": "training-far2",
       "queue": "vision/runs/rally-boundary-training-v1/far2-dense-state-1s-queue.json",
-      "r3d_features": "vision/runs/rally-boundary-training-v1/far2-dense-state-1s-r3d.npz",
-      "motion_features": "vision/runs/rally-boundary-training-v1/far2-dense-state-1s-motion.npz"
+      "feature_files": [
+        "vision/runs/rally-boundary-training-v1/far2-dense-state-1s-r3d.npz",
+        "vision/runs/rally-boundary-training-v1/far2-dense-state-1s-motion.npz",
+        "vision/runs/rally-boundary-training-v1/far2-dense-state-1s-ball.npz"
+      ],
+      "base_feature_files": [
+        "vision/runs/rally-boundary-training-v1/far2-dense-state-1s-r3d.npz",
+        "vision/runs/rally-boundary-training-v1/far2-dense-state-1s-motion.npz"
+      ],
+      "ball_feature_file": "vision/runs/rally-boundary-training-v1/far2-dense-state-1s-ball.npz"
     },
     {
       "name": "training-oldstraight",
       "queue": "vision/runs/rally-boundary-training-v1/oldstraight-dense-state-1s-queue.json",
-      "r3d_features": "vision/runs/rally-boundary-training-v1/oldstraight-dense-state-1s-r3d.npz",
-      "motion_features": "vision/runs/rally-boundary-training-v1/oldstraight-dense-state-1s-motion.npz"
+      "feature_files": [
+        "vision/runs/rally-boundary-training-v1/oldstraight-dense-state-1s-r3d.npz",
+        "vision/runs/rally-boundary-training-v1/oldstraight-dense-state-1s-motion.npz",
+        "vision/runs/rally-boundary-training-v1/oldstraight-dense-state-1s-ball.npz"
+      ],
+      "base_feature_files": [
+        "vision/runs/rally-boundary-training-v1/oldstraight-dense-state-1s-r3d.npz",
+        "vision/runs/rally-boundary-training-v1/oldstraight-dense-state-1s-motion.npz"
+      ],
+      "ball_feature_file": "vision/runs/rally-boundary-training-v1/oldstraight-dense-state-1s-ball.npz"
     }
   ]
 }

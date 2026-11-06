@@ -35,7 +35,10 @@ def window_summary(values: np.ndarray, radii: tuple[int, ...]) -> np.ndarray:
 def load_source(spec: dict, radii: tuple[int, ...]) -> dict:
     queue = json.loads(Path(spec["queue"]).read_text())
     lookup = {row["id"]: row for row in queue["items"]}
-    arrays = [np.load(spec[key]) for key in ("r3d_features", "motion_features")]
+    feature_paths = spec.get("feature_files") or [
+        spec["r3d_features"], spec["motion_features"]
+    ]
+    arrays = [np.load(path) for path in feature_paths]
     item_ids = arrays[0]["item_ids"].astype(str)
     labels = arrays[0]["labels"].astype(str)
     for row in arrays[1:]:
