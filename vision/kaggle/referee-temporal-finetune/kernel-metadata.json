@@ -1,0 +1,15 @@
+{
+  "id": "daniilpet/volleytag-referee-temporal-finetune-v1",
+  "title": "VolleyTag referee temporal fine-tune v1",
+  "code_file": "referee_temporal_finetune.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "daniilpet/volleytag-referee-temporal-v1-private"
+  ],
+  "competition_sources": [],
+  "kernel_sources": []
+}
