@@ -21,7 +21,7 @@ human review. Старый интерфейс кнопочной и голосо
 | Temporal route | На untouched матче top-1 вырос с 73,72% до 79,20%, ошибок стало меньше на 20,83% |
 | Детектор мяча | Untouched test: 90,00% recall положительных кадров и 92,31% specificity отрицательных |
 | Точный контакт и действие | Активный R&D: признаки уже полезны, но полностью автоматическая статистика пока не заявляется готовой |
-| Границы розыгрыша | Continuous R3D-route отклонён; зафиксирован scoreboard + referee-motion fallback (3,40 кандидата/мин). Frozen scoreboard нашёл 11/13 окончаний, шесть fallback-сцен ждут контрольной разметки |
+| Границы розыгрыша | Scoreboard + referee-motion fallback принят: frozen 13/13 окончаний (100% recall), 15/17 полезных boundary-кандидатов (88,2% precision), 3,40 кандидата/мин |
 | Human review и evaluation | Рабочие интерфейсы, независимый GT, uniform sampling, validated gaps и frozen-протоколы |
 
 Temporal route v12 улучшил все основные метрики, но формально не достиг
