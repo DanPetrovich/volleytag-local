@@ -108,6 +108,8 @@ def main() -> None:
             "method": "motion peaks followed by greedy motion-descriptor diversity",
             "candidate_pool": len(candidates),
             "minimum_time_separation_s": args.separation_s,
+            "semantic_audit_required": True,
+            "limitation": "pixel-motion diversity does not prove semantic uniqueness",
         },
         "counts": {"diverse_roi_motion": len(rows)},
         "items": rows,

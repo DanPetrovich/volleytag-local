@@ -37,10 +37,14 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("features", type=Path)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--exclude-item-id", action="append", default=[])
     args = parser.parse_args()
     payload = np.load(args.features)
     raw_labels = payload["labels"].astype(str)
-    retained = raw_labels != "uncertain"
+    item_ids = payload["item_ids"].astype(str)
+    excluded = set(args.exclude_item_id)
+    retained = ((raw_labels != "uncertain") &
+                np.asarray([item_id not in excluded for item_id in item_ids]))
     x, sources = payload["features"][retained], payload["sources"][retained].astype(int)
     labels = np.asarray([label if label in CLASSES[:2] else "other"
                          for label in raw_labels[retained]])
@@ -69,6 +73,7 @@ def main() -> None:
     report = {
         "protocol": "leave-one-whole-source-out; uncertain excluded; no/other merged",
         "frozen_tests_used": False, "samples": len(labels),
+        "manually_excluded_samples": int(np.sum(~retained & (raw_labels != "uncertain"))),
         "class_counts": {label: int(np.sum(labels == label)) for label in CLASSES},
         "acceptance": "serve recall >= 0.70; end recall >= 0.70; macro recall >= 0.70",
         "candidates": reports, "best": best, "passed": passed,
