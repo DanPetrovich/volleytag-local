@@ -32,6 +32,16 @@ class DenseRallyStateSamplesTest(unittest.TestCase):
                                  {"pending_start": {"time_s": 5}, "rallies": []},
                                  1, 1, 1)
 
+    def test_can_build_external_evaluation_only(self):
+        queue = {"video": "v.mp4", "start_s": 0, "end_s": 20}
+        results = {"pending_start": None, "rallies": [
+            {"id": "r1", "start_s": 4, "end_s": 7,
+             "start_confidence": "exact", "end_confidence": "exact"},
+        ]}
+        samples, _ = MODULE.build_samples(queue, results, 4, 1, 0)
+        self.assertEqual(samples["development_rallies"], 0)
+        self.assertTrue(all(row["partition"] == "evaluation" for row in samples["items"]))
+
 
 if __name__ == "__main__":
     unittest.main()

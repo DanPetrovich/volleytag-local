@@ -28,11 +28,12 @@ def build_samples(queue: dict, results: dict, source: int, step_s: float,
     if results.get("pending_start") is not None:
         raise ValueError("review has an unfinished rally")
     rallies = results.get("rallies", [])
-    if not 0 < development_rallies < len(rallies):
-        raise ValueError("development_rallies must leave at least one evaluation rally")
+    if not 0 <= development_rallies < len(rallies):
+        raise ValueError("development_rallies must be smaller than the rally count")
     validate_rallies(rallies, float(queue["start_s"]), float(queue["end_s"]))
-    split_s = (float(rallies[development_rallies - 1]["end_s"])
-               + float(rallies[development_rallies]["start_s"])) / 2
+    split_s = (float(queue["start_s"]) if development_rallies == 0 else
+               (float(rallies[development_rallies - 1]["end_s"])
+                + float(rallies[development_rallies]["start_s"])) / 2)
     items, answers = [], {}
     timestamp = float(queue["start_s"]) + 3.0
     last_usable = float(queue["end_s"]) - 2.0
