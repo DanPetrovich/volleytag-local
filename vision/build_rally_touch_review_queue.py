@@ -39,7 +39,8 @@ def main() -> None:
         "kind": "volleytag.rally-touch-review-queue",
         "frozen_tests_used": bool(payload["frozen_tests_used"]),
         "labels": ["player51_touch", "no_player51_touch", "uncertain"],
-        "instructions": "Did player 51 touch the ball at least once during this rally interval?",
+        "instructions": ("Did player 51 touch the ball during the live rally ending at the "
+                         "end of this interval? Ignore broadcast replays of earlier rallies."),
         "excluded_left_censored": sum(bool(row.get("left_censored"))
                                         for row in payload["intervals"]),
         "items": items,
