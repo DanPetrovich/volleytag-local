@@ -2,7 +2,11 @@ import sys
 import unittest
 from pathlib import Path
 
-import numpy as np
+try:
+    import numpy as np
+    import sklearn  # noqa: F401
+except ModuleNotFoundError as error:
+    raise unittest.SkipTest(f"optional long-context dependency unavailable: {error.name}")
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
