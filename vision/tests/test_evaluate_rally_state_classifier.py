@@ -2,7 +2,11 @@ import importlib.util
 import unittest
 from pathlib import Path
 
-import numpy as np
+try:
+    import numpy as np
+    import sklearn  # noqa: F401
+except ModuleNotFoundError as error:
+    raise unittest.SkipTest(f"optional vision dependency unavailable: {error.name}")
 
 
 MODULE_PATH = Path(__file__).parents[1] / "evaluate_rally_state_classifier.py"
