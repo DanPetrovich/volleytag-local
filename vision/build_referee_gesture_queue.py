@@ -51,12 +51,18 @@ def roi_motion(video: str, box: list[float], fps: int = 4) -> tuple[np.ndarray, 
 
 
 def separated_peaks(scores: np.ndarray, fps: int, count: int,
-                    occupied: list[float], separation_s: float = 8.0) -> list[tuple[float, float]]:
+                    occupied: list[float], excluded: list[dict] | None = None,
+                    separation_s: float = 8.0) -> list[tuple[float, float]]:
     result = []
     for index in np.argsort(scores)[::-1]:
         timestamp = (int(index) + 1) / fps
-        if timestamp < 5 or all(abs(timestamp - value) >= separation_s
-                                for value in occupied + [row[0] for row in result]):
+        if timestamp < 5:
+            continue
+        if excluded and any(row["start_s"] <= timestamp <= row["end_s"]
+                            for row in excluded):
+            continue
+        if all(abs(timestamp - value) >= separation_s
+               for value in occupied + [row[0] for row in result]):
             result.append((timestamp, float(scores[index])))
             if len(result) == count:
                 break
@@ -85,9 +91,12 @@ def main() -> None:
     parser.add_argument("whistle_queue", type=Path)
     parser.add_argument("whistle_results", type=Path)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--replay-intervals", type=Path)
     parser.add_argument("--motion-per-source", type=int, default=4)
     parser.add_argument("--random-per-source", type=int, default=2)
     args = parser.parse_args()
+    replay_payload = (json.loads(args.replay_intervals.read_text())["sources"]
+                      if args.replay_intervals else None)
     event_payload = json.loads(args.events.read_text())
     roi_items = {int(row["source"]): row for row in json.loads(args.roi_queue.read_text())["items"]}
     roi_answers = json.loads(args.roi_results.read_text())["answers"]
@@ -124,7 +133,8 @@ def main() -> None:
     for source in TRAINING_SOURCES:
         scores, duration = roi_motion(videos[source], roi[source])
         durations[source] = duration
-        peaks = separated_peaks(scores, 4, args.motion_per_source, occupied[source])
+        excluded = replay_payload[str(source)]["exclude_intervals"] if replay_payload else None
+        peaks = separated_peaks(scores, 4, args.motion_per_source, occupied[source], excluded)
         for timestamp, score in peaks:
             occupied[source].append(timestamp)
             items.append(item(source, videos[source], timestamp, roi[source], "roi_motion", score))
@@ -136,11 +146,34 @@ def main() -> None:
         while len(chosen) < args.random_per_source and attempts < 10000:
             attempts += 1
             timestamp = rng.uniform(5, durations[source] - 5)
-            if all(abs(timestamp - value) >= 8 for value in occupied[source] + chosen):
+            excluded = replay_payload[str(source)]["exclude_intervals"] if replay_payload else []
+            in_replay = any(row["start_s"] <= timestamp <= row["end_s"] for row in excluded)
+            if not in_replay and all(abs(timestamp - value) >= 8
+                                     for value in occupied[source] + chosen):
                 chosen.append(timestamp)
         for timestamp in chosen:
             items.append(item(source, videos[source], timestamp, roi[source], "random"))
     items.sort(key=lambda row: (row["source"], row["time_s"]))
+    removed_replays = 0
+    if replay_payload:
+        retained = []
+        for row in items:
+            intervals = replay_payload[str(row["source"])]["exclude_intervals"]
+            contains_target = any(interval["start_s"] <= row["time_s"] <= interval["end_s"]
+                                  for interval in intervals)
+            if contains_target:
+                removed_replays += 1
+            else:
+                before = [interval["end_s"] for interval in intervals
+                          if row["window_start_s"] < interval["end_s"] < row["time_s"]]
+                after = [interval["start_s"] for interval in intervals
+                         if row["time_s"] < interval["start_s"] < row["window_end_s"]]
+                if before:
+                    row["window_start_s"] = max(row["window_start_s"], max(before))
+                if after:
+                    row["window_end_s"] = min(row["window_end_s"], min(after))
+                retained.append(row)
+        items = retained
     result = {
         "schema_version": 1, "kind": "volleytag.referee-gesture-review-queue",
         "frozen_tests_used": False,
@@ -148,11 +181,13 @@ def main() -> None:
                    "no_signal", "uncertain"],
         "counts": {reason: sum(row["selection_reason"] == reason for row in items)
                    for reason in ("serve_seed", "reviewed_end_seed", "roi_motion", "random")},
+        "removed_replay_items": removed_replays,
         "items": items,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n")
-    print(json.dumps({"items": len(items), **result["counts"]}, indent=2))
+    print(json.dumps({"items": len(items), "removed_replay_items": removed_replays,
+                      **result["counts"]}, indent=2))
 
 
 if __name__ == "__main__":
