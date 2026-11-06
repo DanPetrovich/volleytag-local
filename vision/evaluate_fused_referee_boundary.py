@@ -28,12 +28,13 @@ def evaluate(route: dict, queue: dict, results: dict,
     total_candidates = len(route["events"])
     precision = useful_candidates / max(total_candidates, 1)
     density = float(route["candidate_density_per_minute"])
-    passed = end_recall == 1 and density <= maximum_candidates_per_minute
+    changed_after_review = bool(route.get("post_frozen_timestamp_fix", False))
+    metric_passed = end_recall == 1 and density <= maximum_candidates_per_minute
     return {
         "schema_version": 1,
         "kind": "volleytag.frozen-fused-boundary-evaluation",
         "frozen_tests_used": True,
-        "parameters_changed_after_frozen_review": False,
+        "parameters_changed_after_frozen_review": changed_after_review,
         "expected_rally_ends": expected_ends,
         "scoreboard_rally_ends": int(route["scoreboard_events"]),
         "recovered_referee_rally_ends": recovered_ends,
@@ -46,7 +47,8 @@ def evaluate(route: dict, queue: dict, results: dict,
         "candidate_density_per_minute": density,
         "acceptance": ("rally end recall == 1.0 and candidate density per minute <= "
                        f"{maximum_candidates_per_minute}"),
-        "passed": passed,
+        "metric_passed": metric_passed,
+        "passed": metric_passed and not changed_after_review,
     }
 
 

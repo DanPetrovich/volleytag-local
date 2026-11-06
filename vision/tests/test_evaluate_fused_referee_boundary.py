@@ -26,6 +26,17 @@ class FusedRefereeBoundaryEvaluationTest(unittest.TestCase):
         self.assertEqual(report["boundary_candidate_precision"], .75)
         self.assertTrue(report["passed"])
 
+    def test_post_frozen_fix_keeps_metrics_but_invalidates_untouched_pass(self):
+        route = {
+            "expected_score_changes": 1, "scoreboard_events": 1,
+            "candidate_density_per_minute": 1, "events": [{}],
+            "post_frozen_timestamp_fix": True,
+        }
+        report = MODULE.evaluate(route, {"items": []}, {"answers": {}}, 4)
+        self.assertTrue(report["metric_passed"])
+        self.assertTrue(report["parameters_changed_after_frozen_review"])
+        self.assertFalse(report["passed"])
+
 
 if __name__ == "__main__":
     unittest.main()

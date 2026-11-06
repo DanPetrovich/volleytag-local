@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VolleyTag — окончания розыгрышей</title>
+  <link rel="stylesheet" href="rally-end-timeline-review.css">
+</head>
+<body>
+  <header><a href="index.html">51 VolleyTag</a><strong id="count">0 окончаний</strong></header>
+  <main>
+    <section class="viewer">
+      <video id="video" controls playsinline></video>
+      <input id="timeline" type="range" step="0.01">
+      <div class="transport">
+        <button id="back">−2 с</button><button id="forward">+2 с</button>
+        <b id="clock">00:00.0</b>
+      </div>
+    </section>
+    <aside>
+      <h1>Точные окончания живых розыгрышей</h1>
+      <p>Смотри видео подряд. Когда мяч стал мёртвым — упал, ушёл в аут или судья остановил игру — поставь паузу на этом месте и нажми:</p>
+      <button id="mark" class="primary"><b>E</b> Записать окончание</button>
+      <p class="warning">Не отмечай повторы, передачу мяча подающему, разминочные касания и момент изменения табло.</p>
+      <button id="undo">↶ Удалить последнюю метку</button>
+      <ol id="markers"></ol>
+      <p class="hint"><kbd>Space</kbd> пауза · <kbd>←/→</kbd> ±2 с · <kbd>E</kbd> метка</p>
+      <p id="saved">Загрузка…</p>
+    </aside>
+  </main>
+  <script src="rally-end-timeline-review.js"></script>
+</body>
+</html>

@@ -8,6 +8,41 @@ import json
 from pathlib import Path
 
 
+def fuse_events(score_events: list[dict], motion_items: list[dict],
+                before_s: float, after_s: float) -> tuple[list[dict], set[int]]:
+    """Fuse evidence while keeping score changes as the safe end timestamp.
+
+    Referee motion can be a serve authorization that happens before the score
+    overlay updates.  It corroborates a score event but must never move the
+    rally end earlier and cut live play from the interval.
+    """
+    used_motion: set[int] = set()
+    events = []
+    for score_event in score_events:
+        score_time = float(score_event["time_s"])
+        eligible = [
+            (abs(float(row["time_s"]) - score_time), motion_index, row)
+            for motion_index, row in enumerate(motion_items)
+            if motion_index not in used_motion and
+            score_time - before_s <= float(row["time_s"]) <= score_time + after_s
+        ]
+        if eligible:
+            _, motion_index, row = min(eligible)
+            used_motion.add(motion_index)
+            events.append({"time_s": score_time, "reason": "scoreboard+motion",
+                           "scoreboard_time_s": score_time,
+                           "matched_motion_time_s": float(row["time_s"]),
+                           "motion_score": row["motion_score"]})
+        else:
+            events.append({"time_s": score_time, "reason": "scoreboard_only",
+                           "scoreboard_time_s": score_time})
+    events.extend({"time_s": row["time_s"], "reason": "motion_fallback",
+                   "motion_score": row["motion_score"]}
+                  for index, row in enumerate(motion_items) if index not in used_motion)
+    events.sort(key=lambda row: row["time_s"])
+    return events, used_motion
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("scoreboard", type=Path)
@@ -18,6 +53,8 @@ def main() -> None:
     parser.add_argument("--before-score-change-s", type=float, default=10)
     parser.add_argument("--after-score-change-s", type=float, default=6)
     parser.add_argument("--expected-score-changes", type=int)
+    parser.add_argument("--post-frozen-timestamp-fix", action="store_true",
+                        help="mark a route rebuilt after frozen timestamp inspection")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--review-output", type=Path, required=True)
     args = parser.parse_args()
@@ -25,30 +62,10 @@ def main() -> None:
     motion = json.loads(args.motion.read_text())
     if scoreboard["video"] != motion["video"]:
         raise ValueError("scoreboard and motion candidates belong to different videos")
-    used_motion: set[int] = set()
-    events = []
-    for index, score_event in enumerate(scoreboard["events"], 1):
-        score_time = float(score_event["time_s"])
-        eligible = [
-            (abs(float(row["time_s"]) - score_time), motion_index, row)
-            for motion_index, row in enumerate(motion["items"])
-            if motion_index not in used_motion and
-            score_time - args.before_score_change_s <= float(row["time_s"]) <=
-            score_time + args.after_score_change_s
-        ]
-        if eligible:
-            _, motion_index, row = min(eligible)
-            used_motion.add(motion_index)
-            events.append({"time_s": row["time_s"], "reason": "scoreboard+motion",
-                           "scoreboard_time_s": score_time,
-                           "motion_score": row["motion_score"]})
-        else:
-            events.append({"time_s": score_time, "reason": "scoreboard_only",
-                           "scoreboard_time_s": score_time})
+    events, used_motion = fuse_events(scoreboard["events"], motion["items"],
+                                      args.before_score_change_s,
+                                      args.after_score_change_s)
     fallback = [row for index, row in enumerate(motion["items"]) if index not in used_motion]
-    events.extend({"time_s": row["time_s"], "reason": "motion_fallback",
-                   "motion_score": row["motion_score"]} for row in fallback)
-    events.sort(key=lambda row: row["time_s"])
     duration_minutes = (float(scoreboard["end_s"]) - float(scoreboard["start_s"])) / 60
     frozen = bool(scoreboard["frozen_tests_used"] or motion["frozen_tests_used"])
     route = {
@@ -58,6 +75,7 @@ def main() -> None:
         "start_s": scoreboard["start_s"],
         "end_s": scoreboard["end_s"],
         "frozen_tests_used": frozen,
+        "post_frozen_timestamp_fix": bool(args.post_frozen_timestamp_fix),
         "parameters": {
             "before_score_change_s": args.before_score_change_s,
             "after_score_change_s": args.after_score_change_s,
