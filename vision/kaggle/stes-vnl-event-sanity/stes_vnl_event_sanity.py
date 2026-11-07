@@ -104,7 +104,18 @@ def main() -> None:
     old = "EPOCH_NUM_FRAMES = 500000"
     if old not in source:
         raise RuntimeError("upstream epoch-size constant changed")
-    training_file.write_text(source.replace(old, f"EPOCH_NUM_FRAMES = {FRAMES_PER_EPOCH}", 1))
+    source = source.replace(old, f"EPOCH_NUM_FRAMES = {FRAMES_PER_EPOCH}", 1)
+    # Upstream initializes the disabled location loss as a Python float, but
+    # unconditionally calls ``detach`` on it in the progress display.
+    old_location_loss = "                    loss_loc = 0.0"
+    if source.count(old_location_loss) != 1:
+        raise RuntimeError("upstream location-loss initialization changed")
+    source = source.replace(
+        old_location_loss,
+        "                    loss_loc = torch.tensor(0.0).to(self.device)",
+        1,
+    )
+    training_file.write_text(source)
 
     vnl = find_one("**/vnl_1.5/frames_224p").parent
     data_dir = repository / "data" / "vnl_1.5"
