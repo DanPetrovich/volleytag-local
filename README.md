@@ -21,7 +21,7 @@ human review. Старый интерфейс кнопочной и голосо
 | Temporal route | На untouched матче top-1 вырос с 73,72% до 79,20%, ошибок стало меньше на 20,83% |
 | Детектор мяча | Untouched test: 90,00% recall положительных кадров и 92,31% specificity отрицательных |
 | Точный контакт и действие | Rally-level диагностика: fixed contact-head сохранил 4/4 касаний, но не отфильтровал ни один из 7 отрицательных розыгрышей; маршрут отклонён |
-| Границы розыгрыша | Жест судьи и generic R3D плохо переносятся между ракурсами. Ball/trajectory late fusion поднял safe-envelope macro recall с 22,69% до 27,48% при 30,64% precision, но предзаданный порог улучшения не прошёл и скрытые подачи отдельно не восстановил. Маршрут не продвинут; следующий кандидат — volleyball-specific event spotting (`serve`/`score`) |
+| Границы розыгрыша | Жест судьи и generic R3D плохо переносятся между ракурсами. Ball/trajectory late fusion поднял safe-envelope macro recall с 22,69% до 27,48% при 30,64% precision, но предзаданный порог улучшения не прошёл. Начат отдельный VNL-STES transfer-маршрут для volleyball-specific событий `serve`/`score`; данные и веса пока не продвинуты |
 | Human review и evaluation | Рабочие интерфейсы, независимый GT, uniform sampling, validated gaps и frozen-протоколы |
 
 Temporal route v12 улучшил все основные метрики, но формально не достиг
@@ -154,6 +154,29 @@ python3 range_server.py 8765
 Kaggle datasets и kernels для обучения создаются приватными. Замороженные
 тестовые матчи нельзя использовать для обучения, выбора эпохи, порогов или
 маршрута.
+
+### Volleyball-specific границы розыгрыша
+
+Следующий эксперимент использует открытый код VNL-STES на зафиксированном
+upstream-коммите. Его RegNet-Y backbone инициализируется ImageNet-весами, поэтому
+это не обучение всей визуальной модели со случайного старта. Сначала модель
+обучается распознавать волейбольные события на VNL, затем временная модель
+переносится на наши классы `serve` и `score`.
+
+Архив VNL, извлечённые кадры, локальные пути, наши frame-level labels и веса
+остаются только под `vision/runs/stes-v1/`. После локального скачивания набор
+проверяется до GPU-запуска:
+
+```bash
+python3 vision/prepare_stes_data.py validate-vnl /path/to/vnl \
+  --output vision/runs/stes-v1/vnl-validation.json
+```
+
+Конвертер наших трёх training-источников отдельно запрещает очереди с
+`frozen_tests_used != false`. Параметры upstream, ожидаемая статистика набора и
+заранее заданные sanity/promotion-критерии находятся в
+`vision/stes-route-config.json`. Полное обучение допускается только после
+короткого source-balanced sanity-run.
 
 ## Персональный CV-конвейер
 

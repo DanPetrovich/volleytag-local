@@ -2,6 +2,11 @@
 vision/runs/
 /runs/
 
+# External sports datasets, extracted frames, and downloaded checkpoints stay
+# local even if a tool is pointed outside the normal vision/runs workspace.
+vision/data/
+vision/external/
+
 # Local source registries can contain direct match URLs and stay private.
 vision/match-registry-*.json
 vision/*.pt

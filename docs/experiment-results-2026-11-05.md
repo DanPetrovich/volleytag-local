@@ -514,3 +514,24 @@ Extra Trees — 79,16% recall и 63,87% specificity. Это отрицатель
   детектор мяча полезен как вспомогательное evidence внутри уже найденного
   розыгрыша, но не решает скрытую ближнюю подачу и не заменяет
   volleyball-specific event spotting. Дополнительный подбор порогов остановлен.
+
+### VNL-STES transfer route (подготовка)
+
+- Выбран официальный VNL-STES upstream `hoangqnguyen/spot`, зафиксированный на
+  commit `bbaa249c285c6bc133b091e50e6da2bf4ed42a39` (BSD-3-Clause). Код использует
+  ImageNet-pretrained RegNet-Y 800MF, GSM и GRU: визуальный backbone не стартует
+  со случайных весов.
+- Официальный архив заявляет 1 028 rally clips, 251 110 кадров и 6 137 событий
+  шести классов. Автоматический запрос к публичному SharePoint URL доходит до
+  файла `vnl_1.0.zip`, но получает HTTP 403; потребуется одно ручное скачивание
+  через браузер. Архив и все производные кадры остаются локальными.
+- Добавлен `vision/prepare_stes_data.py`: он проверяет классы, frame bounds,
+  координаты, дубликаты и отсутствие video leakage между train/val/test до
+  удалённого обучения. Отдельный export конвертирует только очереди с явным
+  `frozen_tests_used=false` в temporal `serve`/`score` events.
+- Экспорт трёх существующих training-источников дал 44 розыгрыша (88 событий):
+  15 KEAZ, 16 far2 и 13 oldstraight. Frozen/evaluation матчи не читались.
+- Sanity acceptance задан до результатов: macro containment recall не ниже
+  50%, каждый held-source не ниже 30%, macro precision не ниже 30%. Полное
+  продвижение требует macro containment recall не ниже 90% при precision не
+  ниже 50%; допускается начало до 2 секунд раньше и конец до 3 секунд позже.

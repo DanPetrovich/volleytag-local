@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "upstream": {
+    "repository": "https://github.com/hoangqnguyen/spot",
+    "commit": "bbaa249c285c6bc133b091e50e6da2bf4ed42a39",
+    "license": "BSD-3-Clause",
+    "dataset_page": "https://hoangqnguyen.github.io/stes/",
+    "dataset_download": "https://bit.ly/vnlvolley1"
+  },
+  "storage": {
+    "local_root": "vision/runs/stes-v1",
+    "tracked": false,
+    "private": true
+  },
+  "expected_vnl": {
+    "classes": ["serve", "receive", "set", "spike", "block", "score"],
+    "clips": 1028,
+    "frames": 251110,
+    "events": 6137
+  },
+  "transfer": {
+    "target_classes": ["serve", "score"],
+    "pretrained_backbone": "ImageNet RegNet-Y 800MF",
+    "temporal_architecture": "GSM + GRU",
+    "frozen_tests_used": false
+  },
+  "sanity_acceptance": {
+    "minimum_macro_containment_recall": 0.5,
+    "minimum_fold_containment_recall": 0.3,
+    "minimum_macro_precision": 0.3
+  },
+  "promotion_acceptance": {
+    "minimum_macro_containment_recall": 0.9,
+    "minimum_macro_precision": 0.5,
+    "start_early_tolerance_s": 2.0,
+    "end_late_tolerance_s": 3.0
+  }
+}
