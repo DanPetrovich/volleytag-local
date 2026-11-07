@@ -29,11 +29,24 @@ def run(command: list[str], *, cwd: Path | None = None) -> None:
     subprocess.run(command, cwd=cwd, check=True)
 
 
-def find_archive() -> Path:
-    matches = list(Path("/kaggle/input").glob("**/vnl_1.0.zip"))
-    if len(matches) != 1:
-        raise RuntimeError(f"expected one VNL archive, found {matches}")
-    return matches[0]
+def find_vnl_data() -> Path:
+    # Kaggle expands a top-level ZIP while creating a dataset. Retain archive
+    # support as a fallback for a future version that preserves the upload.
+    direct = list(Path("/kaggle/input").glob("**/vnl_1.5/train.json"))
+    if len(direct) == 1:
+        return direct[0].parent
+    archives = list(Path("/kaggle/input").glob("**/vnl_1.0.zip"))
+    if len(archives) != 1:
+        raise RuntimeError(
+            f"expected one VNL dataset or archive, found direct={direct}, zip={archives}"
+        )
+    extracted = WORK / "vnl_1.5"
+    with zipfile.ZipFile(archives[0]) as source:
+        bad = source.testzip()
+        if bad:
+            raise RuntimeError(f"corrupt member: {bad}")
+        source.extractall(WORK)
+    return extracted
 
 
 def ensure_dependencies() -> None:
@@ -53,13 +66,7 @@ def ensure_dependencies() -> None:
 
 
 def prepare_upstream() -> tuple[Path, Path]:
-    archive = find_archive()
-    extracted = WORK / "vnl_1.5"
-    with zipfile.ZipFile(archive) as source:
-        bad = source.testzip()
-        if bad:
-            raise RuntimeError(f"corrupt member: {bad}")
-        source.extractall(WORK)
+    extracted = find_vnl_data()
     if not (extracted / "train.json").is_file():
         raise RuntimeError("VNL train.json missing after extraction")
 
