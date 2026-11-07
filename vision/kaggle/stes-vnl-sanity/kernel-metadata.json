@@ -1,0 +1,16 @@
+{
+  "id": "daniilpet/volleytag-stes-vnl-pipeline-smoke",
+  "title": "VolleyTag STES VNL pipeline smoke",
+  "code_file": "stes_vnl_sanity.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "daniilpet/volleytag-vnl-stes-15-private"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}
