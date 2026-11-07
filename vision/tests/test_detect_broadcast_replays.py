@@ -2,11 +2,9 @@ import importlib.util
 import unittest
 from pathlib import Path
 
-import numpy as np
-
 try:
     import cv2  # noqa: F401
-    import numpy  # noqa: F401
+    import numpy as np
 except ModuleNotFoundError as error:
     raise unittest.SkipTest(f"optional vision dependency unavailable: {error.name}")
 
