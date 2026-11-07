@@ -21,7 +21,7 @@ human review. Старый интерфейс кнопочной и голосо
 | Temporal route | На untouched матче top-1 вырос с 73,72% до 79,20%, ошибок стало меньше на 20,83% |
 | Детектор мяча | Untouched test: 90,00% recall положительных кадров и 92,31% specificity отрицательных |
 | Точный контакт и действие | Rally-level диагностика: fixed contact-head сохранил 4/4 касаний, но не отфильтровал ни один из 7 отрицательных розыгрышей; маршрут отклонён |
-| Границы розыгрыша | Жест судьи и generic R3D плохо переносятся между ракурсами. Ball/trajectory late fusion поднял safe-envelope macro recall с 22,69% до 27,48% при 30,64% precision, но предзаданный порог улучшения не прошёл. Event-balanced VNL-STES sanity дал temporal mAP 1,32% против 1,15% shuffle (+15,04% при требовании +25%); полный pretraining остановлен, веса не продвинуты |
+| Границы розыгрыша | После replay-mask и ручного исправления 15 интервалов same-source R3D поднялся с 1/5 до 4/5 точных совпадений, но precision 57,14% не прошёл sanity. Чистый трёхисточниковый LOSO всё ещё провален: macro recall 16,67%, minimum-fold recall 0%. Event-balanced VNL-STES также не прошёл заранее заданный критерий; модели и веса не продвинуты |
 | Human review и evaluation | Рабочие интерфейсы, независимый GT, uniform sampling, validated gaps и frozen-протоколы |
 
 Temporal route v12 улучшил все основные метрики, но формально не достиг
