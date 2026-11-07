@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>VolleyTag — проверка повторов</title>
   <link rel="stylesheet" href="whistle-review.css">
+  <style>.controls{flex-wrap:wrap}.controls .speed.active{border-color:#ff6b35;background:#4a2d24}</style>
 </head>
 <body>
   <header><a href="index.html">51 VolleyTag</a><strong id="progress">0 / 0</strong></header>
@@ -12,7 +13,7 @@
     <section class="viewer">
       <video id="video" controls playsinline></video>
       <div class="timeline"><span>до</span><input id="seek" type="range" step="0.01"><span>после</span></div>
-      <div class="controls"><button id="playDetected">▶ Найденный повтор</button><button id="playContext">↻ С заставками</button><span id="clock">00:00.000</span></div>
+      <div class="controls"><button id="playDetected">▶ Найденный повтор</button><button id="playContext">↻ С заставками</button><span>Скорость:</span><button class="speed" data-speed="1">×1</button><button class="speed" data-speed="2">×2</button><button class="speed active" data-speed="2.5">×2,5</button><span id="clock">00:00.000</span></div>
       <p id="meta">Загрузка…</p>
     </section>
     <aside>
@@ -31,6 +32,6 @@
       <p id="saved">Загрузка…</p>
     </aside>
   </main>
-  <script src="replay-interval-review.js"></script>
+  <script src="replay-interval-review.js?v=2"></script>
 </body>
 </html>
