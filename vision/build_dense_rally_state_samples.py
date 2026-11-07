@@ -21,8 +21,19 @@ def validate_rallies(rallies: list[dict], start_s: float, end_s: float) -> None:
         previous_end = end
 
 
+def replay_exclusions(payload: dict, video: str) -> list[dict]:
+    if payload.get("frozen_tests_used"):
+        raise ValueError("frozen replay metadata cannot be used for training")
+    matches = [row for row in payload.get("sources", {}).values()
+               if row.get("video") == video]
+    if len(matches) != 1:
+        raise ValueError("could not resolve replay metadata for training video")
+    return matches[0].get("exclude_intervals", [])
+
+
 def build_samples(queue: dict, results: dict, source: int, step_s: float,
-                  development_rallies: int) -> tuple[dict, dict]:
+                  development_rallies: int,
+                  exclude_intervals: list[dict] | None = None) -> tuple[dict, dict]:
     if step_s <= 0:
         raise ValueError("step_s must be positive")
     if results.get("pending_start") is not None:
@@ -34,10 +45,16 @@ def build_samples(queue: dict, results: dict, source: int, step_s: float,
     split_s = (float(queue["start_s"]) if development_rallies == 0 else
                (float(rallies[development_rallies - 1]["end_s"])
                 + float(rallies[development_rallies]["start_s"])) / 2)
-    items, answers = [], {}
+    exclusions = exclude_intervals or []
+    items, answers, excluded_replay_samples = [], {}, 0
     timestamp = float(queue["start_s"]) + 3.0
     last_usable = float(queue["end_s"]) - 2.0
     while timestamp <= last_usable + 1e-6:
+        if any(float(row["start_s"]) <= timestamp <= float(row["end_s"])
+               for row in exclusions):
+            excluded_replay_samples += 1
+            timestamp += step_s
+            continue
         active = next((row for row in rallies
                        if float(row["start_s"]) <= timestamp <= float(row["end_s"])), None)
         item_id = f"dense-rally-s{source}-t{timestamp:.3f}"
@@ -64,6 +81,8 @@ def build_samples(queue: dict, results: dict, source: int, step_s: float,
         "split_s": split_s,
         "development_rallies": development_rallies,
         "evaluation_rallies": len(rallies) - development_rallies,
+        "replay_mask_enabled": bool(exclusions),
+        "excluded_replay_samples": excluded_replay_samples,
         "rallies": rallies,
         "items": items,
     }
@@ -83,18 +102,23 @@ def main() -> None:
     parser.add_argument("--source", type=int, required=True)
     parser.add_argument("--step-s", type=float, default=1.0)
     parser.add_argument("--development-rallies", type=int, required=True)
+    parser.add_argument("--replay-intervals", type=Path, required=True)
     parser.add_argument("--queue-output", type=Path, required=True)
     parser.add_argument("--results-output", type=Path, required=True)
     args = parser.parse_args()
-    queue, results = build_samples(json.loads(args.queue.read_text()),
-                                   json.loads(args.results.read_text()), args.source,
-                                   args.step_s, args.development_rallies)
+    source_queue = json.loads(args.queue.read_text())
+    exclusions = replay_exclusions(json.loads(args.replay_intervals.read_text()),
+                                   source_queue["video"])
+    queue, results = build_samples(source_queue, json.loads(args.results.read_text()),
+                                   args.source, args.step_s,
+                                   args.development_rallies, exclusions)
     for path, payload in ((args.queue_output, queue), (args.results_output, results)):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
     counts = {label: sum(row["decision"] == label for row in results["answers"].values())
               for label in ("active_play", "dead_ball")}
     print(json.dumps({"samples": len(queue["items"]), "split_s": queue["split_s"],
+                      "excluded_replay_samples": queue["excluded_replay_samples"],
                       "labels": counts}, indent=2))
 
 

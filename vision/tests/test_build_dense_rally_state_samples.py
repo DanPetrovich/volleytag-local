@@ -42,6 +42,28 @@ class DenseRallyStateSamplesTest(unittest.TestCase):
         self.assertEqual(samples["development_rallies"], 0)
         self.assertTrue(all(row["partition"] == "evaluation" for row in samples["items"]))
 
+    def test_excludes_replay_and_bumper_samples(self):
+        queue = {"video": "v.mp4", "start_s": 0, "end_s": 20}
+        results = {"pending_start": None, "rallies": [
+            {"id": "r1", "start_s": 4, "end_s": 7,
+             "start_confidence": "exact", "end_confidence": "exact"},
+            {"id": "r2", "start_s": 12, "end_s": 16,
+             "start_confidence": "exact", "end_confidence": "exact"},
+        ]}
+        samples, _ = MODULE.build_samples(
+            queue, results, 3, 1, 1,
+            [{"start_s": 8.5, "end_s": 10.5}],
+        )
+        times = {row["time_s"] for row in samples["items"]}
+        self.assertNotIn(9, times)
+        self.assertNotIn(10, times)
+        self.assertEqual(samples["excluded_replay_samples"], 2)
+        self.assertTrue(samples["replay_mask_enabled"])
+
+    def test_rejects_frozen_replay_metadata(self):
+        with self.assertRaisesRegex(ValueError, "frozen"):
+            MODULE.replay_exclusions({"frozen_tests_used": True}, "v.mp4")
+
 
 if __name__ == "__main__":
     unittest.main()

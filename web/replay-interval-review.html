@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>VolleyTag — проверка повторов</title>
+  <link rel="stylesheet" href="whistle-review.css">
+</head>
+<body>
+  <header><a href="index.html">51 VolleyTag</a><strong id="progress">0 / 0</strong></header>
+  <main>
+    <section class="viewer">
+      <video id="video" controls playsinline></video>
+      <div class="timeline"><span>до</span><input id="seek" type="range" step="0.01"><span>после</span></div>
+      <div class="controls"><button id="playDetected">▶ Найденный повтор</button><button id="playContext">↻ С заставками</button><span id="clock">00:00.000</span></div>
+      <p id="meta">Загрузка…</p>
+    </section>
+    <aside>
+      <h1>Проверка найденных повторов</h1>
+      <p>В интервал должны входить обе фиолетовые заставки и всё содержимое между ними.</p>
+      <button id="correct" class="primary"><b>C</b> Верно</button>
+      <button id="notReplay"><b>N</b> Это не повтор</button>
+      <button id="uncertain"><b>U</b> Не уверен</button>
+      <hr>
+      <p>Если граница неточная: поставь видео в нужный момент и отметь её.</p>
+      <button id="setStart"><b>S</b> Поставить начало</button>
+      <button id="setEnd"><b>E</b> Поставить конец</button>
+      <button id="saveAdjusted"><b>A</b> Сохранить исправленные границы</button>
+      <p id="bounds">—</p>
+      <p class="hint"><kbd>Space</kbd> контекст · <kbd>Backspace</kbd> назад</p>
+      <p id="saved">Загрузка…</p>
+    </aside>
+  </main>
+  <script src="replay-interval-review.js"></script>
+</body>
+</html>

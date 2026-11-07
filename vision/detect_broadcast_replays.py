@@ -12,6 +12,33 @@ import cv2
 import numpy as np
 
 
+def classify_bumpers(representatives: list[np.ndarray],
+                     start_max_score: float = .005,
+                     end_min_score: float = .01) -> list[dict]:
+    """Classify the fixed title layouts without OCR or a learned model.
+
+    ``ПОВТОР`` leaves the upper title band empty, while the league logo and
+    three-line title occupy it. The animated purple shards are saturated and
+    are removed by the white-pixel mask.
+    """
+    result = []
+    for frame in representatives:
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        white = (hsv[:, :, 1] < 100) & (hsv[:, :, 2] > 140)
+        score = float(white[15:35, 45:130].mean())
+        kind = ("replay_start" if score <= start_max_score else
+                ("replay_end" if score >= end_min_score else "unknown"))
+        result.append({"bumper_kind": kind, "layout_score": score})
+    return result
+
+
+def title_mask(frame: np.ndarray) -> np.ndarray:
+    """Backward-compatible helper for diagnostics."""
+    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+    white = ((hsv[:, :, 1] < 100) & (hsv[:, :, 2] > 140)).astype(np.float32)
+    return white[10:75, 20:145]
+
+
 def purple_runs(video: str, fps: int = 2, threshold: float = .35) -> tuple[list[dict], float]:
     width, height = 160, 90
     command = [
@@ -30,7 +57,7 @@ def purple_runs(video: str, fps: int = 2, threshold: float = .35) -> tuple[list[
                 (hsv[:, :, 1] >= 80) & (hsv[:, :, 2] >= 35))
         fractions.append(float(mask.mean()))
     selected = np.asarray(fractions) >= threshold
-    runs, index = [], 0
+    runs, representatives, index = [], [], 0
     while index < len(selected):
         if not selected[index]:
             index += 1
@@ -41,23 +68,35 @@ def purple_runs(video: str, fps: int = 2, threshold: float = .35) -> tuple[list[
             end += 1
         runs.append({"start_s": index / fps, "end_s": end / fps,
                      "max_purple_fraction": max(fractions[index:end])})
+        representatives.append(frames[(index + end) // 2])
         index = end
+    for row, classification in zip(runs, classify_bumpers(representatives)):
+        row.update(classification)
     return runs, len(frames) / fps
 
 
 def replay_pairs(runs: list[dict], max_duration_s: float) -> list[dict]:
-    result, index = [], 0
-    while index + 1 < len(runs):
-        first, second = runs[index], runs[index + 1]
-        gap = float(second["start_s"] - first["end_s"])
-        short_bumpers = (first["end_s"] - first["start_s"] <= 5 and
-                          second["end_s"] - second["start_s"] <= 5)
+    result, pending = [], None
+    for index, row in enumerate(runs):
+        kind = row.get("bumper_kind", "unknown")
+        if kind == "replay_start":
+            pending = row
+            continue
+        if kind == "unknown" and pending is not None:
+            next_known = next((later.get("bumper_kind") for later in runs[index + 1:]
+                               if later.get("bumper_kind") != "unknown"), None)
+            if next_known != "replay_start":
+                continue
+            kind = "replay_end"
+        if kind != "replay_end" or pending is None:
+            continue
+        gap = float(row["start_s"] - pending["end_s"])
+        short_bumpers = (pending["end_s"] - pending["start_s"] <= 5 and
+                          row["end_s"] - row["start_s"] <= 5)
         if short_bumpers and 1 <= gap <= max_duration_s:
-            result.append({"start_s": first["start_s"], "end_s": second["end_s"],
-                           "duration_s": second["end_s"] - first["start_s"]})
-            index += 2
-        else:
-            index += 1
+            result.append({"start_s": pending["start_s"], "end_s": row["end_s"],
+                           "duration_s": row["end_s"] - pending["start_s"]})
+        pending = None
     return result
 
 
@@ -78,7 +117,7 @@ def main() -> None:
     parser.add_argument("--video")
     parser.add_argument("--source", type=int)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--max-replay-s", type=float, default=30)
+    parser.add_argument("--max-replay-s", type=float, default=60)
     parser.add_argument("--padding-s", type=float, default=2)
     parser.add_argument("--frozen-evaluation", action="store_true")
     args = parser.parse_args()
