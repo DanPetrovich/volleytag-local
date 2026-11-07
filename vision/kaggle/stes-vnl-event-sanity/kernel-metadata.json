@@ -1,0 +1,18 @@
+{
+  "id": "daniilpet/volleytag-stes-vnl-event-sanity",
+  "title": "VolleyTag STES VNL event sanity",
+  "code_file": "stes_vnl_event_sanity.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_internet": true,
+  "dataset_sources": [
+    "daniilpet/volleytag-vnl-stes-15-private"
+  ],
+  "competition_sources": [],
+  "kernel_sources": [
+    "daniilpet/volleytag-stes-vnl-pipeline-smoke"
+  ],
+  "model_sources": []
+}

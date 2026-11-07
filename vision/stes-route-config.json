@@ -35,6 +35,13 @@
     "requires_validation_predictions": true,
     "authorizes_full_pretraining": false
   },
+  "event_sanity_acceptance": {
+    "epochs": 5,
+    "sampled_training_frames_per_epoch": 5000,
+    "minimum_train_loss_reduction": 0.1,
+    "minimum_val_map": 0.01,
+    "authorizes_full_pretraining_on_pass": true
+  },
   "sanity_acceptance": {
     "minimum_macro_containment_recall": 0.5,
     "minimum_fold_containment_recall": 0.3,
