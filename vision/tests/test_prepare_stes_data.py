@@ -1,4 +1,6 @@
 import importlib.util
+import json
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -63,6 +65,48 @@ class PrepareStesDataTest(unittest.TestCase):
                 queue,
                 video_id="frozen",
                 meta={"fps": 25.0, "num_frames": 300, "width": 398, "height": 224},
+            )
+
+    def test_accepts_explicit_background_class_and_reports_archive_quirks(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "class.txt").write_text(
+                "background\nblock\nreceive\nscore\nserve\nset\nspike\n"
+            )
+            rows = [{
+                "video": "match/rally_1",
+                "num_frames": 2,
+                "num_events": 0,
+                "events": [
+                    {"frame": 0, "label": "serve"},
+                    {"frame": 0, "label": "serve"},
+                    {"frame": 0, "label": "score"},
+                ],
+            }]
+            for split in ("train", "val", "test"):
+                split_rows = [dict(rows[0], video=f"{split}/rally_1")]
+                (root / f"{split}.json").write_text(json.dumps(split_rows))
+                frame_dir = root / "frames_224p" / split / "rally_1"
+                frame_dir.mkdir(parents=True)
+                for frame in range(3):
+                    (frame_dir / f"{frame:06d}.jpg").touch()
+            all_rows = []
+            for split in ("train", "val", "test"):
+                all_rows.append(dict(rows[0], video=f"{split}/rally_1"))
+            (root / "all.json").write_text(json.dumps(all_rows))
+
+            report = MODULE.validate_vnl_dataset(root)
+            self.assertEqual(report["total_videos"], 3)
+            self.assertEqual(report["total_events"], 9)
+            self.assertEqual(report["frames"]["extra_terminal_frames"], 3)
+            self.assertEqual(
+                report["splits"]["train"]["declared_event_count_mismatches"], 1
+            )
+            self.assertEqual(
+                report["splits"]["train"]["duplicate_event_instances"], 1
+            )
+            self.assertEqual(
+                report["splits"]["train"]["conflicting_event_frames"], 1
             )
 
 

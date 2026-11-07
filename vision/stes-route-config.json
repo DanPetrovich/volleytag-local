@@ -13,10 +13,13 @@
     "private": true
   },
   "expected_vnl": {
-    "classes": ["serve", "receive", "set", "spike", "block", "score"],
+    "class_file_classes": ["background", "block", "receive", "score", "serve", "set", "spike"],
+    "event_classes": ["serve", "receive", "set", "spike", "block", "score"],
     "clips": 1028,
     "frames": 251110,
-    "events": 6137
+    "split_events": 6489,
+    "all_json_events": 6623,
+    "paper_reported_events": 6137
   },
   "transfer": {
     "target_classes": ["serve", "score"],

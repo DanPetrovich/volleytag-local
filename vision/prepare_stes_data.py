@@ -39,6 +39,9 @@ def validate_split(
     videos: set[str] = set()
     counts: Counter[str] = Counter()
     frames = 0
+    declared_event_count_mismatches = 0
+    duplicate_event_instances = 0
+    conflicting_event_frames = 0
     for index, row in enumerate(rows):
         if not isinstance(row, dict):
             raise ValueError(f"{split}[{index}]: expected an object")
@@ -55,7 +58,10 @@ def validate_split(
         events = row.get("events")
         if not isinstance(events, list):
             raise ValueError(f"{split}/{video}: events must be a list")
+        if row.get("num_events") != len(events):
+            declared_event_count_mismatches += 1
         seen: set[tuple[int, str]] = set()
+        labels_by_frame: dict[int, set[str]] = {}
         for event_index, event in enumerate(events):
             if not isinstance(event, dict):
                 raise ValueError(
@@ -73,8 +79,9 @@ def validate_split(
                 )
             key = (frame, label)
             if key in seen:
-                raise ValueError(f"{split}/{video}: duplicate event {key}")
+                duplicate_event_instances += 1
             seen.add(key)
+            labels_by_frame.setdefault(frame, set()).add(label)
             counts[label] += 1
 
             xy = event.get("xy")
@@ -90,6 +97,9 @@ def validate_split(
                     raise ValueError(
                         f"{split}/{video}/events[{event_index}]: invalid xy"
                     )
+        conflicting_event_frames += sum(
+            len(frame_labels) > 1 for frame_labels in labels_by_frame.values()
+        )
 
     return {
         "videos": videos,
@@ -97,6 +107,57 @@ def validate_split(
         "frame_count": frames,
         "event_count": sum(counts.values()),
         "events_by_class": dict(sorted(counts.items())),
+        "declared_event_count_mismatches": declared_event_count_mismatches,
+        "duplicate_event_instances": duplicate_event_instances,
+        "conflicting_event_frames": conflicting_event_frames,
+    }
+
+
+def validate_frames(dataset_dir: Path, rows: list[dict[str, Any]]) -> dict[str, Any]:
+    frame_root = dataset_dir / "frames_224p"
+    if not frame_root.is_dir():
+        raise ValueError(f"missing {frame_root}")
+
+    expected_videos = {str(row["video"]) for row in rows}
+    actual_videos = {
+        str(path.relative_to(frame_root))
+        for path in frame_root.glob("*/*")
+        if path.is_dir()
+    }
+    missing_directories = sorted(expected_videos - actual_videos)
+    if missing_directories:
+        raise ValueError(f"missing frame directories: {missing_directories[:3]}")
+
+    missing_frames = 0
+    extra_frames = 0
+    videos_with_extra_frames = 0
+    image_count = 0
+    for row in rows:
+        directory = frame_root / str(row["video"])
+        frame_numbers = {
+            int(path.stem) for path in directory.glob("*.jpg") if path.stem.isdigit()
+        }
+        image_count += len(frame_numbers)
+        expected = set(range(int(row["num_frames"])))
+        missing_frames += len(expected - frame_numbers)
+        extras = len(frame_numbers - expected)
+        extra_frames += extras
+        videos_with_extra_frames += int(extras > 0)
+    if missing_frames:
+        raise ValueError(f"dataset is missing {missing_frames} expected frames")
+
+    orphan_videos = sorted(actual_videos - expected_videos)
+    orphan_frames = sum(
+        len(list((frame_root / video).glob("*.jpg"))) for video in orphan_videos
+    )
+    return {
+        "expected_video_directories": len(expected_videos),
+        "image_count_for_expected_videos": image_count,
+        "missing_frames": missing_frames,
+        "extra_terminal_frames": extra_frames,
+        "videos_with_extra_terminal_frames": videos_with_extra_frames,
+        "orphan_video_directories": orphan_videos,
+        "orphan_frames": orphan_frames,
     }
 
 
@@ -104,11 +165,14 @@ def validate_vnl_dataset(dataset_dir: Path) -> dict[str, Any]:
     class_file = dataset_dir / "class.txt"
     if not class_file.is_file():
         raise ValueError(f"missing {class_file}")
-    classes = {
+    class_file_classes = [
         _normalise_label(line)
         for line in class_file.read_text().splitlines()
         if line.strip()
-    }
+    ]
+    if len(class_file_classes) != len(set(class_file_classes)):
+        raise ValueError("class.txt contains duplicate classes")
+    classes = set(class_file_classes) - {"background"}
     if classes != EXPECTED_VNL_CLASSES:
         raise ValueError(
             f"unexpected classes: got {sorted(classes)}, "
@@ -117,6 +181,7 @@ def validate_vnl_dataset(dataset_dir: Path) -> dict[str, Any]:
 
     reports: dict[str, dict[str, Any]] = {}
     all_videos: set[str] = set()
+    split_rows: list[dict[str, Any]] = []
     for split in ("train", "val", "test"):
         path = dataset_dir / f"{split}.json"
         if not path.is_file():
@@ -126,13 +191,37 @@ def validate_vnl_dataset(dataset_dir: Path) -> dict[str, Any]:
         if overlap:
             raise ValueError(f"{split}: videos leak across splits: {sorted(overlap)[:3]}")
         all_videos.update(report["videos"])
+        split_rows.extend(read_json(path))
         reports[split] = report
+
+    all_path = dataset_dir / "all.json"
+    all_annotations = None
+    if all_path.is_file():
+        all_rows = read_json(all_path)
+        all_report = validate_split(
+            all_rows, split="all", allowed_classes=classes
+        )
+        split_by_video = {str(row["video"]): row for row in split_rows}
+        all_by_video = {str(row["video"]): row for row in all_rows}
+        if set(all_by_video) != set(split_by_video):
+            raise ValueError("all.json video ids differ from train/val/test union")
+        differing = sum(
+            all_by_video[video]["events"] != split_by_video[video]["events"]
+            for video in all_by_video
+        )
+        all_annotations = {
+            key: value for key, value in all_report.items() if key != "videos"
+        }
+        all_annotations["videos_differing_from_split_annotations"] = differing
+
+    frame_report = validate_frames(dataset_dir, split_rows)
 
     return {
         "schema_version": 1,
         "kind": "volleytag.stes-dataset-validation",
         "dataset_dir": str(dataset_dir),
-        "classes": sorted(classes),
+        "class_file_classes": class_file_classes,
+        "event_classes": sorted(classes),
         "splits": {
             split: {key: value for key, value in report.items() if key != "videos"}
             for split, report in reports.items()
@@ -140,6 +229,8 @@ def validate_vnl_dataset(dataset_dir: Path) -> dict[str, Any]:
         "total_videos": len(all_videos),
         "total_frames": sum(report["frame_count"] for report in reports.values()),
         "total_events": sum(report["event_count"] for report in reports.values()),
+        "all_annotations": all_annotations,
+        "frames": frame_report,
     }
 
 
