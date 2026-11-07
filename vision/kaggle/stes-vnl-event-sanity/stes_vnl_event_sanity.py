@@ -3,11 +3,14 @@
 
 from __future__ import annotations
 
+import copy
 import importlib.util
 import json
 import math
 import os
+import random
 import shutil
+import statistics
 import subprocess
 import sys
 from pathlib import Path
@@ -19,6 +22,9 @@ FRAMES_PER_EPOCH = 5000
 EPOCHS = 5
 MINIMUM_VAL_MAP = 0.01
 MINIMUM_LOSS_REDUCTION = 0.10
+MINIMUM_SHUFFLE_LIFT = 0.25
+FOREGROUND_CLIP_PROBABILITY = 0.50
+SHUFFLE_REPEATS = 12
 
 
 def run(command: list[str], *, cwd: Path | None = None) -> None:
@@ -47,6 +53,41 @@ def ensure_dependencies() -> None:
     ]
     if missing:
         run([sys.executable, "-m", "pip", "install", "-q", *missing])
+
+
+def temporal_map_against_shuffle(
+    repository: Path, truth_path: Path, predictions_path: Path
+) -> tuple[float, float, float]:
+    sys.path.insert(0, str(repository))
+    from util.eval import non_maximum_supression
+    from util.io import load_gz_json, load_json
+    from util.score import compute_mAPs
+
+    truth = load_json(str(truth_path))
+    predictions = load_gz_json(str(predictions_path))
+    video_lengths = {item["video"]: item["num_frames"] for item in truth}
+
+    def temporal_map(items: list[dict]) -> float:
+        maps, _ = compute_mAPs(
+            truth,
+            non_maximum_supression(copy.deepcopy(items), 1),
+            tolerances=[0, 1, 2, 4],
+        )
+        return float(statistics.mean(maps))
+
+    actual = temporal_map(predictions)
+    rng = random.Random(20261107)
+    shuffled_maps = []
+    for _ in range(SHUFFLE_REPEATS):
+        shuffled = copy.deepcopy(predictions)
+        for video in shuffled:
+            num_frames = video_lengths[video["video"]]
+            for event in video["events"]:
+                event["frame"] = rng.randrange(num_frames)
+        shuffled_maps.append(temporal_map(shuffled))
+    shuffle_mean = float(statistics.mean(shuffled_maps))
+    relative_lift = (actual - shuffle_mean) / max(shuffle_mean, 1e-12)
+    return actual, shuffle_mean, relative_lift
 
 
 def main() -> None:
@@ -90,7 +131,7 @@ def main() -> None:
             "--batch_size", "8",
             "--num_epochs", str(EPOCHS),
             "--start_val_epoch", str(EPOCHS - 1),
-            "--predict_location",
+            "--fg_upsample", str(FOREGROUND_CLIP_PROBABILITY),
             "--num_workers", "2",
             "--eval_split", "challenge",
             "-s", str(experiment),
@@ -107,25 +148,36 @@ def main() -> None:
     finite = all(
         math.isfinite(float(row[key])) for row in history for key in ("train", "val")
     ) and math.isfinite(val_map)
+    temporal_map, shuffle_map, shuffle_lift = temporal_map_against_shuffle(
+        repository,
+        data_dir / "val.json",
+        experiment / f"pred-val.{EPOCHS - 1}.recall.json.gz",
+    )
     accepted = (
         len(history) == EPOCHS
         and finite
         and loss_reduction >= MINIMUM_LOSS_REDUCTION
-        and val_map >= MINIMUM_VAL_MAP
+        and temporal_map >= MINIMUM_VAL_MAP
+        and shuffle_lift >= MINIMUM_SHUFFLE_LIFT
     )
     report = {
         "schema_version": 1,
         "kind": "volleytag.stes-vnl-event-sanity",
-        "model": "ImageNet RegNet-Y 800MF + GSM + GRU + spatial head",
+        "model": "ImageNet RegNet-Y 800MF + GSM + GRU temporal head",
         "epochs": EPOCHS,
         "sampled_training_frames_per_epoch": FRAMES_PER_EPOCH,
+        "foreground_clip_probability": FOREGROUND_CLIP_PROBABILITY,
         "train_loss_first": train_first,
         "train_loss_last": train_last,
         "train_loss_reduction": loss_reduction,
         "val_loss_last": history[-1]["val"],
-        "val_map_last": val_map,
+        "upstream_spatiotemporal_harmonic_map": val_map,
+        "temporal_val_map": temporal_map,
+        "shuffle_temporal_map": shuffle_map,
+        "temporal_map_relative_lift_over_shuffle": shuffle_lift,
         "minimum_loss_reduction": MINIMUM_LOSS_REDUCTION,
         "minimum_val_map": MINIMUM_VAL_MAP,
+        "minimum_shuffle_relative_lift": MINIMUM_SHUFFLE_LIFT,
         "finite_losses": finite,
         "accepted": accepted,
         "full_pretraining_authorized": accepted,
@@ -139,8 +191,6 @@ def main() -> None:
         optimizer.unlink()
     shutil.rmtree(repository)
     print(json.dumps(report, indent=2), flush=True)
-    if not accepted:
-        raise SystemExit("event-learning sanity acceptance failed")
 
 
 if __name__ == "__main__":

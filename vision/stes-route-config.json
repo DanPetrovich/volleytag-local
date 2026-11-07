@@ -38,8 +38,12 @@
   "event_sanity_acceptance": {
     "epochs": 5,
     "sampled_training_frames_per_epoch": 5000,
+    "foreground_clip_probability": 0.5,
+    "metric": "temporal_map_with_nms1_at_tolerances_0_1_2_4",
+    "shuffle_repeats": 12,
     "minimum_train_loss_reduction": 0.1,
     "minimum_val_map": 0.01,
+    "minimum_relative_lift_over_shuffle": 0.25,
     "authorizes_full_pretraining_on_pass": true
   },
   "sanity_acceptance": {
